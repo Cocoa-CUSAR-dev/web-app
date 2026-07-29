@@ -30,33 +30,29 @@ test.describe('Landing Page Tests', () => {
 
   test.describe('Footer Navigation', () => {
     test.beforeEach(async ({ page }) => {
-      await page.goto('http://localhost:3002/');
+      await page.goto('/');
       await page.getByRole('navigation').getByRole('link', { name: 'Log In' }).click();
       await page.getByRole('textbox', { name: 'email' }).fill('admin');
       await page.getByRole('textbox', { name: 'password' }).fill('Password123!');
       await page.getByRole('button', { name: 'Log In' }).click();
-      await page.goto('http://localhost:3002/');
+      await page.goto('/');
     });
-
-  
 
     test('Dashboard Navigation', async ({ page }) => {
       await Promise.all([
-        page.waitForURL('http://localhost:3002/dashboard'),
+        page.waitForURL(/\/dashboard$/),
         page.getByRole('contentinfo').getByRole('link', { name: 'Dashboard' }).click(),
       ]);
-      await expect(page).toHaveURL('http://localhost:3002/dashboard');
+      await expect(page).toHaveURL(/\/dashboard$/);
     });
 
     test('Form Navigation', async ({ page }) => {
       await Promise.all([
-        page.waitForURL('http://localhost:3002/form'),
+        page.waitForURL(/\/form$/),
         page.getByRole('link', { name: 'Form' }).click(),
       ]);
-      await expect(page).toHaveURL('http://localhost:3002/form');
+      await expect(page).toHaveURL(/\/form$/);
     });
-
-  
   });
 
   test('Other Footer Render Test', async ({ page }) => {
