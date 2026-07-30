@@ -6,6 +6,7 @@ test.describe('Authentication', () => {
     await page.getByRole('navigation').getByRole('link', { name: 'Log In' }).click();
     await page.getByRole('textbox', { name: 'email' }).fill('admin');
     await page.getByRole('textbox', { name: 'password' }).fill('Password123!');
+    await page.getByRole('checkbox').click();
     await page.getByRole('button', { name: 'Log In' }).click();
     await expect(page.locator('.mui-53g0n7-MuiButtonBase-root-MuiIconButton-root')).toBeVisible();
   });
@@ -15,6 +16,7 @@ test.describe('Authentication', () => {
     await page.getByRole('navigation').getByRole('link', { name: 'Log In' }).click();
     await page.getByRole('textbox', { name: 'email' }).fill('admin');
     await page.getByRole('textbox', { name: 'password' }).fill('Password123!');
+    await page.getByRole('checkbox').click();
     await page.getByRole('button', { name: 'Log In' }).click();
     await page.getByRole('navigation').filter({ hasText: 'Reseacher' }).getByRole('button').click();
     await page.getByRole('button', { name: 'Log Out' }).click();
