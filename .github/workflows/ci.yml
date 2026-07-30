@@ -56,11 +56,13 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build Next.js application
+        run: pnpm build
+
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Run Playwright tests
-        working-directory: ./tests
         run: pnpm exec playwright test
 
       - name: Upload Playwright report on failure
