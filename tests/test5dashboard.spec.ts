@@ -2,10 +2,11 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Dashboard Tests', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:3000/');
+    await page.goto('/');
     await page.getByRole('navigation').getByRole('link', { name: 'Log In' }).click();
     await page.getByRole('textbox', { name: 'email' }).fill('admin');
     await page.getByRole('textbox', { name: 'password' }).fill('Password123!');
+    await page.getByRole('checkbox').click();
     await page.getByRole('button', { name: 'Log In' }).click();
     await expect(page.locator('div').filter({ hasText: /^Dashboard$/ }).first()).toBeVisible();
   });

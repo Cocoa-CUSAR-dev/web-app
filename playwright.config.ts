@@ -18,6 +18,15 @@ const BASE_URL = process.env.BASE_URL ?? `http://localhost:${PORT}`;
 
 const isCI = !!process.env.CI;
 
+// แปะไว้ก่อน เดี๋ยวว่ากัน
+// The real Kotlin backend isn't available in CI (or for most local runs), so
+// spin up a lightweight mock in its place and point the app at it. Only
+// applies when we're also the ones starting the Next.js server (BASE_URL
+// unset) and the caller hasn't already pointed BACKEND_URL somewhere real.
+const MOCK_BACKEND_PORT = Number(process.env.MOCK_BACKEND_PORT ?? 4310);
+const MOCK_BACKEND_URL = `http://127.0.0.1:${MOCK_BACKEND_PORT}`;
+const useMockBackend = !process.env.BASE_URL && !process.env.BACKEND_URL;
+
 export default defineConfig({
   testDir: "./tests",
   fullyParallel: true,
@@ -41,15 +50,33 @@ export default defineConfig({
 
   // Start `next start` only when BASE_URL isn't already reachable (local + CI
   // when not pointing at a deployed env). `reuseExistingServer` lets devs run
-  // `pnpm dev` in another terminal and skip the launcher.
+  // `pnpm dev` in another terminal and skip the launcher. When no real
+  // BACKEND_URL is configured, also boot the mock backend (tests/mocks) so
+  // the app has something to talk to.
   webServer: process.env.BASE_URL
     ? undefined
-    : {
-        command: `pnpm exec next start --port ${PORT}`,
-        url: BASE_URL,
-        reuseExistingServer: !isCI,
-        timeout: 120_000,
-        stdout: "pipe",
-        stderr: "pipe",
-      },
+    : [
+        ...(useMockBackend
+          ? [
+              {
+                command: `node tests/mocks/backend-server.mjs`,
+                url: `${MOCK_BACKEND_URL}/health`,
+                reuseExistingServer: !isCI,
+                timeout: 30_000,
+                stdout: "pipe" as const,
+                stderr: "pipe" as const,
+                env: { MOCK_BACKEND_PORT: String(MOCK_BACKEND_PORT) },
+              },
+            ]
+          : []),
+        {
+          command: `pnpm exec next start --port ${PORT}`,
+          url: BASE_URL,
+          reuseExistingServer: !isCI,
+          timeout: 120_000,
+          stdout: "pipe" as const,
+          stderr: "pipe" as const,
+          env: useMockBackend ? { BACKEND_URL: MOCK_BACKEND_URL } : {},
+        },
+      ],
 });

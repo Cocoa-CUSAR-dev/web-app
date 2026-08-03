@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Landing Page Tests', () => {
   test.beforeEach(async ({ page }) => {
-      await page.goto('http://localhost:3000/');
+      await page.goto('/');
   });
   test('Heading Render Test', async ({ page }) => {
     await expect(page.getByRole('heading', { name: 'Enhance', exact: true })).toBeVisible();
@@ -34,7 +34,11 @@ test.describe('Landing Page Tests', () => {
       await page.getByRole('navigation').getByRole('link', { name: 'Log In' }).click();
       await page.getByRole('textbox', { name: 'email' }).fill('admin');
       await page.getByRole('textbox', { name: 'password' }).fill('Password123!');
-      await page.getByRole('button', { name: 'Log In' }).click();
+      await page.getByRole('checkbox').click();
+      await Promise.all([
+        page.waitForURL(/\/dashboard$/),
+        page.getByRole('button', { name: 'Log In' }).click(),
+      ]);
       await page.goto('/');
     });
 
@@ -49,7 +53,7 @@ test.describe('Landing Page Tests', () => {
     test('Form Navigation', async ({ page }) => {
       await Promise.all([
         page.waitForURL(/\/form$/),
-        page.getByRole('link', { name: 'Form' }).click(),
+        page.getByRole('contentinfo').getByRole('link', { name: 'Form' }).click(),
       ]);
       await expect(page).toHaveURL(/\/form$/);
     });
