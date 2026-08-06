@@ -10,6 +10,11 @@ type QuestionInputType =
   | "VARCHAR"
   | "GEODATA";
 
+type Choice = {
+  id: string;
+  name: string;
+};
+
 type Question = {
   questionId: string;
   sectionId: string;
@@ -21,7 +26,7 @@ type Question = {
   isDefault: boolean;
   isActive: boolean;
   sortOrder: number;
-  choices: string[] | null;
+  choices: Choice[] | null;
 };
 
 type Section = {
@@ -72,7 +77,7 @@ type FormEditColumnSchema = {
   Description: string | null;
   Status: boolean;
   Required: boolean;
-  Choices: string[] | null;
+  Choices: Choice[] | null;
 };
 
 type FormEditRow = {
@@ -82,6 +87,7 @@ type FormEditRow = {
 };
 
 export type {
+  Choice,
   Form,
   FormEditColumn,
   FormEditRequest,

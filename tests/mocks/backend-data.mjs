@@ -174,7 +174,11 @@ function initialForms() {
               isDefault: false,
               isActive: true,
               sortOrder: 0,
-              choices: ["ชุมพร 1", "ไอโวรี่โคสท์", "ลูกผสมพื้นเมือง"],
+              choices: [
+                { id: "chumphon-1-id", name: "ชุมพร 1" },
+                { id: "ivory-coast-id", name: "ไอโวรี่โคสท์" },
+                { id: "hybrid-native-id", name: "ลูกผสมพื้นเมือง" },
+              ],
             },
             {
               questionId: "q-5",
