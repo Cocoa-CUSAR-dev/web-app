@@ -277,7 +277,8 @@ function FormEditTable({
                                 setModalContent(
                                   choices
                                     .map(
-                                      (choice, idx) => `${idx + 1}. ${choice}`,
+                                      (choice, idx) =>
+                                        `${idx + 1}. ${choice.name}`,
                                     )
                                     .join("\n"),
                                 );

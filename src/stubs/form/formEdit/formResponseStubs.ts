@@ -104,7 +104,11 @@ const formIdStub: GetFormIdResponse = {
             isDefault: false,
             isActive: true,
             sortOrder: 2,
-            choices: ["Aloha", "Alaho", "ไก่มีสามขา เขาว่าก๊ายไก่"],
+            choices: [
+              { id: "aloha-id", name: "Aloha" },
+              { id: "alaho-id", name: "Alaho" },
+              { id: "chicken-id", name: "ไก่มีสามขา เขาว่าก๊ายไก่" },
+            ],
           },
         ],
       },
