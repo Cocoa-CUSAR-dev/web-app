@@ -36,15 +36,20 @@ describe("GET /api/v1/users", () => {
     });
   });
 
-  it("BUG: returns undefined when authenticated (lookup branches are unimplemented)", async () => {
-    // Both the `id` and "find all" branches are empty comments with no
-    // return, so a valid request currently falls through to `undefined`.
-    mockCookieStore("valid-token");
+  it.fails(
+    "returns a Response when authenticated (currently falls through to undefined - lookup branches are unimplemented, see BUG note in test.md)",
+    async () => {
+      // Both the `id` and "find all" branches are empty comments with no
+      // return, so a valid request currently falls through to `undefined`.
+      // Only the minimal "must return a Response" contract is asserted here,
+      // not the shape of the not-yet-implemented user list/lookup.
+      mockCookieStore("valid-token");
 
-    const res = await GET(makeApiRequest("/api/v1/users"));
+      const res = await GET(makeApiRequest("/api/v1/users"));
 
-    expect(res).toBeUndefined();
-  });
+      expect(res).toBeInstanceOf(Response);
+    },
+  );
 });
 
 describe("POST /api/v1/users", () => {

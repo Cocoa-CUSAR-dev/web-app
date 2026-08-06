@@ -36,18 +36,24 @@ describe("POST /api/v1/register", () => {
     expect(res?.status).toBe(400);
   });
 
-  it("BUG: returns undefined for valid input instead of a response (route has no success path)", async () => {
-    // The handler validates email/password but never calls the backend or
-    // returns a NextResponse when both are present - it just falls off the
-    // end of the function. This documents the current (broken) behavior;
-    // Next.js would raise "No response is returned" for a real request.
-    const res = await POST(
-      makeApiRequest("/api/v1/register", {
-        method: "POST",
-        body: { email: "a@test.com", password: "pw" },
-      }),
-    );
+  it.fails(
+    "returns a Response for valid input (currently falls through to undefined - route has no success path, see BUG note in test.md)",
+    async () => {
+      // The handler validates email/password but never calls the backend or
+      // returns a NextResponse when both are present - it just falls off the
+      // end of the function. Next.js would raise "No response is returned"
+      // for a real request. This only asserts the minimal contract every
+      // route handler must satisfy (return a Response); it doesn't guess at
+      // what the actual registration success response should look like,
+      // since that's unspecified business logic, not just a bug.
+      const res = await POST(
+        makeApiRequest("/api/v1/register", {
+          method: "POST",
+          body: { email: "a@test.com", password: "pw" },
+        }),
+      );
 
-    expect(res).toBeUndefined();
-  });
+      expect(res).toBeInstanceOf(Response);
+    },
+  );
 });

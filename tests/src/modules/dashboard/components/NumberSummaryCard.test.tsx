@@ -60,34 +60,40 @@ describe("NumberSummaryCard", () => {
     ).toBeInTheDocument();
   });
 
-  it("BUG: double-negates a negative secondary value ('-' prefix + the already-negative number)", async () => {
-    // `(secondaryValue >= 0 ? "+" : "-") + secondaryValue` prepends "-" and
-    // then concatenates the already-negative number, e.g. -5 renders as
-    // "--5" instead of "-5".
-    const onLoadData = vi
-      .fn()
-      .mockResolvedValueOnce(120)
-      .mockResolvedValueOnce(-5);
+  it.fails(
+    "does not double-negate a negative secondary value (currently renders '--5' instead of '-5', see BUG note in test.md)",
+    async () => {
+      // `(secondaryValue >= 0 ? "+" : "-") + secondaryValue` prepends "-"
+      // and then concatenates the already-negative number.
+      const onLoadData = vi
+        .fn()
+        .mockResolvedValueOnce(120)
+        .mockResolvedValueOnce(-5);
 
-    render(
-      <NumberSummaryCard title="Total Harvest" onLoadData={onLoadData} />,
-    );
+      render(
+        <NumberSummaryCard title="Total Harvest" onLoadData={onLoadData} />,
+      );
 
-    expect(await screen.findByText(/^--5/)).toBeInTheDocument();
-  });
+      expect(await screen.findByText(/^-5/)).toBeInTheDocument();
+    },
+  );
 
-  it("BUG: never leaves the loading state if either resolved value is 0 (falsy check, not null check)", async () => {
-    const onLoadData = vi
-      .fn()
-      .mockResolvedValueOnce(0)
-      .mockResolvedValueOnce(5);
+  it.fails(
+    "leaves the loading state once both values resolve, even when a value is 0 (currently stuck loading forever, see BUG note in test.md)",
+    async () => {
+      // The loading check `!primaryValue || !secondaryValue` treats a
+      // resolved 0 the same as "not loaded yet" (0 is falsy), so the card
+      // never renders its content when either count is legitimately zero.
+      const onLoadData = vi
+        .fn()
+        .mockResolvedValueOnce(0)
+        .mockResolvedValueOnce(5);
 
-    render(
-      <NumberSummaryCard title="Total Harvest" onLoadData={onLoadData} />,
-    );
+      render(
+        <NumberSummaryCard title="Total Harvest" onLoadData={onLoadData} />,
+      );
 
-    await waitFor(() => expect(onLoadData).toHaveBeenCalledTimes(2));
-    expect(screen.getByRole("progressbar")).toBeInTheDocument();
-    expect(screen.queryByText("Total Harvest")).toBeNull();
-  });
+      await screen.findByText("Total Harvest", {}, { timeout: 500 });
+    },
+  );
 });

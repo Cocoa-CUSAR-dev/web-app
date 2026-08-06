@@ -38,19 +38,24 @@ describe("GET /api/v1/logout", () => {
     expect(await res.json()).toEqual({ error: "session expired" });
   });
 
-  it("returns the backend's status with an error body when the backend omits Set-Cookie", async () => {
-    // Route quirk: a missing Set-Cookie throws `new HttpError(backendResponse.status, ...)`
-    // using the *successful* backend status (200), so the response ends up
-    // 200 with an error-shaped body instead of a real 4xx/5xx.
-    vi.mocked(fetch).mockResolvedValue(new Response(null, { status: 200 }));
+  it.fails(
+    "does not report success when the backend omits Set-Cookie (currently returns 200 with an error body, see BUG note in test.md)",
+    async () => {
+      // Route quirk: a missing Set-Cookie throws
+      // `new HttpError(backendResponse.status, ...)` using the *successful*
+      // backend status (200), so the response ends up 200 with an
+      // error-shaped body instead of a real 4xx/5xx. The exact "correct"
+      // status isn't specified anywhere, so this only asserts the one thing
+      // we do know for certain: an error response shouldn't claim success.
+      vi.mocked(fetch).mockResolvedValue(new Response(null, { status: 200 }));
 
-    const res = await GET(makeApiRequest("/api/v1/logout", { token: "t" }));
+      const res = await GET(
+        makeApiRequest("/api/v1/logout", { token: "t" }),
+      );
 
-    expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({
-      error: "backend did not send set cookie",
-    });
-  });
+      expect(res.status).not.toBe(200);
+    },
+  );
 
   it("returns a success body and forwards the first Set-Cookie header", async () => {
     vi.mocked(fetch).mockResolvedValue(

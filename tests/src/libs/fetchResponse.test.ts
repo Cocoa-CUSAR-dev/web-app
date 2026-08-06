@@ -64,21 +64,25 @@ describe("fetchResponse", () => {
     );
   });
 
-  it("appends the encoded query string directly to the path (no `?` separator)", async () => {
-    // encodeQueryParams returns URLSearchParams#toString() with no leading
-    // "?", and fetchResponse concatenates it as-is onto `path`.
-    vi.mocked(fetch).mockResolvedValue(jsonResponse({}));
+  it.fails(
+    "separates the query string from the path with `?` (currently concatenated with no separator, see BUG note in test.md)",
+    async () => {
+      // encodeQueryParams returns URLSearchParams#toString() with no leading
+      // "?", and fetchResponse concatenates it as-is onto `path`, producing
+      // e.g. "/api/v1/tasksfrom=2024-01&to=2024-02".
+      vi.mocked(fetch).mockResolvedValue(jsonResponse({}));
 
-    await fetchResponse("/api/v1/tasks", {
-      method: "GET",
-      queryParams: { from: "2024-01", to: "2024-02", missing: undefined },
-    });
+      await fetchResponse("/api/v1/tasks", {
+        method: "GET",
+        queryParams: { from: "2024-01", to: "2024-02", missing: undefined },
+      });
 
-    expect(fetch).toHaveBeenCalledWith(
-      "/api/v1/tasksfrom=2024-01&to=2024-02",
-      expect.anything(),
-    );
-  });
+      expect(fetch).toHaveBeenCalledWith(
+        "/api/v1/tasks?from=2024-01&to=2024-02",
+        expect.anything(),
+      );
+    },
+  );
 
   it("returns the response when the request succeeds", async () => {
     const mockResponse = jsonResponse({ ok: true });
@@ -103,17 +107,23 @@ describe("fetchResponse", () => {
     ).rejects.toThrow(HttpError);
   });
 
-  it("throws a plain Error for a failing response whose status is outside array bounds", async () => {
-    // httpValidStatuses has 500 entries (indices 0..499), so status 550 as
-    // an index is out of bounds even though it's a "valid" HTTP status.
-    vi.mocked(fetch).mockResolvedValue(
-      new Response(null, { status: 550, statusText: "Weird Status" }),
-    );
+  it.fails(
+    "throws an HttpError for status 550, which is a real HTTP status present in httpValidStatuses (currently throws a plain Error, see BUG note in test.md)",
+    async () => {
+      // `response.status in httpValidStatuses` tests array *indices*
+      // (0..499), not values, so status 550 (index out of bounds) wrongly
+      // takes the "unrecognized status" branch even though 550 is one of
+      // the values httpValidStatuses actually lists (it enumerates every
+      // status 100..599). The correct check is `.includes(status)`.
+      vi.mocked(fetch).mockResolvedValue(
+        new Response(null, { status: 550, statusText: "Weird Status" }),
+      );
 
-    await expect(
-      fetchResponse("/api/v1/tasks", { method: "GET" }),
-    ).rejects.toThrow("Error: 550, Weird Status");
-  });
+      await expect(
+        fetchResponse("/api/v1/tasks", { method: "GET" }),
+      ).rejects.toThrow(HttpError);
+    },
+  );
 
   it("propagates network errors thrown by fetch", async () => {
     vi.mocked(fetch).mockRejectedValue(new Error("network down"));
