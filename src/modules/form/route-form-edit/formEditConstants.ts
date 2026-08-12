@@ -15,6 +15,8 @@ const questionInputTypeNameMap: Record<QuestionInputType, string> = {
   OPTION: "Choices",
   VARCHAR: "Text",
   GEODATA: "Geological Data",
+  DATE: "Date",
+  DATETIME: "Date & Time",
 };
 
 export { formEditColumns, questionInputTypeNameMap };

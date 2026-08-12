@@ -8,7 +8,9 @@ type QuestionInputType =
   | "FLOAT"
   | "OPTION"
   | "VARCHAR"
-  | "GEODATA";
+  | "GEODATA"
+  | "DATE"
+  | "DATETIME";
 
 type Choice = {
   id: string;
