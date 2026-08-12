@@ -25,7 +25,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { CustomToast } from "@/components/utility/CustomToast";
@@ -33,7 +33,11 @@ import { useAuthInfo } from "@/hooks/useAuthInfo";
 import { fetchResponse } from "@/libs/fetchResponse";
 
 import { questionInputTypeNameMap } from "../route-form-edit/formEditConstants";
-import { QuestionInputType } from "../route-form-edit/formEditTypes";
+import {
+  GetFormIdResponse,
+  GetFormsResponse,
+  QuestionInputType,
+} from "../route-form-edit/formEditTypes";
 import {
   CreateFormRequest,
   HandlerField,
@@ -79,6 +83,8 @@ function FormCreateModule() {
   const { roles, isAuthenticated } = useAuthInfo();
   const isPageLoading = Boolean(!roles);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const duplicateFromFormId = searchParams.get("duplicateFrom");
   const toastIdRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -99,6 +105,59 @@ function FormCreateModule() {
     null,
   );
   const [boxLoading, setBoxLoading] = useState<boolean>(false);
+  const [duplicating, setDuplicating] = useState<boolean>(
+    Boolean(duplicateFromFormId),
+  );
+
+  // #region duplicate from an existing form
+  // openAt/closeAt aren't part of Form.Detail (they live on form.task, which
+  // no form-read endpoint exposes today) -- duplicating a form's structure
+  // with a fresh, researcher-chosen open/close window is the sane default
+  // anyway, so those two fields are deliberately left blank here.
+  useEffect(() => {
+    if (!duplicateFromFormId) return;
+    (async () => {
+      try {
+        const [formResponse, listResponse] = await Promise.all([
+          fetchResponse(`/api/v1/forms/${duplicateFromFormId}`, {
+            method: "GET",
+          }),
+          fetchResponse("/api/v1/forms", { method: "GET" }),
+        ]);
+        const { value: form }: GetFormIdResponse = await formResponse.json();
+        const { value: allForms }: GetFormsResponse = await listResponse.json();
+        const sourceListEntry = allForms.find(
+          (f) => f.formId === duplicateFromFormId,
+        );
+
+        setTitle(`Copy of ${form.title}`);
+        setDescription(form.description ?? "");
+        setHandler(sourceListEntry?.handler ?? "");
+        setSections(
+          form.sections.map((section) => ({
+            title: section.title,
+            description: section.description,
+            sortOrder: section.sortOrder,
+            questions: section.questions.map((question) => ({
+              label: question.label,
+              description: question.description,
+              inputType: question.inputType,
+              fieldName: question.fieldName,
+              isMandatory: question.isMandatory,
+              sortOrder: question.sortOrder,
+            })),
+          })),
+        );
+      } catch (e) {
+        console.error(e);
+        CustomToast.error("failed to load the form to duplicate", undefined, {
+          duration: 5000,
+        });
+      } finally {
+        setDuplicating(false);
+      }
+    })();
+  }, [duplicateFromFormId]);
 
   // #region load catalogs
   useEffect(() => {
@@ -311,7 +370,7 @@ function FormCreateModule() {
     title,
   ]);
 
-  if (isPageLoading) {
+  if (isPageLoading || duplicating) {
     return (
       <Stack
         width={"100%"}
@@ -327,6 +386,11 @@ function FormCreateModule() {
   return (
     <Stack width={"100%"} spacing={2}>
       <Typography variant={"h2"}>{"Create Form"}</Typography>
+      {duplicateFromFormId && (
+        <Typography variant={"body2"} color={"text.secondary"}>
+          {"Duplicated from an existing form — review before creating."}
+        </Typography>
+      )}
 
       <Stack component={Paper} elevation={2} padding={"1.5rem"} spacing={2}>
         <TextField
