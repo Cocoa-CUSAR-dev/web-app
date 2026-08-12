@@ -13,6 +13,7 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { SlidingPagination } from "@/components/table/SlidingPagination";
@@ -32,6 +33,7 @@ function FormEditModule() {
   // #region page
   const [isPageLoading] = useState<boolean>(false);
   const toastIdRef = useRef<string | null>(null);
+  const router = useRouter();
 
   // #region form
   const [formNameId, setFormNameId] = useState<{
@@ -430,6 +432,15 @@ function FormEditModule() {
         <Stack direction={"row"} spacing={2} alignItems={"center"}>
           <Typography>{"กรุณาเลือกฟอร์ม"}</Typography>
           {formSelect}
+          <Button
+            variant={"outlined"}
+            disabled={!formId}
+            onClick={() => {
+              router.push(`/form/form-create?duplicateFrom=${formId}`);
+            }}
+          >
+            {"Duplicate"}
+          </Button>
         </Stack>
       ) : (
         <Box width={"100%"} height={"2.5rem"}>
