@@ -29,6 +29,10 @@ const useMockBackend = !process.env.BASE_URL && !process.env.BACKEND_URL;
 
 export default defineConfig({
   testDir: "./tests",
+  // Vitest unit tests live under `./tests/src/**/*.test.ts(x)`, mirroring
+  // `src/`. Without this, Playwright's default file matching also picks up
+  // `*.test.ts(x)` and tries to execute those Vitest suites itself.
+  testMatch: "*.spec.ts",
   fullyParallel: true,
   forbidOnly: isCI,
   retries: isCI ? 2 : 0,
