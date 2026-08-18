@@ -12,6 +12,11 @@ import AnimatedLink from "@/components/utility/AnimatedLink";
 
 const forms = [
   {
+    label: "Form Create",
+    description: "for creating a new form from scratch",
+    link: "/form/form-create",
+  },
+  {
     label: "Form Edit",
     description:
       "for viewing current active form fields and edit the fields as needed",
@@ -30,7 +35,7 @@ function FormModule() {
       <Typography variant={"h2"}>{"Form"}</Typography>
       <Typography>
         {
-          "Currently, there are two activities that can be done regarding form; viewing form and editing form fields. For more information, please contact the development team (within working hours.)"
+          "Currently, there are three activities that can be done regarding form; creating a new form, viewing form responses, and editing form fields. For more information, please contact the development team (within working hours.)"
         }
       </Typography>
       <Typography variant={"body1"}>

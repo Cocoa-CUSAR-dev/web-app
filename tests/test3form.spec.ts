@@ -15,8 +15,9 @@ test.describe('Form Tests', () => {
       await page.getByRole('link', { name: 'Form' }).click();
       await expect(page.locator('div').filter({ hasText: /^Form$/ })).toBeVisible();
       await expect(page.getByRole('heading', { name: 'Form' })).toBeVisible();
-      await expect(page.getByText('Currently, there are two')).toBeVisible();
+      await expect(page.getByText('Currently, there are three')).toBeVisible();
       await expect(page.getByText('Links for activies that can')).toBeVisible();
+      await expect(page.getByRole('listitem').filter({ hasText: 'Form Create—for creating a new form' })).toBeVisible();
       await expect(page.getByRole('listitem').filter({ hasText: 'Form Edit—for viewing current' })).toBeVisible();
       await expect(page.getByRole('listitem').filter({ hasText: 'Form Viewer—for viewing form' })).toBeVisible();
     });
