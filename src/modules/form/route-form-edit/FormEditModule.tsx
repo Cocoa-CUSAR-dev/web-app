@@ -441,6 +441,15 @@ function FormEditModule() {
           >
             {"Duplicate"}
           </Button>
+          <Button
+            variant={"outlined"}
+            disabled={!formId}
+            onClick={() => {
+              router.push(`/form/form-edit/full-edit?formId=${formId}`);
+            }}
+          >
+            {"Full Edit"}
+          </Button>
         </Stack>
       ) : (
         <Box width={"100%"} height={"2.5rem"}>
