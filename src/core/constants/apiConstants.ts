@@ -1,7 +1,4 @@
 // #region global
-// No fallback on purpose (FE-9): a silently-defaulted localhost URL means a
-// missing env var in a real deployment fails later, deep inside a fetch
-// call, instead of loudly at startup where it's actually debuggable.
 const backendUrl = process.env.BACKEND_URL;
 if (!backendUrl) {
   throw new Error(

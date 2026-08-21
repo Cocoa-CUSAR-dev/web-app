@@ -103,7 +103,7 @@ describe("fetchResponse", () => {
     ).rejects.toThrow(HttpError);
   });
 
-  it("throws an HttpError for status 550, which is a real HTTP status present in httpValidStatuses (FE-2: previously fell through to a plain Error -- see fetchResponse.ts)", async () => {
+  it("throws an HttpError for status 550, which is a real HTTP status present in httpValidStatuses", async () => {
     vi.mocked(fetch).mockResolvedValue(
       new Response(null, { status: 550, statusText: "Weird Status" }),
     );

@@ -1,11 +1,3 @@
-// FE-7: real Terms of Use copy, replacing the lorem-ipsum placeholder that
-// previously shipped in both AuthLoginModule's modal and the (missing)
-// /terms-of-use page. Shared here so the two surfaces can't drift apart.
-//
-// Written for this platform's actual purpose (a researcher-facing databank
-// for the cocoa supply chain) -- not yet reviewed by project ownership/legal
-// counsel, so treat as a working draft to sign off on, not a final legal
-// document.
 const TERMS_OF_USE_SECTIONS: { heading: string; body: string }[] = [
   {
     heading: "1. ขอบเขตการใช้งาน",

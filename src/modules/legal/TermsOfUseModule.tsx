@@ -4,9 +4,6 @@ import { Stack, Typography } from "@mui/material";
 
 import TermsOfUseContent from "@/modules/legal/TermsOfUseContent";
 
-// Standalone page for the Footer's "Terms of Use" link (FE-7) -- previously
-// pointed at a route that didn't exist. Reuses the same content the login
-// modal shows.
 function TermsOfUseModule() {
   return (
     <Stack

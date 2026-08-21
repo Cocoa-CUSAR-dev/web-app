@@ -44,11 +44,6 @@ export default defineConfig({
     setupFiles: ["./vitest.setup.ts"],
     include: ["tests/src/**/*.test.{ts,tsx}"],
     css: false,
-    // apiConstants.ts now fails fast when BACKEND_URL is unset (FE-9) --
-    // unlike Playwright (see playwright.config.ts's webServer env), Vitest
-    // doesn't load .env files or spawn the app with any env of its own, so
-    // this needs an explicit dummy value or every test importing
-    // src/core/constants (directly or transitively) throws on import.
     env: {
       BACKEND_URL: "http://localhost:3001",
     },

@@ -20,10 +20,6 @@ async function fetchResponse(path: string, fetchOption: FetchOption) {
       body: body,
     });
     if (!response.ok) {
-      // httpValidStatuses is a `readonly [100, 101, ...]` literal tuple
-      // (`as const`), so its own .includes() signature only accepts one of
-      // those literal values -- widen to plain numbers here since
-      // response.status is a runtime number, not a literal.
       if ((httpValidStatuses as readonly number[]).includes(response.status)) {
         throw new HttpError(response.status, response.statusText);
       } else {
