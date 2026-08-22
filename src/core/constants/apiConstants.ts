@@ -1,6 +1,6 @@
 // #region global
 const backendUrl = process.env.BACKEND_URL;
-if (!backendUrl) {
+if (!backendUrl && typeof window === "undefined") {
   throw new Error(
     "BACKEND_URL environment variable is not set. Set it before starting the app (see .env.sample).",
   );
