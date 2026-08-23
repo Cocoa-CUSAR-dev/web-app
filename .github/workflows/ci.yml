@@ -58,6 +58,8 @@ jobs:
 
       - name: Build Next.js application
         run: pnpm build
+        env:
+          BACKEND_URL: http://localhost:3001
 
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium

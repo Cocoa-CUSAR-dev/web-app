@@ -20,7 +20,7 @@ async function fetchResponse(path: string, fetchOption: FetchOption) {
       body: body,
     });
     if (!response.ok) {
-      if (response.status in httpValidStatuses) {
+      if ((httpValidStatuses as readonly number[]).includes(response.status)) {
         throw new HttpError(response.status, response.statusText);
       } else {
         throw new Error(`Error: ${response.status}, ${response.statusText}`);

@@ -93,11 +93,7 @@ describe("fetchResponse", () => {
     expect(result).toBe(mockResponse);
   });
 
-  it("throws an HttpError for a failing response whose status is within array bounds of httpValidStatuses", async () => {
-    // httpValidStatuses is an array of status codes checked with the `in`
-    // operator, which tests array *indices* (0..N-1), not values. Status 404
-    // happens to be < httpValidStatuses.length (~500), so it takes the
-    // HttpError branch even though 404 isn't literally at that index.
+  it("throws an HttpError for a failing response whose status is listed in httpValidStatuses", async () => {
     vi.mocked(fetch).mockResolvedValue(
       new Response(null, { status: 404, statusText: "Not Found" }),
     );
@@ -107,23 +103,15 @@ describe("fetchResponse", () => {
     ).rejects.toThrow(HttpError);
   });
 
-  it.fails(
-    "throws an HttpError for status 550, which is a real HTTP status present in httpValidStatuses (currently throws a plain Error, see BUG note in test.md)",
-    async () => {
-      // `response.status in httpValidStatuses` tests array *indices*
-      // (0..499), not values, so status 550 (index out of bounds) wrongly
-      // takes the "unrecognized status" branch even though 550 is one of
-      // the values httpValidStatuses actually lists (it enumerates every
-      // status 100..599). The correct check is `.includes(status)`.
-      vi.mocked(fetch).mockResolvedValue(
-        new Response(null, { status: 550, statusText: "Weird Status" }),
-      );
+  it("throws an HttpError for status 550, which is a real HTTP status present in httpValidStatuses", async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(null, { status: 550, statusText: "Weird Status" }),
+    );
 
-      await expect(
-        fetchResponse("/api/v1/tasks", { method: "GET" }),
-      ).rejects.toThrow(HttpError);
-    },
-  );
+    await expect(
+      fetchResponse("/api/v1/tasks", { method: "GET" }),
+    ).rejects.toThrow(HttpError);
+  });
 
   it("propagates network errors thrown by fetch", async () => {
     vi.mocked(fetch).mockRejectedValue(new Error("network down"));

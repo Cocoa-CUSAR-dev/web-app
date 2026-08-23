@@ -44,5 +44,8 @@ export default defineConfig({
     setupFiles: ["./vitest.setup.ts"],
     include: ["tests/src/**/*.test.{ts,tsx}"],
     css: false,
+    env: {
+      BACKEND_URL: "http://localhost:3001",
+    },
   },
 });

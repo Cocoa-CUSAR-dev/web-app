@@ -16,6 +16,7 @@ import {
 import React, { useState } from "react";
 
 import AuthForm from "@/modules/auth/components/AuthForm";
+import TermsOfUseContent from "@/modules/legal/TermsOfUseContent";
 
 function AuthLoginModule({
   isAuthLoading,
@@ -70,20 +71,7 @@ function AuthLoginModule({
             <Typography variant={"h2"} textAlign={"center"}>
               {"Terms of Use"}
             </Typography>
-            <Typography
-              variant={"body1"}
-              textAlign={"justify"}
-              sx={{
-                textIndent: "2rem",
-              }}
-            >{`Morbi porttitor elementum libero convallis sagittis. Morbi sodales pulvinar gravida. Fusce eget risus scelerisque, blandit sem in, vehicula enim. Maecenas mattis feugiat nulla, at pellentesque libero eleifend quis. Phasellus cursus justo sit amet elementum ultricies. Mauris vitae nulla ut nunc imperdiet convallis. Etiam nec libero gravida, porta nibh in, viverra metus. Mauris purus nisi, tempor non vehicula vel, porta vel eros. Vivamus ultricies condimentum augue quis iaculis. Quisque ultrices vitae magna ac iaculis. Cras euismod orci ac gravida sollicitudin.`}</Typography>
-            <Typography
-              variant={"body1"}
-              textAlign={"justify"}
-              sx={{
-                textIndent: "2rem",
-              }}
-            >{`Donec et egestas neque, id tristique nulla. Mauris non tellus metus. Suspendisse potenti. Morbi eget porttitor justo. Aliquam a efficitur metus. Quisque consequat quam dolor, quis sodales libero consectetur vel. Sed ac arcu a justo iaculis gravida. Cras nec quam eget nulla efficitur molestie.`}</Typography>
+            <TermsOfUseContent />
             <Button
               fullWidth
               variant={"outlined"}

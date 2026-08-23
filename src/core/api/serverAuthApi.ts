@@ -1,14 +1,13 @@
 import "server-only";
 
+import { backendUrl } from "../constants";
 import { CustomRedirectError, HttpError } from "../error";
 import { AuthResponseType } from "../types";
-
-const BACKEND_URL = process.env.BACKEND_URL;
 
 const serverAuthApi = {
   authMe: async (cookie: string) => {
     try {
-      const response = await fetch(`${BACKEND_URL}/api/v1/auth/me`, {
+      const response = await fetch(`${backendUrl}/api/v1/auth/me`, {
         method: "GET",
         headers: {
           Cookie: cookie,
