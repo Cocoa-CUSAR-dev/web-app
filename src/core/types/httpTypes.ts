@@ -29,6 +29,10 @@ type DeleteRequestOption = {
 type FetchOption = {
   headers?: HeadersInit;
   queryParams?: QueryParams;
+  // FE-6: lets a caller cancel an in-flight request (e.g. a stale chart
+  // fetch superseded by the user picking a different year) instead of
+  // letting it resolve and overwrite fresher state.
+  signal?: AbortSignal;
 } & (
   | GetRequestOption
   | PostRequestOption
