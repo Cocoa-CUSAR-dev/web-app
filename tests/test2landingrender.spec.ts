@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test';
 
+import { E2E_PASSWORD, E2E_USERNAME } from './testUtils/e2eCredentials';
+
 test.describe('Landing Page Tests', () => {
   test.beforeEach(async ({ page }) => {
       await page.goto('/');
@@ -32,8 +34,8 @@ test.describe('Landing Page Tests', () => {
     test.beforeEach(async ({ page }) => {
       await page.goto('/');
       await page.getByRole('navigation').getByRole('link', { name: 'Log In' }).click();
-      await page.getByRole('textbox', { name: 'email' }).fill('admin');
-      await page.getByRole('textbox', { name: 'password' }).fill('Password123!');
+      await page.getByRole('textbox', { name: 'email' }).fill(E2E_USERNAME);
+      await page.getByRole('textbox', { name: 'password' }).fill(E2E_PASSWORD);
       await page.getByRole('checkbox').click();
       await Promise.all([
         page.waitForURL(/\/dashboard$/),

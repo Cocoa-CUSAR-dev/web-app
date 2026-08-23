@@ -1,18 +1,20 @@
 import { test, expect } from '@playwright/test';
 
+import { E2E_PASSWORD, E2E_USERNAME } from './testUtils/e2eCredentials';
+
 test.describe('Map Tests', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
     await page.getByRole('navigation').getByRole('link', { name: 'Log In' }).click();
-    await page.getByRole('textbox', { name: 'email' }).fill('admin');
-    await page.getByRole('textbox', { name: 'password' }).fill('Password123!');
+    await page.getByRole('textbox', { name: 'email' }).fill(E2E_USERNAME);
+    await page.getByRole('textbox', { name: 'password' }).fill(E2E_PASSWORD);
     await page.getByRole('checkbox').click();
     await page.getByRole('button', { name: 'Log In' }).click();
   });
 
   test('Map Render Test', async ({ page }) => {
     await page.getByRole('link', { name: 'map' }).click();
-    await expect(page.locator('div').filter({ hasText: 'Dashboard/Map' }).nth(4)).toBeVisible();
+    await expect(page.getByRole('navigation', { name: 'breadcrumb' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Harvest Data' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'User Data' })).toBeVisible();
     await expect(page.getByRole('region', { name: 'Map' })).toBeVisible();
