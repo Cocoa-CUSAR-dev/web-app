@@ -1,5 +1,10 @@
 // #region global
-const backendUrl = process.env.BACKEND_URL ?? "http://localhost:3001";
+const backendUrl = process.env.BACKEND_URL;
+if (!backendUrl && typeof window === "undefined") {
+  throw new Error(
+    "BACKEND_URL environment variable is not set. Set it before starting the app (see .env.sample).",
+  );
+}
 const tokenName = process.env.TOKEN_NAME ?? "token";
 const simpleDateRegex = /^\d{4}-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01]))?$/;
 

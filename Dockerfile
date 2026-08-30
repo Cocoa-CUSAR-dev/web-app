@@ -17,6 +17,7 @@ COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NEXT_STANDALONE=true
+ENV BACKEND_URL=http://localhost:3001
 
 RUN corepack enable pnpm && pnpm build;
 
