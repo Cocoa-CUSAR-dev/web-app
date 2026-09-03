@@ -9,7 +9,7 @@ const defaultHeaders = {
 };
 
 async function fetchResponse(path: string, fetchOption: FetchOption) {
-  const { headers, method, queryParams } = fetchOption;
+  const { headers, method, queryParams, signal } = fetchOption;
   const body = "body" in fetchOption ? fetchOption.body : undefined;
   const encodedQueryParams = queryParams ? encodeQueryParams(queryParams) : "";
   const finalPath = path + encodedQueryParams;
@@ -18,6 +18,7 @@ async function fetchResponse(path: string, fetchOption: FetchOption) {
       method: method,
       headers: headers ?? defaultHeaders.headers,
       body: body,
+      signal,
     });
     if (!response.ok) {
       if ((httpValidStatuses as readonly number[]).includes(response.status)) {
@@ -28,9 +29,16 @@ async function fetchResponse(path: string, fetchOption: FetchOption) {
     }
     return response;
   } catch (e) {
-    console.error(
-      e instanceof Error ? `${e.name}:${e.message}` : "Unknown Error",
-    );
+    // FE-6: a caller-cancelled request (AbortController.abort()) rejects
+    // here too -- that's expected/routine now that callers pass a signal
+    // (e.g. a stale chart request superseded by a new one), not a real
+    // failure worth an error-level log.
+    const isAbort = e instanceof DOMException && e.name === "AbortError";
+    if (!isAbort) {
+      console.error(
+        e instanceof Error ? `${e.name}:${e.message}` : "Unknown Error",
+      );
+    }
     throw e;
   }
 }

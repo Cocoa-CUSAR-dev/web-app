@@ -3,9 +3,10 @@ export const dynamic = "force-dynamic";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { HttpError } from "@/core/error";
-import { handleApiError } from "@/libs/apiUtil";
+import { apiErrorResponse } from "@/libs/apiUtil";
 
+// FE-1 (out of scope here): this still never actually calls the backend --
+// only the duplicated catch-block shape was in scope for this change.
 async function POST(req: NextRequest) {
   try {
     const { email, password } = await req.json();
@@ -16,27 +17,7 @@ async function POST(req: NextRequest) {
       );
     }
   } catch (e) {
-    handleApiError(e);
-    if (e instanceof HttpError) {
-      const res = NextResponse.json(
-        {
-          error: e.message,
-        },
-        {
-          status: e.status,
-        },
-      );
-      if (e.setCookies && e.setCookies.length > 0) {
-        e.setCookies.forEach((cookieString) => {
-          res.headers.append("Set-Cookie", cookieString);
-        });
-      }
-      return res;
-    }
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 },
-    );
+    return apiErrorResponse(e);
   }
 }
 

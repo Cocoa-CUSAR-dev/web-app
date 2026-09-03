@@ -10,10 +10,14 @@ import { defineConfig, devices } from "@playwright/test";
  *
  * Override with env vars:
  *   BASE_URL       – reuse an already-running server (skips webServer)
- *   PORT           – port for `next start` (default 3000)
+ *   PORT           – port for `next start` (default 3100)
  *   CI             – set by GitHub Actions to disable retries and forbid .only
  */
-const PORT = Number(process.env.PORT ?? 3000);
+// Deliberately not 3000: `reuseExistingServer` below would otherwise pick up a
+// `pnpm dev` left running there, which reads the developer's own `.env` and so
+// talks to the real backend instead of the mock — and skips this file's `env`
+// block entirely, including the TOKEN_NAME pin below.
+const PORT = Number(process.env.PORT ?? 3100);
 const BASE_URL = process.env.BASE_URL ?? `http://localhost:${PORT}`;
 
 const isCI = !!process.env.CI;
@@ -26,6 +30,17 @@ const isCI = !!process.env.CI;
 const MOCK_BACKEND_PORT = Number(process.env.MOCK_BACKEND_PORT ?? 4310);
 const MOCK_BACKEND_URL = `http://127.0.0.1:${MOCK_BACKEND_PORT}`;
 const useMockBackend = !process.env.BASE_URL && !process.env.BACKEND_URL;
+
+// The session-cookie name has to be the same on both sides of the mock setup:
+// the mock issues it (tests/mocks/backend-data.mjs) and proxy.ts reads it to
+// decide whether a request is authenticated. They used to agree only by
+// accident — both fall back to "token" when TOKEN_NAME is unset, which is the
+// case in CI. Locally, `next start` picks up the developer's `.env` (where
+// TOKEN_NAME names the *real* backend's cookie), while the mock never reads
+// `.env` at all. The result was a login that returned 200 and set a cookie
+// proxy.ts then couldn't find, bouncing every authenticated spec back to the
+// login page. Pinning it here makes both sides agree regardless of `.env`.
+const E2E_TOKEN_NAME = "token";
 
 export default defineConfig({
   testDir: "./tests",
@@ -69,7 +84,10 @@ export default defineConfig({
                 timeout: 30_000,
                 stdout: "pipe" as const,
                 stderr: "pipe" as const,
-                env: { MOCK_BACKEND_PORT: String(MOCK_BACKEND_PORT) },
+                env: {
+                  MOCK_BACKEND_PORT: String(MOCK_BACKEND_PORT),
+                  TOKEN_NAME: E2E_TOKEN_NAME,
+                },
               },
             ]
           : []),
@@ -80,7 +98,9 @@ export default defineConfig({
           timeout: 120_000,
           stdout: "pipe" as const,
           stderr: "pipe" as const,
-          env: useMockBackend ? { BACKEND_URL: MOCK_BACKEND_URL } : {},
+          env: useMockBackend
+            ? { BACKEND_URL: MOCK_BACKEND_URL, TOKEN_NAME: E2E_TOKEN_NAME }
+            : {},
         },
       ],
 });

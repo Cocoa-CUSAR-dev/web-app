@@ -1,23 +1,20 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import {
-  backendUrl,
-  simpleDateRegex,
-  tokenName,
-  userSummaryMode,
-} from "@/core/constants";
+import { simpleDateRegex, userSummaryMode } from "@/core/constants";
 import { HttpError } from "@/core/error";
-import { checkTokenPresence, handleApiError } from "@/libs/apiUtil";
+import {
+  apiErrorResponse,
+  checkTokenPresence,
+  proxyToBackend,
+} from "@/libs/apiUtil";
 
 async function GET(req: NextRequest) {
   try {
     checkTokenPresence(req);
     const {
-      cookies,
       nextUrl: { searchParams },
     } = req;
-    const token = cookies.get(tokenName);
     const mode = searchParams.get("mode");
     const from = searchParams.get("from");
     const to = searchParams.get("to");
@@ -35,55 +32,16 @@ async function GET(req: NextRequest) {
     if (!userSummaryMode.includes(mode)) {
       throw new HttpError(400, "invalid data mode");
     }
-    const response = await fetch(
-      `${backendUrl}/api/v1/analytics/users/summary/${mode}?from=${from}&to=${to}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Cookie: `${token!.name}=${token!.value}`,
-        },
-      },
+    const data = await proxyToBackend(
+      req,
+      `/api/v1/analytics/users/summary/${mode}?from=${from}&to=${to}`,
+      { method: "GET" },
     );
-    if (!response.ok) {
-      const { error } = await response.json();
-      const setCookies = response.headers.getSetCookie();
-      throw new HttpError(
-        response.status,
-        error ?? response.statusText,
-        setCookies,
-      );
-    }
-    const data = await response.json();
     return NextResponse.json(data, {
       status: 200,
     });
   } catch (e) {
-    handleApiError(e);
-    if (e instanceof HttpError) {
-      const res = NextResponse.json(
-        {
-          error: e.message,
-        },
-        {
-          status: e.status,
-        },
-      );
-      if (e.setCookies && e.setCookies.length > 0) {
-        e.setCookies.forEach((cookieString) => {
-          res.headers.append("Set-Cookie", cookieString);
-        });
-      }
-      return res;
-    }
-    return NextResponse.json(
-      {
-        error: "Internal Server Error",
-      },
-      {
-        status: 500,
-      },
-    );
+    return apiErrorResponse(e);
   }
 }
 
