@@ -89,7 +89,14 @@ function useTimeSeriesChart(
         console.log(e);
       }
     },
-    [endpoint, mode, method, buildBody, theme.palette.grey, theme.palette.primary.main],
+    [
+      endpoint,
+      mode,
+      method,
+      buildBody,
+      theme.palette.grey,
+      theme.palette.primary.main,
+    ],
   );
 
   return { title, data, onLoadData };

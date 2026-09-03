@@ -1,7 +1,11 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { apiErrorResponse, checkTokenPresence, proxyToBackend } from "@/libs/apiUtil";
+import {
+  apiErrorResponse,
+  checkTokenPresence,
+  proxyToBackend,
+} from "@/libs/apiUtil";
 import {
   CreateFormRequest,
   CreateFormResponse,
@@ -34,10 +38,14 @@ async function POST(req: NextRequest) {
         },
       );
     }
-    const data = await proxyToBackend<CreateFormResponse>(req, "/api/v1/forms", {
-      method: "POST",
-      body: JSON.stringify(body),
-    });
+    const data = await proxyToBackend<CreateFormResponse>(
+      req,
+      "/api/v1/forms",
+      {
+        method: "POST",
+        body: JSON.stringify(body),
+      },
+    );
     return NextResponse.json(data, { status: 201 });
   } catch (e) {
     return apiErrorResponse(e);

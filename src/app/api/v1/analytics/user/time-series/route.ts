@@ -3,7 +3,11 @@ import { NextResponse } from "next/server";
 
 import { simpleDateRegex, userTimeSeriesMode } from "@/core/constants";
 import { HttpError } from "@/core/error";
-import { apiErrorResponse, checkTokenPresence, proxyToBackend } from "@/libs/apiUtil";
+import {
+  apiErrorResponse,
+  checkTokenPresence,
+  proxyToBackend,
+} from "@/libs/apiUtil";
 
 async function GET(req: NextRequest) {
   try {

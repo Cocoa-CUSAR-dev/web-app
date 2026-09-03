@@ -2,7 +2,11 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { AuthResetPasswordReqType } from "@/core/types";
-import { apiErrorResponse, checkTokenPresence, proxyToBackend } from "@/libs/apiUtil";
+import {
+  apiErrorResponse,
+  checkTokenPresence,
+  proxyToBackend,
+} from "@/libs/apiUtil";
 
 async function PATCH(req: NextRequest) {
   try {

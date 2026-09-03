@@ -1,7 +1,11 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { apiErrorResponse, checkTokenPresence, proxyToBackend } from "@/libs/apiUtil";
+import {
+  apiErrorResponse,
+  checkTokenPresence,
+  proxyToBackend,
+} from "@/libs/apiUtil";
 
 async function GET(
   req: NextRequest,

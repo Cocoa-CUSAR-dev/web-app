@@ -3,7 +3,11 @@ import { NextResponse } from "next/server";
 
 import { harvestTimeSeriesMode, simpleDateRegex } from "@/core/constants";
 import { HttpError } from "@/core/error";
-import { apiErrorResponse, checkTokenPresence, proxyToBackend } from "@/libs/apiUtil";
+import {
+  apiErrorResponse,
+  checkTokenPresence,
+  proxyToBackend,
+} from "@/libs/apiUtil";
 import { TimeSeriesDataResponse } from "@/modules/dashboard/dashboardTypes";
 
 async function POST(req: NextRequest) {

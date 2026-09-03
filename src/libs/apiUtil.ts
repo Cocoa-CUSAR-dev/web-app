@@ -47,7 +47,11 @@ async function proxyToBackend<T>(
   if (!response.ok) {
     const { error } = await response.json();
     const setCookie = response.headers.getSetCookie();
-    throw new HttpError(response.status, error ?? response.statusText, setCookie);
+    throw new HttpError(
+      response.status,
+      error ?? response.statusText,
+      setCookie,
+    );
   }
   return (await response.json()) as T;
 }
