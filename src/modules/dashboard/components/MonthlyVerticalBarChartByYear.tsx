@@ -22,14 +22,13 @@ function MonthlyVerticalBarChartByYear({
 }: {
   title: string;
   datasets?: BarChartTypeData[] | null;
-  onLoadData?:
-    | ((fromM: number, fromY: number, toM: number, toY: number) => void)
-    | ((
-        fromM: number,
-        fromY: number,
-        toM: number,
-        toY: number,
-      ) => Promise<void>);
+  onLoadData?: (
+    fromM: number,
+    fromY: number,
+    toM: number,
+    toY: number,
+    signal?: AbortSignal,
+  ) => void | Promise<void>;
   numYear?: number;
   chartLoading?: boolean;
 }) {
@@ -88,27 +87,36 @@ function MonthlyVerticalBarChartByYear({
     }
   };
 
-  const handleLoadData = useCallback(async () => {
-    if (!onLoadData) return null;
-    try {
-      setIsLoading(true);
-      await onLoadData(
-        currentRange[0],
-        currentRange[1],
-        currentRange[2],
-        currentRange[3],
-      );
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [currentRange, onLoadData]);
+  const handleLoadData = useCallback(
+    async (signal?: AbortSignal) => {
+      if (!onLoadData) return null;
+      try {
+        setIsLoading(true);
+        await onLoadData(
+          currentRange[0],
+          currentRange[1],
+          currentRange[2],
+          currentRange[3],
+          signal,
+        );
+      } catch (e) {
+        console.error(e);
+      } finally {
+        if (!signal?.aborted) setIsLoading(false);
+      }
+    },
+    [currentRange, onLoadData],
+  );
 
   // #region initial load
+  // FE-6: cancel the in-flight request from a previous currentRange (e.g.
+  // the user clicked a different year before the first one finished)
+  // instead of letting a stale response overwrite the current one.
   useEffect(() => {
     if (!handleLoadData) return;
-    handleLoadData();
+    const controller = new AbortController();
+    handleLoadData(controller.signal);
+    return () => controller.abort();
   }, [currentRange, handleLoadData]);
 
   // #region debug

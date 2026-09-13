@@ -9,128 +9,40 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import { useTheme } from "@mui/material/styles";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { Step } from "react-joyride";
 
 import FitCard from "@/components/utility/FitCard";
 import UnControlledRerunableTutorial from "@/components/utility/UnControlledRerunableTutorial";
-import { HttpError } from "@/core/error";
-import { BarChartTypeData } from "@/core/types";
-import { fetchResponse } from "@/libs/fetchResponse";
 
 import MonthlyVerticalBarChartByYear from "../components/MonthlyVerticalBarChartByYear";
-import { TimeSeriesDataResponse } from "../dashboardTypes";
+import { useTimeSeriesChart } from "../hooks/useTimeSeriesChart";
 
 const dashboardUserGuide: Step[] = [];
+const endpoint = "/api/v1/analytics/user/time-series";
 
 function DashboardUserSubmodule() {
-  const theme = useTheme();
-
   // #region checkbox
   const [isDeltaSelected, setIsDeltaSelected] = useState<boolean>(true);
   const [isSumSelected, setIsSumSelected] = useState<boolean>(true);
 
   // #region data
-  const [harvestTimeSeriesDeltaTitle, setHarvestTimeSeriesDeltaTitle] =
-    useState<string>("");
-  const [dataHarvestTimeSeriesDelta, setDataHarvestTimeSeriesDelta] = useState<
-    BarChartTypeData[] | null
-  >(null);
+  const {
+    title: harvestTimeSeriesDeltaTitle,
+    data: dataHarvestTimeSeriesDelta,
+    onLoadData: onLoadUserTimeSeriesDelta,
+  } = useTimeSeriesChart(endpoint, "delta");
 
-  const [harvestTimeSeriesSumTitle, setHarvestTimeSeriesSumTitle] =
-    useState<string>("");
-  const [dataHarvestTimeSeriesSum, setDataHarvestTimeSeriesSum] = useState<
-    BarChartTypeData[] | null
-  >(null);
+  const {
+    title: harvestTimeSeriesSumTitle,
+    data: dataHarvestTimeSeriesSum,
+    onLoadData: onLoadUserTimeSeriesSum,
+  } = useTimeSeriesChart(endpoint, "sum");
 
   const isAllSelected = isDeltaSelected && isSumSelected;
 
   const isSomeSelected =
     [isDeltaSelected, isSumSelected].some(Boolean) && !isAllSelected;
-
-  // #region function
-  const onLoadUserTimeSeriesDelta = useCallback(
-    async (fromM: number, fromY: number, toM: number, toY: number) => {
-      try {
-        const response = await fetchResponse(
-          `/api/v1/analytics/user/time-series?mode=delta&from=${String(fromY).padStart(4, "0")}-${String(fromM).padStart(2, "0")}&to=${String(toY).padStart(4, "0")}-${String(toM).padStart(2, "0")}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          },
-        );
-        if (!response.ok) {
-          const { error } = await response.json();
-          throw new HttpError(response.status, error ?? response.statusText);
-        }
-        const {
-          value: { series, title },
-        } = (await response.json()) as TimeSeriesDataResponse;
-        setHarvestTimeSeriesDeltaTitle(title);
-        const barChartObj: BarChartTypeData[] = series.map((s, idx) => {
-          const color =
-            idx === 0
-              ? theme.palette.primary.main
-              : idx === 1
-                ? theme.palette.grey[600]
-                : theme.palette.grey[400];
-          return {
-            label: s.label,
-            data: s.values,
-            backgroundColor: color,
-          };
-        });
-        setDataHarvestTimeSeriesDelta(barChartObj);
-      } catch (e) {
-        console.log(e);
-      }
-    },
-    [theme.palette.grey, theme.palette.primary.main],
-  );
-
-  const onLoadUserTimeSeriesSum = useCallback(
-    async (fromM: number, fromY: number, toM: number, toY: number) => {
-      try {
-        const response = await fetchResponse(
-          `/api/v1/analytics/user/time-series?mode=sum&from=${String(fromY).padStart(4, "0")}-${String(fromM).padStart(2, "0")}&to=${String(toY).padStart(4, "0")}-${String(toM).padStart(2, "0")}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          },
-        );
-        if (!response.ok) {
-          const { error } = await response.json();
-          throw new HttpError(response.status, error ?? response.statusText);
-        }
-        const {
-          value: { series, title },
-        } = (await response.json()) as TimeSeriesDataResponse;
-        setHarvestTimeSeriesSumTitle(title);
-        const barChartObj: BarChartTypeData[] = series.map((s, idx) => {
-          const color =
-            idx === 0
-              ? theme.palette.primary.main
-              : idx === 1
-                ? theme.palette.grey[600]
-                : theme.palette.grey[400];
-          return {
-            label: s.label,
-            data: s.values,
-            backgroundColor: color,
-          };
-        });
-        setDataHarvestTimeSeriesSum(barChartObj);
-      } catch (e) {
-        console.log(e);
-      }
-    },
-    [theme.palette.grey, theme.palette.primary.main],
-  );
 
   // #region component
   return (

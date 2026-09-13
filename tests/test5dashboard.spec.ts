@@ -1,18 +1,24 @@
 import { test, expect } from '@playwright/test';
 
+import { E2E_PASSWORD, E2E_USERNAME } from './testUtils/e2eCredentials';
+
 test.describe('Dashboard Tests', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
     await page.getByRole('navigation').getByRole('link', { name: 'Log In' }).click();
-    await page.getByRole('textbox', { name: 'email' }).fill('admin');
-    await page.getByRole('textbox', { name: 'password' }).fill('Password123!');
+    await page.getByRole('textbox', { name: 'email' }).fill(E2E_USERNAME);
+    await page.getByRole('textbox', { name: 'password' }).fill(E2E_PASSWORD);
     await page.getByRole('checkbox').click();
     await page.getByRole('button', { name: 'Log In' }).click();
-    await expect(page.locator('div').filter({ hasText: /^Dashboard$/ }).first()).toBeVisible();
+    // The breadcrumb's current-page item renders as plain text, not a link
+    // (see CustomBreadcrumbs.tsx -- the last segment gets no href), so this
+    // matches the breadcrumb container itself rather than a link role.
+    await expect(page.getByRole('navigation', { name: 'breadcrumb' })).toBeVisible();
   });
 
   test('Dashboard Render Test', async ({ page }) => {
-    await expect(page.locator('div').filter({ hasText: 'dashboardHarvest DataUser' }).nth(3)).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Harvest Data' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'User Data' })).toBeVisible();
     await expect(page.getByText('Harvest DataAllDeltaSumAverageFrequency')).toBeVisible();
     await expect(page.getByText('2023202420252026Harvest Weight per Month in 20262023202420252026Running Total')).toBeVisible();
     await expect(page.getByText('User DataAllDeltaSum')).toBeVisible();

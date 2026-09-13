@@ -39,7 +39,16 @@ describe("MonthlyVerticalBarChartByYear", () => {
     );
 
     await waitFor(() => {
-      expect(onLoadData).toHaveBeenCalledWith(1, 2024, 12, 2024);
+      // FE-6: a 5th AbortSignal arg now rides along so the caller can
+      // cancel a stale request -- this test only cares that the year
+      // range is right, so match "any signal" rather than a specific one.
+      expect(onLoadData).toHaveBeenCalledWith(
+        1,
+        2024,
+        12,
+        2024,
+        expect.any(AbortSignal),
+      );
     });
   });
 
@@ -65,13 +74,27 @@ describe("MonthlyVerticalBarChartByYear", () => {
         onLoadData={onLoadData}
       />,
     );
-    await waitFor(() => expect(onLoadData).toHaveBeenCalledWith(1, 2024, 12, 2024));
+    await waitFor(() =>
+      expect(onLoadData).toHaveBeenCalledWith(
+        1,
+        2024,
+        12,
+        2024,
+        expect.any(AbortSignal),
+      ),
+    );
     onLoadData.mockClear();
 
     await user.click(screen.getByRole("button", { name: "2023" }));
 
     await waitFor(() => {
-      expect(onLoadData).toHaveBeenCalledWith(1, 2023, 12, 2023);
+      expect(onLoadData).toHaveBeenCalledWith(
+        1,
+        2023,
+        12,
+        2023,
+        expect.any(AbortSignal),
+      );
     });
   });
 

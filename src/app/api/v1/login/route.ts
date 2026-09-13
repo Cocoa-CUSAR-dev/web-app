@@ -6,7 +6,7 @@ import { NextResponse } from "next/server";
 import { backendUrl } from "@/core/constants";
 import { HttpError } from "@/core/error";
 import { LoginRequestType } from "@/core/types";
-import { handleApiError } from "@/libs/apiUtil";
+import { apiErrorResponse } from "@/libs/apiUtil";
 
 async function POST(req: NextRequest) {
   try {
@@ -50,27 +50,7 @@ async function POST(req: NextRequest) {
     });
     return response;
   } catch (e) {
-    handleApiError(e);
-    if (e instanceof HttpError) {
-      const res = NextResponse.json(
-        {
-          error: e.message,
-        },
-        {
-          status: e.status,
-        },
-      );
-      if (e.setCookies && e.setCookies.length > 0) {
-        e.setCookies.forEach((cookieString) => {
-          res.headers.append("Set-Cookie", cookieString);
-        });
-      }
-      return res;
-    }
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 },
-    );
+    return apiErrorResponse(e);
   }
 }
 

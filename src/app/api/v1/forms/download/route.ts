@@ -3,8 +3,12 @@ import { NextResponse } from "next/server";
 
 import { backendUrl, tokenName } from "@/core/constants";
 import { HttpError } from "@/core/error";
-import { checkTokenPresence, handleApiError } from "@/libs/apiUtil";
+import { apiErrorResponse, checkTokenPresence } from "@/libs/apiUtil";
 
+// Not migrated to proxyToBackend: this streams the raw response body
+// (an .xlsx file) straight through rather than parsing it as JSON, so it
+// doesn't fit that helper's shape. The catch block still gets the shared
+// apiErrorResponse treatment.
 async function GET(req: NextRequest) {
   try {
     checkTokenPresence(req);
@@ -46,31 +50,7 @@ async function GET(req: NextRequest) {
       },
     });
   } catch (e) {
-    handleApiError(e);
-    if (e instanceof HttpError) {
-      const res = NextResponse.json(
-        {
-          error: e.message,
-        },
-        {
-          status: e.status,
-        },
-      );
-      if (e.setCookies && e.setCookies.length > 0) {
-        e.setCookies.forEach((cookieString) => {
-          res.headers.append("Set-Cookie", cookieString);
-        });
-      }
-      return res;
-    }
-    return NextResponse.json(
-      {
-        error: "Internal Server Error",
-      },
-      {
-        status: 500,
-      },
-    );
+    return apiErrorResponse(e);
   }
 }
 

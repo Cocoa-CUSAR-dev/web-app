@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 import { backendUrl, tokenName } from "@/core/constants";
 import { HttpError } from "@/core/error";
-import { checkTokenPresence, handleApiError } from "@/libs/apiUtil";
+import { apiErrorResponse, checkTokenPresence } from "@/libs/apiUtil";
 
 async function GET(req: NextRequest) {
   try {
@@ -42,31 +42,7 @@ async function GET(req: NextRequest) {
     response.headers.append("Set-Cookie", setCookie[0]);
     return response;
   } catch (e) {
-    handleApiError(e);
-    if (e instanceof HttpError) {
-      const res = NextResponse.json(
-        {
-          error: e.message,
-        },
-        {
-          status: e.status,
-        },
-      );
-      if (e.setCookies && e.setCookies.length > 0) {
-        e.setCookies.forEach((cookieString) => {
-          res.headers.append("Set-Cookie", cookieString);
-        });
-      }
-      return res;
-    }
-    return NextResponse.json(
-      {
-        error: "Internal Server Error",
-      },
-      {
-        status: 500,
-      },
-    );
+    return apiErrorResponse(e);
   }
 }
 
