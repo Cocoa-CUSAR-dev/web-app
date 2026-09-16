@@ -24,6 +24,7 @@ import {
 import SectionQuestionEditor, {
   emptySection,
   isSectionsValid,
+  MultipleSubmitCheckbox,
 } from "./components/SectionQuestionEditor";
 import {
   CreateFormRequest,
@@ -52,6 +53,7 @@ function FormCreateModule() {
   const [openAt, setOpenAt] = useState<string>("");
   const [closeAt, setCloseAt] = useState<string>("");
   const [handler, setHandler] = useState<string>("");
+  const [isMultipleSubmit, setIsMultipleSubmit] = useState<boolean>(false);
   const [sections, setSections] = useState<SectionInput[]>([emptySection()]);
 
   const [handlers, setHandlers] = useState<string[] | null>(null);
@@ -87,6 +89,9 @@ function FormCreateModule() {
         setTitle(`Copy of ${form.title}`);
         setDescription(form.description ?? "");
         setHandler(sourceListEntry?.handler ?? "");
+        setIsMultipleSubmit(
+          form.isMultipleSubmit ?? sourceListEntry?.isMultipleSubmit ?? false,
+        );
         setSections(
           form.sections.map((section) => ({
             title: section.title,
@@ -98,6 +103,7 @@ function FormCreateModule() {
               inputType: question.inputType,
               fieldName: question.fieldName,
               isMandatory: question.isMandatory,
+              carryForward: question.carryForward ?? false,
               sortOrder: question.sortOrder,
             })),
           })),
@@ -176,6 +182,7 @@ function FormCreateModule() {
         openAt,
         closeAt,
         handler,
+        isMultipleSubmit,
         sections: sections.map((section, sectionIndex) => ({
           title: section.title,
           description: section.description?.trim() || null,
@@ -186,6 +193,7 @@ function FormCreateModule() {
             inputType: question.inputType,
             fieldName: question.fieldName || null,
             isMandatory: question.isMandatory,
+            carryForward: question.carryForward ?? false,
             sortOrder: questionIndex,
           })),
         })),
@@ -219,6 +227,7 @@ function FormCreateModule() {
     description,
     handler,
     isFormValid,
+    isMultipleSubmit,
     openAt,
     router,
     sections,
@@ -298,6 +307,10 @@ function FormCreateModule() {
             </MenuItem>
           ))}
         </Select>
+        <MultipleSubmitCheckbox
+          checked={isMultipleSubmit}
+          onChange={setIsMultipleSubmit}
+        />
       </Stack>
 
       <SectionQuestionEditor
@@ -305,6 +318,7 @@ function FormCreateModule() {
         setSections={setSections}
         handler={handler}
         handlerFields={handlerFields}
+        isMultipleSubmit={isMultipleSubmit}
       />
 
       <Stack alignSelf={"end"} direction={"row"} spacing={2}>

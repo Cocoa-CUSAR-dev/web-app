@@ -21,6 +21,7 @@ import {
   Select,
   Stack,
   TextField,
+  Tooltip,
 } from "@mui/material";
 import { Dispatch, SetStateAction, useCallback } from "react";
 
@@ -39,6 +40,7 @@ function emptyQuestion(): QuestionInput {
     inputType: "VARCHAR",
     fieldName: "",
     isMandatory: false,
+    carryForward: false,
     sortOrder: 0,
   };
 }
@@ -77,11 +79,13 @@ function SectionQuestionEditor({
   setSections,
   handler,
   handlerFields,
+  isMultipleSubmit = false,
 }: {
   sections: SectionInput[];
   setSections: Dispatch<SetStateAction<SectionInput[]>>;
   handler: string;
   handlerFields: HandlerField[] | null;
+  isMultipleSubmit?: boolean;
 }) {
   const updateSection = useCallback(
     (index: number, patch: Partial<SectionInput>) => {
@@ -317,6 +321,28 @@ function SectionQuestionEditor({
                       label={"Required"}
                       sx={{ whiteSpace: "nowrap" }}
                     />
+                    {isMultipleSubmit && (
+                      <Tooltip
+                        title={
+                          "When the farmer adds another entry, reuse this answer from the previous one instead of asking again (e.g. the plot)."
+                        }
+                      >
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={question.carryForward ?? false}
+                              onChange={(e) =>
+                                updateQuestion(sectionIndex, questionIndex, {
+                                  carryForward: e.target.checked,
+                                })
+                              }
+                            />
+                          }
+                          label={"Reuse answer"}
+                          sx={{ whiteSpace: "nowrap" }}
+                        />
+                      </Tooltip>
+                    )}
                     <IconButton
                       disabled={questionIndex === 0}
                       onClick={() =>
@@ -367,5 +393,32 @@ function SectionQuestionEditor({
   );
 }
 
+function MultipleSubmitCheckbox({
+  checked,
+  onChange,
+}: {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <Tooltip
+      title={
+        "Farmers can submit this form more than once (e.g. one row per grade or per activity)."
+      }
+    >
+      <FormControlLabel
+        control={
+          <Checkbox
+            checked={checked}
+            onChange={(e) => onChange(e.target.checked)}
+          />
+        }
+        label={"Allow multiple submissions"}
+        sx={{ alignSelf: "start" }}
+      />
+    </Tooltip>
+  );
+}
+
 export default SectionQuestionEditor;
-export { emptyQuestion, emptySection, isSectionsValid };
+export { emptyQuestion, emptySection, isSectionsValid, MultipleSubmitCheckbox };
