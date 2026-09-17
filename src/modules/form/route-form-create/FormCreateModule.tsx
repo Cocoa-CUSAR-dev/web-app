@@ -2,7 +2,9 @@
 
 import {
   Button,
+  Checkbox,
   CircularProgress,
+  FormControlLabel,
   MenuItem,
   Paper,
   Select,
@@ -53,6 +55,8 @@ function FormCreateModule() {
   const [closeAt, setCloseAt] = useState<string>("");
   const [handler, setHandler] = useState<string>("");
   const [sections, setSections] = useState<SectionInput[]>([emptySection()]);
+  const [reminderEnabled, setReminderEnabled] = useState<boolean>(false);
+  const [reminderTime, setReminderTime] = useState<string>("09:00");
 
   const [handlers, setHandlers] = useState<string[] | null>(null);
   const [handlerFields, setHandlerFields] = useState<HandlerField[] | null>(
@@ -157,7 +161,8 @@ function FormCreateModule() {
     Boolean(handler.trim()) &&
     Boolean(openAt) &&
     Boolean(closeAt) &&
-    isSectionsValid(sections);
+    isSectionsValid(sections) &&
+    (!reminderEnabled || Boolean(reminderTime));
 
   // #region submit
   const handleSubmit = useCallback(async () => {
@@ -189,6 +194,9 @@ function FormCreateModule() {
             sortOrder: questionIndex,
           })),
         })),
+        ...(reminderEnabled && {
+          reminder: { enabled: true, timeOfDay: reminderTime },
+        }),
       };
 
       const response = await CustomToast.promise(
@@ -220,6 +228,8 @@ function FormCreateModule() {
     handler,
     isFormValid,
     openAt,
+    reminderEnabled,
+    reminderTime,
     router,
     sections,
     title,
@@ -298,6 +308,28 @@ function FormCreateModule() {
             </MenuItem>
           ))}
         </Select>
+
+        <Stack direction={"row"} spacing={2} alignItems={"center"}>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={reminderEnabled}
+                onChange={(e) => setReminderEnabled(e.target.checked)}
+              />
+            }
+            label={"Send daily reminders to farmers who haven't submitted"}
+          />
+          {reminderEnabled && (
+            <TextField
+              size={"small"}
+              type={"time"}
+              label={"Reminder time"}
+              slotProps={{ inputLabel: { shrink: true } }}
+              value={reminderTime}
+              onChange={(e) => setReminderTime(e.target.value)}
+            />
+          )}
+        </Stack>
       </Stack>
 
       <SectionQuestionEditor

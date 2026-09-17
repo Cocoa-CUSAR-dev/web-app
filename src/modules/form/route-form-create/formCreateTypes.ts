@@ -22,6 +22,11 @@ type SectionInput = {
   questions: QuestionInput[];
 };
 
+type ReminderInput = {
+  enabled: boolean;
+  timeOfDay: string;
+};
+
 type CreateFormRequest = {
   title: string;
   description: string | null;
@@ -30,6 +35,7 @@ type CreateFormRequest = {
   closeAt: string;
   handler: string;
   sections: SectionInput[];
+  reminder?: ReminderInput;
 };
 
 type UpdateFormRequest = {
@@ -56,6 +62,7 @@ export type {
   HandlerFieldsResponse,
   HandlersResponse,
   QuestionInput,
+  ReminderInput,
   SectionInput,
   UpdateFormRequest,
   UpdateFormResponse,
