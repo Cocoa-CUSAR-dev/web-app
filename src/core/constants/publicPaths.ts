@@ -31,6 +31,10 @@ const publicPaths: {
     type: "EXACT",
   },
   {
+    path: "/sso",
+    type: "EXACT",
+  },
+  {
     path: "/api",
     type: "PREFIX",
   },
