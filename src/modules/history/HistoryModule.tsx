@@ -6,22 +6,18 @@ import { useEffect, useState } from "react";
 import { CustomToast } from "@/components/utility/CustomToast";
 import { fetchResponse } from "@/libs/fetchResponse";
 
-import SubmissionAnswersTable from "./components/SubmissionAnswersTable";
+import DiaryCard from "./components/DiaryCard";
 import SubmissionDayList from "./components/SubmissionDayList";
-import {
-  AnswerField,
-  SubmissionAnswersResponse,
-  SubmissionDaysResponse,
-} from "./historyTypes";
+import { DiaryResponse, SubmissionDaysResponse } from "./historyTypes";
 
 // US2-6/US5-1 (docs-and-plan#130, #134): the farmer's own submission
-// history -- a day list plus that day's raw submitted fields.
+// history -- a diary card for the selected day.
 function HistoryModule() {
   const [days, setDays] = useState<string[] | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   const [dayContentLoading, setDayContentLoading] = useState<boolean>(false);
-  const [answers, setAnswers] = useState<AnswerField[] | null>(null);
+  const [diaryText, setDiaryText] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -47,17 +43,18 @@ function HistoryModule() {
 
     (async () => {
       setDayContentLoading(true);
-      setAnswers(null);
+      setDiaryText(null);
       try {
         const response = await fetchResponse(
-          `/api/v1/history/${selectedDate}`,
+          `/api/v1/diaries/${selectedDate}`,
           { method: "GET" },
         );
-        const { value }: SubmissionAnswersResponse = await response.json();
-        setAnswers(value);
+        const { value }: DiaryResponse = await response.json();
+        setDiaryText(value.diaryText);
       } catch (e) {
+        // No diary generated for this day yet -- see the fallback added
+        // alongside GET /api/v1/history/[date] for the raw-fields view.
         console.error(e);
-        CustomToast.error("ไม่สามารถโหลดข้อมูลของวันนี้ได้");
       } finally {
         setDayContentLoading(false);
       }
@@ -88,9 +85,11 @@ function HistoryModule() {
           <Stack flex={1} spacing={2}>
             {dayContentLoading ? (
               <Skeleton variant={"rounded"} width={"100%"} height={"12rem"} />
-            ) : answers ? (
-              <SubmissionAnswersTable answers={answers} />
-            ) : null}
+            ) : diaryText ? (
+              <DiaryCard diaryText={diaryText} />
+            ) : (
+              <Typography>{"No diary entry for this day yet."}</Typography>
+            )}
           </Stack>
         </Stack>
       )}
