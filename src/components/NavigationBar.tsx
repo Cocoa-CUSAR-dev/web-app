@@ -109,6 +109,9 @@ function NavigationBar({ children }: { children: React.ReactNode }) {
           <AnimatedLink href={"/form"} underline={"none"} color={"white"}>
             {"Form"}
           </AnimatedLink>
+          <AnimatedLink href={"/history"} underline={"none"} color={"white"}>
+            {"History"}
+          </AnimatedLink>
           <ProfileMenu setMenuOpen={setMenuOpen} />
         </Stack>
       </Stack>
@@ -181,6 +184,13 @@ function NavigationBar({ children }: { children: React.ReactNode }) {
               </AnimatedLink>
               <AnimatedLink href={"/form"} underline={"none"} color={"black"}>
                 {"Form"}
+              </AnimatedLink>
+              <AnimatedLink
+                href={"/history"}
+                underline={"none"}
+                color={"black"}
+              >
+                {"History"}
               </AnimatedLink>
             </Stack>
             <Box>
