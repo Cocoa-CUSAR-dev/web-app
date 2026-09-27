@@ -17,6 +17,7 @@ import { fetchResponse } from "@/libs/fetchResponse";
 
 import SectionQuestionEditor, {
   isSectionsValid,
+  MultipleSubmitCheckbox,
 } from "../../route-form-create/components/SectionQuestionEditor";
 import {
   HandlerField,
@@ -43,6 +44,7 @@ function FormFullEditModuleInner() {
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [handler, setHandler] = useState<string>("");
+  const [isMultipleSubmit, setIsMultipleSubmit] = useState<boolean>(false);
   const [sections, setSections] = useState<SectionInput[]>([]);
   const [handlerFields, setHandlerFields] = useState<HandlerField[] | null>(
     null,
@@ -65,6 +67,9 @@ function FormFullEditModuleInner() {
       setTitle(form.title);
       setDescription(form.description ?? "");
       setHandler(listEntry?.handler ?? "");
+      setIsMultipleSubmit(
+        form.isMultipleSubmit ?? listEntry?.isMultipleSubmit ?? false,
+      );
       setSections(
         form.sections.map((section) => ({
           sectionId: section.sectionId,
@@ -79,6 +84,7 @@ function FormFullEditModuleInner() {
             inputType: question.inputType,
             fieldName: question.fieldName,
             isMandatory: question.isMandatory,
+            carryForward: question.carryForward ?? false,
             sortOrder: question.sortOrder,
           })),
         })),
@@ -131,6 +137,7 @@ function FormFullEditModuleInner() {
 
       const body: UpdateFormRequest = {
         description: description.trim() || null,
+        isMultipleSubmit,
         sections: sections.map((section, sectionIndex) => ({
           sectionId: section.sectionId,
           title: section.title,
@@ -144,6 +151,7 @@ function FormFullEditModuleInner() {
             inputType: question.inputType,
             fieldName: question.fieldName || null,
             isMandatory: question.isMandatory,
+            carryForward: question.carryForward ?? false,
             sortOrder: questionIndex,
           })),
         })),
@@ -171,7 +179,7 @@ function FormFullEditModuleInner() {
     } finally {
       setBoxLoading(false);
     }
-  }, [description, formId, isFormValid, loadForm, sections]);
+  }, [description, formId, isFormValid, isMultipleSubmit, loadForm, sections]);
 
   if (!formId) {
     return (
@@ -208,12 +216,17 @@ function FormFullEditModuleInner() {
         value={description}
         onChange={(e) => setDescription(e.target.value)}
       />
+      <MultipleSubmitCheckbox
+        checked={isMultipleSubmit}
+        onChange={setIsMultipleSubmit}
+      />
 
       <SectionQuestionEditor
         sections={sections}
         setSections={setSections}
         handler={handler}
         handlerFields={handlerFields}
+        isMultipleSubmit={isMultipleSubmit}
       />
 
       <Stack alignSelf={"end"} direction={"row"} spacing={2}>
