@@ -1,5 +1,6 @@
 import { DefaultResponseType } from "@/core/types";
 
+import { ReminderRequest } from "../reminder/reminderTypes";
 import { Form, QuestionInputType } from "../route-form-edit/formEditTypes";
 
 type QuestionInput = {
@@ -22,10 +23,7 @@ type SectionInput = {
   questions: QuestionInput[];
 };
 
-type ReminderInput = {
-  enabled: boolean;
-  timeOfDay: string;
-};
+type ReminderInput = ReminderRequest;
 
 type CreateFormRequest = {
   title: string;

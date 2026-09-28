@@ -21,6 +21,7 @@ import { CustomToast } from "@/components/utility/CustomToast";
 import { GlobalRowsPerPage } from "@/core/types";
 import { fetchResponse } from "@/libs/fetchResponse";
 
+import ReminderDialog from "../reminder/ReminderDialog";
 import FormEditTable from "./components/FormEditTable";
 import {
   FormEditRequest,
@@ -41,6 +42,7 @@ function FormEditModule() {
   } | null>(null);
 
   const [formName, setFormName] = useState<string>("");
+  const [reminderOpen, setReminderOpen] = useState<boolean>(false);
 
   const formId = useMemo(() => {
     if (formNameId && formNameId[formName]) {
@@ -450,6 +452,13 @@ function FormEditModule() {
           >
             {"Full Edit"}
           </Button>
+          <Button
+            variant={"outlined"}
+            disabled={!formId}
+            onClick={() => setReminderOpen(true)}
+          >
+            {"Reminder"}
+          </Button>
         </Stack>
       ) : (
         <Box width={"100%"} height={"2.5rem"}>
@@ -481,6 +490,11 @@ function FormEditModule() {
           </Button>
         </Stack>
       }
+      <ReminderDialog
+        open={reminderOpen}
+        formId={formId}
+        onClose={() => setReminderOpen(false)}
+      />
     </Stack>
   );
 }

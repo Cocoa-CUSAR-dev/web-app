@@ -2,9 +2,7 @@
 
 import {
   Button,
-  Checkbox,
   CircularProgress,
-  FormControlLabel,
   MenuItem,
   Paper,
   Select,
@@ -19,6 +17,13 @@ import { CustomToast } from "@/components/utility/CustomToast";
 import { useAuthInfo } from "@/hooks/useAuthInfo";
 import { fetchResponse } from "@/libs/fetchResponse";
 
+import ReminderSettings from "../reminder/ReminderSettings";
+import { ReminderValue } from "../reminder/reminderTypes";
+import {
+  defaultReminderValue,
+  isReminderValid,
+  toReminderRequest,
+} from "../reminder/reminderUtils";
 import {
   GetFormIdResponse,
   GetFormsResponse,
@@ -55,8 +60,9 @@ function FormCreateModule() {
   const [closeAt, setCloseAt] = useState<string>("");
   const [handler, setHandler] = useState<string>("");
   const [sections, setSections] = useState<SectionInput[]>([emptySection()]);
-  const [reminderEnabled, setReminderEnabled] = useState<boolean>(false);
-  const [reminderTime, setReminderTime] = useState<string>("09:00");
+  const [reminder, setReminder] = useState<ReminderValue>(
+    defaultReminderValue(),
+  );
 
   const [handlers, setHandlers] = useState<string[] | null>(null);
   const [handlerFields, setHandlerFields] = useState<HandlerField[] | null>(
@@ -162,7 +168,7 @@ function FormCreateModule() {
     Boolean(openAt) &&
     Boolean(closeAt) &&
     isSectionsValid(sections) &&
-    (!reminderEnabled || Boolean(reminderTime));
+    isReminderValid(reminder);
 
   // #region submit
   const handleSubmit = useCallback(async () => {
@@ -194,9 +200,7 @@ function FormCreateModule() {
             sortOrder: questionIndex,
           })),
         })),
-        ...(reminderEnabled && {
-          reminder: { enabled: true, timeOfDay: reminderTime },
-        }),
+        ...(reminder.enabled && { reminder: toReminderRequest(reminder) }),
       };
 
       const response = await CustomToast.promise(
@@ -228,8 +232,7 @@ function FormCreateModule() {
     handler,
     isFormValid,
     openAt,
-    reminderEnabled,
-    reminderTime,
+    reminder,
     router,
     sections,
     title,
@@ -309,27 +312,7 @@ function FormCreateModule() {
           ))}
         </Select>
 
-        <Stack direction={"row"} spacing={2} alignItems={"center"}>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={reminderEnabled}
-                onChange={(e) => setReminderEnabled(e.target.checked)}
-              />
-            }
-            label={"Send daily reminders to farmers who haven't submitted"}
-          />
-          {reminderEnabled && (
-            <TextField
-              size={"small"}
-              type={"time"}
-              label={"Reminder time"}
-              slotProps={{ inputLabel: { shrink: true } }}
-              value={reminderTime}
-              onChange={(e) => setReminderTime(e.target.value)}
-            />
-          )}
-        </Stack>
+        <ReminderSettings value={reminder} onChange={setReminder} />
       </Stack>
 
       <SectionQuestionEditor
