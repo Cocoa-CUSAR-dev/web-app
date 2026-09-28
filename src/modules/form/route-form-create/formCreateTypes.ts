@@ -1,5 +1,6 @@
 import { DefaultResponseType } from "@/core/types";
 
+import { ReminderRequest } from "../reminder/reminderTypes";
 import { Form, QuestionInputType } from "../route-form-edit/formEditTypes";
 
 type QuestionInput = {
@@ -25,6 +26,8 @@ type SectionInput = {
   questions: QuestionInput[];
 };
 
+type ReminderInput = ReminderRequest;
+
 type CreateFormRequest = {
   title: string;
   description: string | null;
@@ -34,6 +37,7 @@ type CreateFormRequest = {
   handler: string;
   isMultipleSubmit: boolean;
   sections: SectionInput[];
+  reminder?: ReminderInput;
 };
 
 type UpdateFormRequest = {
@@ -61,6 +65,7 @@ export type {
   HandlerFieldsResponse,
   HandlersResponse,
   QuestionInput,
+  ReminderInput,
   SectionInput,
   UpdateFormRequest,
   UpdateFormResponse,

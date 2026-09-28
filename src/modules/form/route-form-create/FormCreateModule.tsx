@@ -17,6 +17,13 @@ import { CustomToast } from "@/components/utility/CustomToast";
 import { useAuthInfo } from "@/hooks/useAuthInfo";
 import { fetchResponse } from "@/libs/fetchResponse";
 
+import ReminderSettings from "../reminder/ReminderSettings";
+import { ReminderValue } from "../reminder/reminderTypes";
+import {
+  defaultReminderValue,
+  isReminderValid,
+  toReminderRequest,
+} from "../reminder/reminderUtils";
 import {
   GetFormIdResponse,
   GetFormsResponse,
@@ -55,6 +62,9 @@ function FormCreateModule() {
   const [handler, setHandler] = useState<string>("");
   const [isMultipleSubmit, setIsMultipleSubmit] = useState<boolean>(false);
   const [sections, setSections] = useState<SectionInput[]>([emptySection()]);
+  const [reminder, setReminder] = useState<ReminderValue>(
+    defaultReminderValue(),
+  );
 
   const [handlers, setHandlers] = useState<string[] | null>(null);
   const [handlerFields, setHandlerFields] = useState<HandlerField[] | null>(
@@ -163,7 +173,8 @@ function FormCreateModule() {
     Boolean(handler.trim()) &&
     Boolean(openAt) &&
     Boolean(closeAt) &&
-    isSectionsValid(sections);
+    isSectionsValid(sections) &&
+    isReminderValid(reminder);
 
   // #region submit
   const handleSubmit = useCallback(async () => {
@@ -197,6 +208,7 @@ function FormCreateModule() {
             sortOrder: questionIndex,
           })),
         })),
+        ...(reminder.enabled && { reminder: toReminderRequest(reminder) }),
       };
 
       const response = await CustomToast.promise(
@@ -229,6 +241,7 @@ function FormCreateModule() {
     isFormValid,
     isMultipleSubmit,
     openAt,
+    reminder,
     router,
     sections,
     title,
@@ -311,6 +324,8 @@ function FormCreateModule() {
           checked={isMultipleSubmit}
           onChange={setIsMultipleSubmit}
         />
+
+        <ReminderSettings value={reminder} onChange={setReminder} />
       </Stack>
 
       <SectionQuestionEditor
