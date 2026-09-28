@@ -64,25 +64,30 @@ describe("fetchResponse", () => {
     );
   });
 
-  it.fails(
-    "separates the query string from the path with `?` (currently concatenated with no separator, see BUG note in test.md)",
-    async () => {
-      // encodeQueryParams returns URLSearchParams#toString() with no leading
-      // "?", and fetchResponse concatenates it as-is onto `path`, producing
-      // e.g. "/api/v1/tasksfrom=2024-01&to=2024-02".
-      vi.mocked(fetch).mockResolvedValue(jsonResponse({}));
+  it("separates the query string from the path with `?`", async () => {
+    vi.mocked(fetch).mockResolvedValue(jsonResponse({}));
 
-      await fetchResponse("/api/v1/tasks", {
-        method: "GET",
-        queryParams: { from: "2024-01", to: "2024-02", missing: undefined },
-      });
+    await fetchResponse("/api/v1/tasks", {
+      method: "GET",
+      queryParams: { from: "2024-01", to: "2024-02", missing: undefined },
+    });
 
-      expect(fetch).toHaveBeenCalledWith(
-        "/api/v1/tasks?from=2024-01&to=2024-02",
-        expect.anything(),
-      );
-    },
-  );
+    expect(fetch).toHaveBeenCalledWith(
+      "/api/v1/tasks?from=2024-01&to=2024-02",
+      expect.anything(),
+    );
+  });
+
+  it("omits the `?` entirely when every query param is missing", async () => {
+    vi.mocked(fetch).mockResolvedValue(jsonResponse({}));
+
+    await fetchResponse("/api/v1/tasks", {
+      method: "GET",
+      queryParams: { missing: undefined },
+    });
+
+    expect(fetch).toHaveBeenCalledWith("/api/v1/tasks", expect.anything());
+  });
 
   it("returns the response when the request succeeds", async () => {
     const mockResponse = jsonResponse({ ok: true });
