@@ -10,6 +10,9 @@ type QuestionInput = {
   inputType: QuestionInputType;
   fieldName: string | null;
   isMandatory: boolean;
+  // Only acted on for multi-submit forms: the chatbot reuses this answer
+  // from the previous submission when the farmer adds another row.
+  carryForward?: boolean;
   sortOrder: number;
   defaultValue?: unknown;
 };
@@ -32,12 +35,14 @@ type CreateFormRequest = {
   openAt: string;
   closeAt: string;
   handler: string;
+  isMultipleSubmit: boolean;
   sections: SectionInput[];
   reminder?: ReminderInput;
 };
 
 type UpdateFormRequest = {
   description: string | null;
+  isMultipleSubmit: boolean;
   sections: SectionInput[];
 };
 

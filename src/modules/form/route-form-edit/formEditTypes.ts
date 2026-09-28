@@ -25,6 +25,7 @@ type Question = {
   description: string | null;
   inputType: QuestionInputType;
   isMandatory: boolean;
+  carryForward?: boolean;
   isDefault: boolean;
   isActive: boolean;
   sortOrder: number;
@@ -44,6 +45,7 @@ type Form = {
   formId: string;
   title: string;
   description: string | null;
+  isMultipleSubmit?: boolean;
   sections: Section[];
 };
 
