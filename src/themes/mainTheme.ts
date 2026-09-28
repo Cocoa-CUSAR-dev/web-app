@@ -66,7 +66,7 @@ const mainTheme = createTheme({
       main: "#518D29",
       light: "#63a338",
       dark: "#3d691d",
-      contrastText: "white",
+      contrastText: "#ffffff",
     },
   },
   components: {
