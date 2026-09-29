@@ -1,7 +1,13 @@
 "use client";
 
-import { DoubleArrowRounded, NavigateNextRounded } from "@mui/icons-material";
 import {
+  DoubleArrowRounded,
+  ExpandMoreRounded,
+  MapRounded,
+  SpaceDashboardRounded,
+} from "@mui/icons-material";
+import {
+  alpha,
   Box,
   Collapse,
   Drawer,
@@ -13,13 +19,19 @@ import {
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
-import AnimatedLink from "@/components/utility/AnimatedLink";
 import { useBreadcrumbs } from "@/hooks/useBreadcrumbs";
 
 import { dashboardPages } from "../dashboardConstants";
 import { useDashboardContent } from "../hooks/useDashboardContent";
 
 const breakpoint = "lg";
+
+// Only two top-level pages exist today (see dashboardConstants) -- keyed by
+// their last path segment, same key `sidebarContent` already derives below.
+const pageIcons = {
+  dashboard: SpaceDashboardRounded,
+  map: MapRounded,
+} as const;
 
 function DashboardSidebar() {
   const [open, setOpen] = useState<boolean>(false);
@@ -32,7 +44,7 @@ function DashboardSidebar() {
 
   const sidebarContent = useMemo(() => {
     return (
-      <Stack id={"sidebar-content"} width={"100%"}>
+      <Stack id={"sidebar-content"} width={"100%"} spacing={0.5}>
         {dashboardPages.map((page, idx) => {
           const pageLinkHierarchy = page["link"].split("/");
           const pageLabel = pageLinkHierarchy[pageLinkHierarchy.length - 1];
@@ -40,78 +52,104 @@ function DashboardSidebar() {
           const isCurrentPage =
             breadcrumbs[breadcrumbs.length - 1] ===
             pageLabel.toLocaleLowerCase();
+          const Icon =
+            pageIcons[pageLabel.toLocaleLowerCase() as keyof typeof pageIcons] ??
+            SpaceDashboardRounded;
 
           if (!isCurrentPage) {
             return (
               <Stack
                 key={"dashboard-content" + idx}
                 direction={"row"}
-                spacing={"0.5"}
+                spacing={1}
                 alignItems={"center"}
-                width={"100%"}
+                onClick={() => router.push(pageLink)}
+                sx={{
+                  width: "100%",
+                  borderRadius: "0.5rem",
+                  padding: "0.5rem 0.75rem",
+                  cursor: "pointer",
+                  "&:hover": { bgcolor: "action.hover" },
+                }}
               >
-                <IconButton
-                  onClick={() => {
-                    router.push(pageLink);
-                  }}
-                  sx={{
-                    padding: "0.25rem",
-                  }}
-                >
-                  <NavigateNextRounded />
-                </IconButton>
-                <AnimatedLink
-                  href={pageLink}
-                  underline={"none"}
-                  color={"#000000"}
-                  bottomLineGap={3}
-                  paddingTop={"0.125rem"}
-                  noWrap
-                >
+                <Icon fontSize={"small"} sx={{ color: "text.secondary" }} />
+                <Typography variant={"body2"} fontWeight={500} noWrap>
                   {pageLabel}
-                </AnimatedLink>
+                </Typography>
               </Stack>
             );
           }
 
           return (
             <Stack key={"dashboard-content" + idx}>
-              <Stack direction={"row"} alignItems={"center"}>
-                <IconButton
-                  onClick={() => {
-                    setIsShowing((isShowing) => !isShowing);
-                  }}
-                  sx={{
-                    padding: "0.25rem",
-                    rotate: isShowing ? "90deg" : "none",
-                  }}
+              <Stack
+                direction={"row"}
+                spacing={1}
+                alignItems={"center"}
+                onClick={() => setIsShowing((isShowing) => !isShowing)}
+                sx={{
+                  width: "100%",
+                  borderRadius: "0.5rem",
+                  padding: "0.5rem 0.75rem",
+                  cursor: "pointer",
+                  bgcolor: (theme) => alpha(theme.palette.primary.main, 0.1),
+                }}
+              >
+                <Icon fontSize={"small"} sx={{ color: "primary.dark" }} />
+                <Typography
+                  variant={"body2"}
+                  fontWeight={600}
+                  color={"primary.dark"}
+                  noWrap
+                  flex={1}
                 >
-                  <NavigateNextRounded color={"action"} />
-                </IconButton>
-                <Typography color={"#000000"} paddingTop={"0.125rem"} noWrap>
                   {pageLabel}
                 </Typography>
+                <ExpandMoreRounded
+                  fontSize={"small"}
+                  sx={{
+                    color: "primary.dark",
+                    transition: "transform 0.2s ease",
+                    transform: isShowing ? "rotate(180deg)" : "none",
+                  }}
+                />
               </Stack>
               <Collapse in={isShowing}>
                 {isContentLoading || !content ? (
-                  <Box padding={"0.5rem 2rem"}>
-                    <Skeleton variant={"rectangular"} height={"8rem"} />
+                  <Box padding={"0.5rem 0.75rem 0.5rem 2.25rem"}>
+                    <Skeleton variant={"rounded"} height={"6rem"} />
                   </Box>
                 ) : (
-                  <Stack padding={"0.5rem 2rem"} spacing={1} width={"100%"}>
+                  <Stack
+                    padding={"0.25rem 0.5rem 0.25rem 1.75rem"}
+                    spacing={0.25}
+                    width={"100%"}
+                    sx={{
+                      borderLeft: "1px solid",
+                      borderColor: "divider",
+                      marginLeft: "1rem",
+                    }}
+                  >
                     {content.map((content, innerIdx) => {
                       return (
-                        <AnimatedLink
+                        <Box
                           key={"inner-dashboard-content" + innerIdx}
-                          href={content["link"]}
-                          underline={"none"}
-                          width={"fit-content"}
-                          color={"black"}
-                          variant={"body2"}
-                          noWrap
+                          onClick={() => router.push(content["link"])}
+                          sx={{
+                            borderRadius: "0.5rem",
+                            padding: "0.375rem 0.75rem",
+                            cursor: "pointer",
+                            "&:hover": { bgcolor: "action.hover" },
+                          }}
                         >
-                          {content["label"]}
-                        </AnimatedLink>
+                          <Typography
+                            variant={"body2"}
+                            color={"text.secondary"}
+                            noWrap
+                          >
+                            {content["label"]}
+                          </Typography>
+                        </Box>
                       );
                     })}
                   </Stack>
@@ -133,14 +171,14 @@ function DashboardSidebar() {
           xs: "none",
           [breakpoint]: "flex",
         }}
-        width={"10rem"}
+        width={"13rem"}
         maxWidth={"50%"}
         height={"100%"}
         sx={{
           borderRight: "1px solid",
           borderColor: "divider",
         }}
-        padding={"1.5rem 0.5rem"}
+        padding={"1.5rem 0.75rem"}
       >
         {sidebarContent}
       </Stack>
@@ -184,11 +222,10 @@ function DashboardSidebar() {
           anchor={"left"}
         >
           <Stack
-            bgcolor={"#white"}
-            color={"white"}
+            bgcolor={"background.paper"}
             width={"16rem"}
             height={"100%"}
-            padding={"1.5rem 0.5rem"}
+            padding={"1.5rem 0.75rem"}
           >
             {sidebarContent}
           </Stack>
