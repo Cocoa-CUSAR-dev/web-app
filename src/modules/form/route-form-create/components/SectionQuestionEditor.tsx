@@ -14,7 +14,6 @@ import {
   Box,
   Button,
   Checkbox,
-  Divider,
   FormControlLabel,
   IconButton,
   MenuItem,
@@ -22,6 +21,7 @@ import {
   Stack,
   TextField,
   Tooltip,
+  Typography,
 } from "@mui/material";
 import { Dispatch, SetStateAction, useCallback } from "react";
 
@@ -200,7 +200,11 @@ function SectionQuestionEditor({
           </AccordionSummary>
           <AccordionDetails>
             <Stack spacing={2}>
-              <Stack direction={"row"} spacing={2} alignItems={"center"}>
+              <Stack
+                direction={{ xs: "column", md: "row" }}
+                spacing={2}
+                alignItems={{ md: "center" }}
+              >
                 <TextField
                   fullWidth
                   size={"small"}
@@ -221,154 +225,212 @@ function SectionQuestionEditor({
                     })
                   }
                 />
-                <IconButton
-                  disabled={sectionIndex === 0}
-                  onClick={() => moveSection(sectionIndex, -1)}
-                >
-                  <ArrowUpwardRounded />
-                </IconButton>
-                <IconButton
-                  disabled={sectionIndex === sections.length - 1}
-                  onClick={() => moveSection(sectionIndex, 1)}
-                >
-                  <ArrowDownwardRounded />
-                </IconButton>
-                <IconButton
-                  disabled={sections.length === 1}
-                  onClick={() => removeSection(sectionIndex)}
-                >
-                  <DeleteRounded />
-                </IconButton>
+                <Stack direction={"row"} alignSelf={{ xs: "flex-end", md: "auto" }}>
+                  <Tooltip title={"Move section up"}>
+                    <span>
+                      <IconButton
+                        disabled={sectionIndex === 0}
+                        onClick={() => moveSection(sectionIndex, -1)}
+                      >
+                        <ArrowUpwardRounded />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                  <Tooltip title={"Move section down"}>
+                    <span>
+                      <IconButton
+                        disabled={sectionIndex === sections.length - 1}
+                        onClick={() => moveSection(sectionIndex, 1)}
+                      >
+                        <ArrowDownwardRounded />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                  <Tooltip title={"Delete section"}>
+                    <span>
+                      <IconButton
+                        disabled={sections.length === 1}
+                        onClick={() => removeSection(sectionIndex)}
+                      >
+                        <DeleteRounded />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                </Stack>
               </Stack>
 
               {section.questions.map((question, questionIndex) => (
-                <Stack key={question.questionId ?? questionIndex}>
-                  <Divider sx={{ marginBottom: "1rem" }} />
-                  <Stack direction={"row"} spacing={2} alignItems={"center"}>
-                    <TextField
-                      fullWidth
-                      size={"small"}
-                      label={"Label"}
-                      value={question.label}
-                      onChange={(e) =>
-                        updateQuestion(sectionIndex, questionIndex, {
-                          label: e.target.value,
-                        })
-                      }
-                    />
-                    <TextField
-                      fullWidth
-                      size={"small"}
-                      label={"Description"}
-                      value={question.description ?? ""}
-                      onChange={(e) =>
-                        updateQuestion(sectionIndex, questionIndex, {
-                          description: e.target.value,
-                        })
-                      }
-                    />
-                    <Select
-                      fullWidth
-                      size={"small"}
-                      value={question.inputType}
-                      onChange={(e) =>
-                        updateQuestion(sectionIndex, questionIndex, {
-                          inputType: e.target.value as QuestionInputType,
-                        })
-                      }
+                <Box
+                  key={question.questionId ?? questionIndex}
+                  sx={{
+                    border: "1px solid",
+                    borderColor: "divider",
+                    borderRadius: 2,
+                    padding: "1rem",
+                  }}
+                >
+                  <Stack spacing={1.5}>
+                    <Stack
+                      direction={"row"}
+                      justifyContent={"space-between"}
+                      alignItems={"center"}
                     >
-                      {questionInputTypes.map((type) => (
-                        <MenuItem key={type} value={type}>
-                          {questionInputTypeNameMap[type]}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                    <Select
-                      fullWidth
-                      size={"small"}
-                      displayEmpty
-                      value={question.fieldName ?? ""}
-                      onChange={(e) =>
-                        updateQuestion(sectionIndex, questionIndex, {
-                          fieldName: e.target.value,
-                        })
-                      }
-                    >
-                      <MenuItem value={""} disabled>
-                        {!handler
-                          ? "select a handler first"
-                          : handlerFields === null
-                            ? "loading fields..."
-                            : "Select a field"}
-                      </MenuItem>
-                      {handlerFields?.map((field) => (
-                        <MenuItem key={field.name} value={field.name}>
-                          {field.name}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={question.isMandatory}
-                          onChange={(e) =>
-                            updateQuestion(sectionIndex, questionIndex, {
-                              isMandatory: e.target.checked,
-                            })
-                          }
-                        />
-                      }
-                      label={"Required"}
-                      sx={{ whiteSpace: "nowrap" }}
-                    />
-                    {isMultipleSubmit && (
-                      <Tooltip
-                        title={
-                          "When the farmer adds another entry, reuse this answer from the previous one instead of asking again (e.g. the plot)."
+                      <Typography variant={"subtitle2"} color={"text.secondary"}>
+                        {`Question ${questionIndex + 1}`}
+                      </Typography>
+                      <Stack direction={"row"}>
+                        <Tooltip title={"Move question up"}>
+                          <span>
+                            <IconButton
+                              size={"small"}
+                              disabled={questionIndex === 0}
+                              onClick={() =>
+                                moveQuestion(sectionIndex, questionIndex, -1)
+                              }
+                            >
+                              <ArrowUpwardRounded fontSize={"small"} />
+                            </IconButton>
+                          </span>
+                        </Tooltip>
+                        <Tooltip title={"Move question down"}>
+                          <span>
+                            <IconButton
+                              size={"small"}
+                              disabled={
+                                questionIndex === section.questions.length - 1
+                              }
+                              onClick={() =>
+                                moveQuestion(sectionIndex, questionIndex, 1)
+                              }
+                            >
+                              <ArrowDownwardRounded fontSize={"small"} />
+                            </IconButton>
+                          </span>
+                        </Tooltip>
+                        <Tooltip title={"Delete question"}>
+                          <span>
+                            <IconButton
+                              size={"small"}
+                              disabled={section.questions.length === 1}
+                              onClick={() =>
+                                removeQuestion(sectionIndex, questionIndex)
+                              }
+                            >
+                              <DeleteRounded fontSize={"small"} />
+                            </IconButton>
+                          </span>
+                        </Tooltip>
+                      </Stack>
+                    </Stack>
+
+                    <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
+                      <TextField
+                        fullWidth
+                        size={"small"}
+                        label={"Label"}
+                        value={question.label}
+                        onChange={(e) =>
+                          updateQuestion(sectionIndex, questionIndex, {
+                            label: e.target.value,
+                          })
+                        }
+                      />
+                      <TextField
+                        fullWidth
+                        size={"small"}
+                        label={"Description"}
+                        value={question.description ?? ""}
+                        onChange={(e) =>
+                          updateQuestion(sectionIndex, questionIndex, {
+                            description: e.target.value,
+                          })
+                        }
+                      />
+                    </Stack>
+
+                    <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
+                      <Select
+                        fullWidth
+                        size={"small"}
+                        value={question.inputType}
+                        onChange={(e) =>
+                          updateQuestion(sectionIndex, questionIndex, {
+                            inputType: e.target.value as QuestionInputType,
+                          })
                         }
                       >
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={question.carryForward ?? false}
-                              onChange={(e) =>
-                                updateQuestion(sectionIndex, questionIndex, {
-                                  carryForward: e.target.checked,
-                                })
-                              }
-                            />
+                        {questionInputTypes.map((type) => (
+                          <MenuItem key={type} value={type}>
+                            {questionInputTypeNameMap[type]}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                      <Select
+                        fullWidth
+                        size={"small"}
+                        displayEmpty
+                        value={question.fieldName ?? ""}
+                        onChange={(e) =>
+                          updateQuestion(sectionIndex, questionIndex, {
+                            fieldName: e.target.value,
+                          })
+                        }
+                      >
+                        <MenuItem value={""} disabled>
+                          {!handler
+                            ? "select a handler first"
+                            : handlerFields === null
+                              ? "loading fields..."
+                              : "Select a field"}
+                        </MenuItem>
+                        {handlerFields?.map((field) => (
+                          <MenuItem key={field.name} value={field.name}>
+                            {field.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </Stack>
+
+                    <Stack direction={"row"} spacing={2} flexWrap={"wrap"}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={question.isMandatory}
+                            onChange={(e) =>
+                              updateQuestion(sectionIndex, questionIndex, {
+                                isMandatory: e.target.checked,
+                              })
+                            }
+                          />
+                        }
+                        label={"Required"}
+                        sx={{ whiteSpace: "nowrap" }}
+                      />
+                      {isMultipleSubmit && (
+                        <Tooltip
+                          title={
+                            "When the farmer adds another entry, reuse this answer from the previous one instead of asking again (e.g. the plot)."
                           }
-                          label={"Reuse answer"}
-                          sx={{ whiteSpace: "nowrap" }}
-                        />
-                      </Tooltip>
-                    )}
-                    <IconButton
-                      disabled={questionIndex === 0}
-                      onClick={() =>
-                        moveQuestion(sectionIndex, questionIndex, -1)
-                      }
-                    >
-                      <ArrowUpwardRounded />
-                    </IconButton>
-                    <IconButton
-                      disabled={questionIndex === section.questions.length - 1}
-                      onClick={() =>
-                        moveQuestion(sectionIndex, questionIndex, 1)
-                      }
-                    >
-                      <ArrowDownwardRounded />
-                    </IconButton>
-                    <IconButton
-                      disabled={section.questions.length === 1}
-                      onClick={() =>
-                        removeQuestion(sectionIndex, questionIndex)
-                      }
-                    >
-                      <DeleteRounded />
-                    </IconButton>
+                        >
+                          <FormControlLabel
+                            control={
+                              <Checkbox
+                                checked={question.carryForward ?? false}
+                                onChange={(e) =>
+                                  updateQuestion(sectionIndex, questionIndex, {
+                                    carryForward: e.target.checked,
+                                  })
+                                }
+                              />
+                            }
+                            label={"Reuse answer"}
+                            sx={{ whiteSpace: "nowrap" }}
+                          />
+                        </Tooltip>
+                      )}
+                    </Stack>
                   </Stack>
-                </Stack>
+                </Box>
               ))}
 
               <Box>
