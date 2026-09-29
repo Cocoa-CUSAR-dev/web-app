@@ -71,9 +71,7 @@ function DashboardHarvestSubmodule() {
   return (
     <Stack
       alignItems={"start"}
-      minWidth={"54rem"}
       width={"100%"}
-      flexShrink={0}
       height={"auto"}
       spacing={2}
       padding={"2rem"}
