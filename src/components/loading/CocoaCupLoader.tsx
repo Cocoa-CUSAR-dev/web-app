@@ -2,7 +2,15 @@
 
 import { Box, Typography, useTheme } from "@mui/material";
 
-function CocoaCupLoader({ label = "Loading" }: { label?: string }) {
+function CocoaCupLoader({
+  caption,
+  accessibleLabel = "Loading",
+}: {
+  /** Visible text under the animation. Omit for icon-only (the default). */
+  caption?: string;
+  /** Screen-reader-only label; never rendered as visible text. */
+  accessibleLabel?: string;
+}) {
   const theme = useTheme();
   const { dark, main, light } = theme.palette.primary;
 
@@ -14,10 +22,25 @@ function CocoaCupLoader({ label = "Loading" }: { label?: string }) {
       gap={1.5}
       py={4}
     >
-      <svg width={96} height={96} viewBox={"0 0 120 120"} role={"img"} aria-label={label}>
+      <svg
+        width={96}
+        height={96}
+        viewBox={"0 0 120 120"}
+        role={"img"}
+        aria-label={accessibleLabel}
+      >
         <clipPath id={"cocoa-cup-clip"}>
           <path d={"M35.5,54 L84.5,54 L79,94 L41,94 Z"} />
         </clipPath>
+        <rect
+          className={"cocoa-cup-loader-liquid"}
+          x={30}
+          y={92}
+          width={60}
+          height={6}
+          fill={main}
+          clipPath={"url(#cocoa-cup-clip)"}
+        />
         <path
           d={"M34,52 L86,52 L80,96 L40,96 Z"}
           fill={"none"}
@@ -29,15 +52,6 @@ function CocoaCupLoader({ label = "Loading" }: { label?: string }) {
           fill={"none"}
           stroke={dark}
           strokeWidth={2}
-        />
-        <rect
-          className={"cocoa-cup-loader-liquid"}
-          x={34}
-          y={62}
-          width={52}
-          height={38}
-          fill={main}
-          clipPath={"url(#cocoa-cup-clip)"}
         />
         <g
           className={"cocoa-cup-loader-steam"}
@@ -51,9 +65,11 @@ function CocoaCupLoader({ label = "Loading" }: { label?: string }) {
           <path d={"M72,44 C68,36 76,32 72,24"} />
         </g>
       </svg>
-      <Typography variant={"body2"} color={"text.secondary"}>
-        {label}
-      </Typography>
+      {caption && (
+        <Typography variant={"body2"} color={"text.secondary"}>
+          {caption}
+        </Typography>
+      )}
     </Box>
   );
 }
