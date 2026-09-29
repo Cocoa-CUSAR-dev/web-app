@@ -50,7 +50,8 @@ function encodeQueryParams(queryParams: QueryParams) {
       params.append(key, value.toString());
     }
   });
-  return params.toString();
+  const query = params.toString();
+  return query ? `?${query}` : "";
 }
 
 export { fetchResponse };

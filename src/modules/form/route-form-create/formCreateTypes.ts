@@ -1,5 +1,6 @@
 import { DefaultResponseType } from "@/core/types";
 
+import { ReminderRequest } from "../reminder/reminderTypes";
 import { Form, QuestionInputType } from "../route-form-edit/formEditTypes";
 
 type QuestionInput = {
@@ -9,6 +10,9 @@ type QuestionInput = {
   inputType: QuestionInputType;
   fieldName: string | null;
   isMandatory: boolean;
+  // Only acted on for multi-submit forms: the chatbot reuses this answer
+  // from the previous submission when the farmer adds another row.
+  carryForward?: boolean;
   sortOrder: number;
   defaultValue?: unknown;
 };
@@ -22,6 +26,8 @@ type SectionInput = {
   questions: QuestionInput[];
 };
 
+type ReminderInput = ReminderRequest;
+
 type CreateFormRequest = {
   title: string;
   description: string | null;
@@ -29,11 +35,14 @@ type CreateFormRequest = {
   openAt: string;
   closeAt: string;
   handler: string;
+  isMultipleSubmit: boolean;
   sections: SectionInput[];
+  reminder?: ReminderInput;
 };
 
 type UpdateFormRequest = {
   description: string | null;
+  isMultipleSubmit: boolean;
   sections: SectionInput[];
 };
 
@@ -56,6 +65,7 @@ export type {
   HandlerFieldsResponse,
   HandlersResponse,
   QuestionInput,
+  ReminderInput,
   SectionInput,
   UpdateFormRequest,
   UpdateFormResponse,

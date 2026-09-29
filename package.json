@@ -24,6 +24,7 @@
     "@mui/icons-material": "^7.3.7",
     "@mui/material": "^7.3.7",
     "@mui/material-nextjs": "^7.3.7",
+    "@sentry/nextjs": "^11.0.0",
     "@turf/bbox": "^7.3.4",
     "@turf/center": "^7.3.4",
     "@types/geojson": "^7946.0.16",

@@ -17,6 +17,13 @@ import { CustomToast } from "@/components/utility/CustomToast";
 import { useAuthInfo } from "@/hooks/useAuthInfo";
 import { fetchResponse } from "@/libs/fetchResponse";
 
+import ReminderSettings from "../reminder/ReminderSettings";
+import { ReminderValue } from "../reminder/reminderTypes";
+import {
+  defaultReminderValue,
+  isReminderValid,
+  toReminderRequest,
+} from "../reminder/reminderUtils";
 import {
   GetFormIdResponse,
   GetFormsResponse,
@@ -24,6 +31,7 @@ import {
 import SectionQuestionEditor, {
   emptySection,
   isSectionsValid,
+  MultipleSubmitCheckbox,
 } from "./components/SectionQuestionEditor";
 import {
   CreateFormRequest,
@@ -52,7 +60,11 @@ function FormCreateModule() {
   const [openAt, setOpenAt] = useState<string>("");
   const [closeAt, setCloseAt] = useState<string>("");
   const [handler, setHandler] = useState<string>("");
+  const [isMultipleSubmit, setIsMultipleSubmit] = useState<boolean>(false);
   const [sections, setSections] = useState<SectionInput[]>([emptySection()]);
+  const [reminder, setReminder] = useState<ReminderValue>(
+    defaultReminderValue(),
+  );
 
   const [handlers, setHandlers] = useState<string[] | null>(null);
   const [handlerFields, setHandlerFields] = useState<HandlerField[] | null>(
@@ -87,6 +99,9 @@ function FormCreateModule() {
         setTitle(`Copy of ${form.title}`);
         setDescription(form.description ?? "");
         setHandler(sourceListEntry?.handler ?? "");
+        setIsMultipleSubmit(
+          form.isMultipleSubmit ?? sourceListEntry?.isMultipleSubmit ?? false,
+        );
         setSections(
           form.sections.map((section) => ({
             title: section.title,
@@ -98,6 +113,7 @@ function FormCreateModule() {
               inputType: question.inputType,
               fieldName: question.fieldName,
               isMandatory: question.isMandatory,
+              carryForward: question.carryForward ?? false,
               sortOrder: question.sortOrder,
             })),
           })),
@@ -157,7 +173,8 @@ function FormCreateModule() {
     Boolean(handler.trim()) &&
     Boolean(openAt) &&
     Boolean(closeAt) &&
-    isSectionsValid(sections);
+    isSectionsValid(sections) &&
+    isReminderValid(reminder);
 
   // #region submit
   const handleSubmit = useCallback(async () => {
@@ -176,6 +193,7 @@ function FormCreateModule() {
         openAt,
         closeAt,
         handler,
+        isMultipleSubmit,
         sections: sections.map((section, sectionIndex) => ({
           title: section.title,
           description: section.description?.trim() || null,
@@ -186,9 +204,11 @@ function FormCreateModule() {
             inputType: question.inputType,
             fieldName: question.fieldName || null,
             isMandatory: question.isMandatory,
+            carryForward: question.carryForward ?? false,
             sortOrder: questionIndex,
           })),
         })),
+        ...(reminder.enabled && { reminder: toReminderRequest(reminder) }),
       };
 
       const response = await CustomToast.promise(
@@ -219,7 +239,9 @@ function FormCreateModule() {
     description,
     handler,
     isFormValid,
+    isMultipleSubmit,
     openAt,
+    reminder,
     router,
     sections,
     title,
@@ -298,6 +320,12 @@ function FormCreateModule() {
             </MenuItem>
           ))}
         </Select>
+        <MultipleSubmitCheckbox
+          checked={isMultipleSubmit}
+          onChange={setIsMultipleSubmit}
+        />
+
+        <ReminderSettings value={reminder} onChange={setReminder} />
       </Stack>
 
       <SectionQuestionEditor
@@ -305,6 +333,7 @@ function FormCreateModule() {
         setSections={setSections}
         handler={handler}
         handlerFields={handlerFields}
+        isMultipleSubmit={isMultipleSubmit}
       />
 
       <Stack alignSelf={"end"} direction={"row"} spacing={2}>
