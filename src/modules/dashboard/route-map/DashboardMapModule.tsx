@@ -1,11 +1,12 @@
 "use client";
 
-import { ZoomInMapRounded, ZoomOutMapRounded } from "@mui/icons-material";
-import { Box, Divider, Stack, Typography } from "@mui/material";
+import { SearchRounded, ZoomInMapRounded, ZoomOutMapRounded } from "@mui/icons-material";
+import { Autocomplete, Box, Divider, Stack, TextField, Typography } from "@mui/material";
 import bbox from "@turf/bbox";
 import center from "@turf/center";
-import { MapLayerMouseEvent } from "maplibre-gl";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import type { Map as MaplibreMap, MapLayerMouseEvent } from "maplibre-gl";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { MapRef } from "react-map-gl/maplibre";
 
 import UtilityMap from "@/components/map/UtilityMap";
 
@@ -39,13 +40,31 @@ function DashboardMapModule() {
 
   const [polygon, setPolygon] = useState<GeoJSON.Polygon | null>(null);
 
+  // #region province search
+  const mapRef = useRef<MapRef>(null);
+  const [provinceFeatures, setProvinceFeatures] = useState<
+    GeoJSON.Feature[]
+  >([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const response = await fetch("/maps/provinces.geojson");
+        const data: GeoJSON.FeatureCollection = await response.json();
+        if (!cancelled) setProvinceFeatures(data.features);
+      } catch (e) {
+        console.error(e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   // #region map func
-  const handleProvinceClick = useCallback(async (event: MapLayerMouseEvent) => {
-    const { features, target: map } = event;
-    if (!features || features.length === 0) return;
-    const feature = features[0];
-    if (!feature) return;
-    if (feature) {
+  const selectProvinceFeature = useCallback(
+    (feature: GeoJSON.Feature, map: MaplibreMap) => {
       const provinceName = feature.properties?.pro_th || "Unknown";
       const centerPoint = center(feature);
       const [long, lat] = centerPoint.geometry.coordinates;
@@ -65,8 +84,30 @@ function DashboardMapModule() {
       if (geometry.type === "Polygon") {
         setPolygon(geometry);
       }
-    }
-  }, []);
+    },
+    [],
+  );
+
+  const handleProvinceClick = useCallback(
+    (event: MapLayerMouseEvent) => {
+      const { features, target: map } = event;
+      if (!features || features.length === 0) return;
+      const feature = features[0];
+      if (!feature) return;
+      selectProvinceFeature(feature, map);
+    },
+    [selectProvinceFeature],
+  );
+
+  const handleProvinceSearchSelect = useCallback(
+    (feature: GeoJSON.Feature | null) => {
+      if (!feature) return;
+      const map = mapRef.current?.getMap();
+      if (!map) return;
+      selectProvinceFeature(feature, map);
+    },
+    [selectProvinceFeature],
+  );
 
   // #region effect
   useEffect(() => {
@@ -144,6 +185,7 @@ function DashboardMapModule() {
         height={`${mapHeightRem}rem`}
         maxHeight={"80%"}
         flexShrink={0}
+        position={"relative"}
         sx={{
           padding: "0.5px",
           outline: "1px solid",
@@ -151,7 +193,43 @@ function DashboardMapModule() {
           transition: "250ms ease height",
         }}
       >
+        <Autocomplete
+          options={provinceFeatures}
+          getOptionLabel={(feature) =>
+            (feature.properties?.pro_th as string | undefined) ?? ""
+          }
+          onChange={(_event, feature) => handleProvinceSearchSelect(feature)}
+          size={"small"}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              placeholder={"Search province"}
+              slotProps={{
+                input: {
+                  ...params.InputProps,
+                  startAdornment: (
+                    <SearchRounded
+                      fontSize={"small"}
+                      sx={{ color: "text.secondary", marginRight: "0.25rem" }}
+                    />
+                  ),
+                },
+              }}
+            />
+          )}
+          sx={{
+            position: "absolute",
+            top: "0.5rem",
+            right: "0.5rem",
+            width: "14rem",
+            maxWidth: "calc(100% - 1rem)",
+            zIndex: 1,
+            bgcolor: "white",
+            borderRadius: "0.25rem",
+          }}
+        />
         <UtilityMap
+          ref={mapRef}
           disabledSelectMapStyle
           geoJsonPath={"/maps/provinces.geojson"}
           sourceId={mapSourceId}
