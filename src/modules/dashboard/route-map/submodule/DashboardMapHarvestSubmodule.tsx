@@ -230,7 +230,11 @@ function DashboardMapHarvestSubmodule({
       <Stack direction={"row"} width={"100%"} flexWrap={"wrap"} gap={"1rem"}>
         {isDeltaSelected && (
           <FitCard flex={1}>
-            <Box minWidth={"20rem"} width={"100%"} height={"20rem"}>
+            <Box
+              minWidth={{ xs: "0", sm: "20rem" }}
+              width={"100%"}
+              height={"20rem"}
+            >
               <MonthlyVerticalBarChartByYear
                 title={harvestTimeSeriesDeltaTitle}
                 datasets={dataHarvestTimeSeriesDelta}
@@ -241,7 +245,11 @@ function DashboardMapHarvestSubmodule({
         )}
         {isSumSelected && (
           <FitCard flex={1}>
-            <Box minWidth={"20rem"} width={"100%"} height={"20rem"}>
+            <Box
+              minWidth={{ xs: "0", sm: "20rem" }}
+              width={"100%"}
+              height={"20rem"}
+            >
               <MonthlyVerticalBarChartByYear
                 title={harvestTimeSeriesSumTitle}
                 datasets={dataHarvestTimeSeriesSum}
@@ -252,7 +260,11 @@ function DashboardMapHarvestSubmodule({
         )}
         {isAverageSelected && (
           <FitCard flex={1}>
-            <Box minWidth={"20rem"} width={"100%"} height={"20rem"}>
+            <Box
+              minWidth={{ xs: "0", sm: "20rem" }}
+              width={"100%"}
+              height={"20rem"}
+            >
               <MonthlyVerticalBarChartByYear
                 title={harvestTimeSeriesAverageTitle}
                 datasets={dataHarvestTimeSeriesAverage}
@@ -263,7 +275,11 @@ function DashboardMapHarvestSubmodule({
         )}
         {isFrequencySelected && (
           <FitCard flex={1}>
-            <Box minWidth={"20rem"} width={"100%"} height={"20rem"}>
+            <Box
+              minWidth={{ xs: "0", sm: "20rem" }}
+              width={"100%"}
+              height={"20rem"}
+            >
               <MonthlyVerticalBarChartByYear
                 title={harvestTimeSeriesFrequencyTitle}
                 datasets={dataHarvestTimeSeriesFrequency}

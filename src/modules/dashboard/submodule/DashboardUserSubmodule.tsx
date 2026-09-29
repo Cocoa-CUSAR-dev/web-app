@@ -152,7 +152,11 @@ function DashboardUserSubmodule() {
       <Stack direction={"row"} width={"100%"} flexWrap={"wrap"} gap={"1rem"}>
         {isDeltaSelected && (
           <FitCard flex={1}>
-            <Box minWidth={"20rem"} width={"100%"} height={"20rem"}>
+            <Box
+              minWidth={{ xs: "0", sm: "20rem" }}
+              width={"100%"}
+              height={"20rem"}
+            >
               <MonthlyVerticalBarChartByYear
                 title={harvestTimeSeriesDeltaTitle}
                 datasets={dataHarvestTimeSeriesDelta}
@@ -163,7 +167,11 @@ function DashboardUserSubmodule() {
         )}
         {isSumSelected && (
           <FitCard flex={1}>
-            <Box minWidth={"20rem"} width={"100%"} height={"20rem"}>
+            <Box
+              minWidth={{ xs: "0", sm: "20rem" }}
+              width={"100%"}
+              height={"20rem"}
+            >
               <MonthlyVerticalBarChartByYear
                 title={harvestTimeSeriesSumTitle}
                 datasets={dataHarvestTimeSeriesSum}
