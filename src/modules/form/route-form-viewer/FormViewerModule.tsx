@@ -253,7 +253,12 @@ function FormViewerModule() {
 
   // #region component
   return (
-    <Stack spacing={3} width={"100%"} height={"100%"}>
+    <Stack
+      spacing={3}
+      width={"100%"}
+      height={"100%"}
+      padding={{ xs: "1rem", sm: "1rem 2rem" }}
+    >
       <Stack
         width={"100%"}
         justifyContent={"space-between"}

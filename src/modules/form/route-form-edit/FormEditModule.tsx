@@ -426,7 +426,12 @@ function FormEditModule() {
   }
 
   return (
-    <Stack width={"100%"} height={"100%"} spacing={2}>
+    <Stack
+      width={"100%"}
+      height={"100%"}
+      spacing={2}
+      padding={{ xs: "1rem", sm: "1rem 2rem" }}
+    >
       <Typography variant={"h2"} noWrap={true} whiteSpace={"nowrap"}>
         {"Form Edit"}
       </Typography>

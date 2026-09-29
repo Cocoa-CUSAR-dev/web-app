@@ -261,7 +261,11 @@ function FormCreateModule() {
   }
 
   return (
-    <Stack width={"100%"} spacing={2}>
+    <Stack
+      width={"100%"}
+      spacing={2}
+      padding={{ xs: "1rem", sm: "1rem 2rem" }}
+    >
       <Typography variant={"h2"}>{"Create Form"}</Typography>
       {duplicateFromFormId && (
         <Typography variant={"body2"} color={"text.secondary"}>

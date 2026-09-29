@@ -90,7 +90,12 @@ function FormViewerIdModule({ taskId }: { taskId: string }) {
 
   if (!responses) {
     return (
-      <Stack spacing={3} height={"100%"} divider={<Divider flexItem />}>
+      <Stack
+        spacing={3}
+        height={"100%"}
+        divider={<Divider flexItem />}
+        padding={{ xs: "1rem", sm: "1rem 2rem" }}
+      >
         <Stack direction={"row"} spacing={2} alignItems={"center"}>
           <Typography variant={"h2"}>{"Response:"}</Typography>
           {taskName ? (
@@ -121,7 +126,12 @@ function FormViewerIdModule({ taskId }: { taskId: string }) {
   }
 
   return (
-    <Stack spacing={3} height={"100%"} divider={<Divider flexItem />}>
+    <Stack
+      spacing={3}
+      height={"100%"}
+      divider={<Divider flexItem />}
+      padding={{ xs: "1rem", sm: "1rem 2rem" }}
+    >
       <Stack direction={"row"} spacing={2} alignItems={"center"}>
         <Typography variant={"h2"}>{"Response:"}</Typography>
         {taskName ? (

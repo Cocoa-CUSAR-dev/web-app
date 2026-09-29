@@ -33,7 +33,7 @@ function FormModule() {
   const router = useRouter();
 
   return (
-    <Stack spacing={3}>
+    <Stack spacing={3} padding={{ xs: "1rem", sm: "1rem 2rem" }}>
       <Stack spacing={1}>
         <Typography variant={"h2"}>{"Form"}</Typography>
         <Typography color={"text.secondary"}>
