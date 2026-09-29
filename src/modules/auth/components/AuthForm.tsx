@@ -43,9 +43,7 @@ function AuthForm({
       >
         {"Home"}
       </Link>
-      <Typography variant={"h2"} fontWeight={700}>
-        {title}
-      </Typography>
+      <Typography variant={"h2"}>{title}</Typography>
       <form
         onSubmit={(e) => {
           e.preventDefault();
