@@ -12,7 +12,10 @@ function CocoaCupLoader({
   accessibleLabel?: string;
 }) {
   const theme = useTheme();
-  const { dark, main, light } = theme.palette.primary;
+  const { dark, light } = theme.palette.primary;
+  // The liquid represents actual cocoa, so it stays this brown regardless
+  // of the app's brand color -- not derived from the theme on purpose.
+  const cocoaBrown = "#6F4426";
 
   return (
     <Box
@@ -38,7 +41,7 @@ function CocoaCupLoader({
           y={92}
           width={60}
           height={6}
-          fill={main}
+          fill={cocoaBrown}
           clipPath={"url(#cocoa-cup-clip)"}
         />
         <path
