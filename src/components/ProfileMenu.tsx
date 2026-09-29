@@ -2,6 +2,8 @@
 
 import { PermIdentityRounded } from "@mui/icons-material";
 import {
+  alpha,
+  Avatar,
   Button,
   Divider,
   IconButton,
@@ -27,6 +29,10 @@ function ProfileMenu({
 }) {
   const { firstName, lastName, email, organization, isAuthenticated, logout } =
     useAuthInfo();
+
+  const initials =
+    [firstName?.[0], lastName?.[0]].filter(Boolean).join("").toUpperCase() ||
+    "?";
 
   // #region menu
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -80,40 +86,56 @@ function ProfileMenu({
               "aria-labelledby": "lock-button",
             },
             paper: {
-              elevation: 2,
+              elevation: 3,
               style: {
-                borderRadius: "0.25rem",
+                borderRadius: "0.75rem",
+                marginTop: "0.5rem",
               },
             },
           }}
         >
-          <Stack width={"10rem"} padding={"0.5rem"} spacing={0}>
-            <Stack spacing={0.25}>
-              {firstName && lastName && (
-                <Typography noWrap={true} variant={"body1"} fontWeight={"500"}>
-                  {firstName + " " + lastName}
+          <Stack width={"16rem"} padding={"1rem"} spacing={1.5}>
+            <Stack direction={"row"} spacing={1.5} alignItems={"center"}>
+              <Avatar
+                sx={{
+                  width: "2.5rem",
+                  height: "2.5rem",
+                  bgcolor: (theme) => alpha(theme.palette.primary.main, 0.15),
+                  color: "primary.dark",
+                  fontWeight: 600,
+                }}
+              >
+                {initials}
+              </Avatar>
+              <Stack spacing={0} minWidth={0}>
+                {firstName && lastName && (
+                  <Typography noWrap={true} variant={"body1"} fontWeight={600}>
+                    {firstName + " " + lastName}
+                  </Typography>
+                )}
+                <Typography
+                  noWrap={true}
+                  variant={"body2"}
+                  color={"text.secondary"}
+                >
+                  {email}
                 </Typography>
-              )}
-              <Typography noWrap={true} fontSize={"0.75rem"}>
-                {email}
-              </Typography>
-              {organization && (
-                <Typography noWrap={true} fontSize={"0.75rem"}>
-                  {organization}
-                </Typography>
-              )}
+              </Stack>
             </Stack>
-            <Divider>{"action"}</Divider>
+            {organization && (
+              <Typography noWrap={true} variant={"body2"} color={"text.secondary"}>
+                {organization}
+              </Typography>
+            )}
+            <Divider />
             <Button
               onClick={async () => {
                 handleClose();
                 await handleLogout();
               }}
-              variant={"contained"}
-              sx={{
-                padding: "0.125rem",
-              }}
-              disableElevation={true}
+              variant={"outlined"}
+              color={"error"}
+              fullWidth
             >
               {"Log Out"}
             </Button>
@@ -127,6 +149,7 @@ function ProfileMenu({
     firstName,
     handleLogout,
     iconColor,
+    initials,
     isAuthenticated,
     lastName,
     open,
@@ -137,28 +160,44 @@ function ProfileMenu({
     if (!isAuthenticated) return null;
     return (
       <Stack
-        spacing={1}
+        spacing={1.5}
         color={"black"}
         display={{
           sm: "none",
         }}
         padding={"0 1rem"}
       >
-        {firstName && lastName && (
-          <Typography noWrap={true} variant={"body1"} fontWeight={"500"}>
-            {firstName + " " + lastName}
-          </Typography>
-        )}
-        <Typography variant={"body2"} noWrap={true}>
-          {email}
-        </Typography>
+        <Stack direction={"row"} spacing={1.5} alignItems={"center"}>
+          <Avatar
+            sx={{
+              width: "2.5rem",
+              height: "2.5rem",
+              bgcolor: (theme) => alpha(theme.palette.primary.main, 0.15),
+              color: "primary.dark",
+              fontWeight: 600,
+            }}
+          >
+            {initials}
+          </Avatar>
+          <Stack spacing={0} minWidth={0}>
+            {firstName && lastName && (
+              <Typography noWrap={true} variant={"body1"} fontWeight={600}>
+                {firstName + " " + lastName}
+              </Typography>
+            )}
+            <Typography variant={"body2"} color={"text.secondary"} noWrap={true}>
+              {email}
+            </Typography>
+          </Stack>
+        </Stack>
         {organization && (
-          <Typography variant={"body2"} noWrap={true}>
+          <Typography variant={"body2"} color={"text.secondary"} noWrap={true}>
             {organization}
           </Typography>
         )}
         <Button
-          variant={"contained"}
+          variant={"outlined"}
+          color={"error"}
           onClick={async () => {
             setMenuOpen(false);
             await handleLogout();
@@ -172,6 +211,7 @@ function ProfileMenu({
     email,
     firstName,
     handleLogout,
+    initials,
     isAuthenticated,
     lastName,
     organization,
