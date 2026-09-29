@@ -6,7 +6,7 @@ import {
   InsightsRounded,
   MapRounded,
 } from "@mui/icons-material";
-import { alpha, Stack, Typography } from "@mui/material";
+import { alpha, Box, Stack, Typography } from "@mui/material";
 
 const features = [
   {
@@ -60,12 +60,18 @@ function PromoteSubmodule() {
           }
         </Typography>
       </Stack>
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
-        flexWrap={"wrap"}
-        justifyContent={"center"}
-        spacing={3}
-        width={"100%"}
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: {
+            xs: "1fr",
+            sm: "repeat(2, 1fr)",
+            md: "repeat(4, 1fr)",
+          },
+          gap: 3,
+          width: "100%",
+          maxWidth: "64rem",
+        }}
       >
         {features.map(({ title, description, icon: Icon }) => (
           <Stack
@@ -73,7 +79,6 @@ function PromoteSubmodule() {
             spacing={1.5}
             alignItems={"center"}
             textAlign={"center"}
-            sx={{ width: { xs: "100%", sm: "14rem" } }}
           >
             <Stack
               width={"3.5rem"}
@@ -96,7 +101,7 @@ function PromoteSubmodule() {
             </Typography>
           </Stack>
         ))}
-      </Stack>
+      </Box>
     </Stack>
   );
 }
