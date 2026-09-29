@@ -55,16 +55,17 @@ function DashboardMapUserSubmodule() {
       id={"dashboard-map-user-container"}
     >
       <Stack
-        direction={"row"}
+        direction={{ xs: "column", sm: "row" }}
         width={"100%"}
-        alignItems={"center"}
+        alignItems={{ xs: "start", sm: "center" }}
         justifyContent={"space-between"}
+        spacing={1}
       >
         <Typography variant={"h2"}>{"User Data"}</Typography>
         <FormGroup
           sx={{
             flexDirection: "row",
-            width: "fit",
+            flexWrap: "wrap",
           }}
         >
           <Tooltip
