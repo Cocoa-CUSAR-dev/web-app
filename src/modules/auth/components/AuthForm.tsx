@@ -43,7 +43,9 @@ function AuthForm({
       >
         {"Home"}
       </Link>
-      <Typography fontSize={"1.75rem"}>{title}</Typography>
+      <Typography variant={"h2"} fontWeight={700} color={"primary.dark"}>
+        {title}
+      </Typography>
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -111,9 +113,12 @@ function AuthForm({
     <Stack
       width={"24rem"}
       padding={onCornderButtonClick ? "2.75rem 2rem 3.5rem" : "2.75rem 2rem"}
-      borderRadius={"0.5rem"}
+      borderRadius={"1rem"}
+      bgcolor={"white"}
       sx={{
-        outline: "1px solid lightgray",
+        border: "1px solid",
+        borderColor: "primary.light",
+        boxShadow: "0 12px 32px -12px rgba(81, 141, 41, 0.25)",
       }}
       alignItems={"center"}
       position={"relative"}
