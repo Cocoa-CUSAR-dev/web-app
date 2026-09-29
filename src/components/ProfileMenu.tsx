@@ -11,11 +11,11 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { useRouter } from "next/navigation";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 
 import { useAuthInfo } from "@/hooks/useAuthInfo";
 
+import LogoutConfirmDialog from "./LogoutConfirmDialog";
 import AnimatedLink from "./utility/AnimatedLink";
 
 function ProfileMenu({
@@ -27,7 +27,7 @@ function ProfileMenu({
   loginTextColor?: string;
   setMenuOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-  const { firstName, lastName, email, organization, isAuthenticated, logout } =
+  const { firstName, lastName, email, organization, isAuthenticated } =
     useAuthInfo();
 
   const initials =
@@ -38,7 +38,7 @@ function ProfileMenu({
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
-  const router = useRouter();
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState<boolean>(false);
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -47,13 +47,6 @@ function ProfileMenu({
   const handleClose = () => {
     setAnchorEl(null);
   };
-
-  const handleLogout = useCallback(async () => {
-    const isLoggedOut = await logout();
-    if (isLoggedOut) {
-      router.push("/auth?page=login");
-    }
-  }, [logout, router]);
 
   const desktopMenu = useMemo(() => {
     if (!isAuthenticated) return null;
@@ -129,9 +122,9 @@ function ProfileMenu({
             )}
             <Divider />
             <Button
-              onClick={async () => {
+              onClick={() => {
                 handleClose();
-                await handleLogout();
+                setLogoutConfirmOpen(true);
               }}
               variant={"outlined"}
               color={"error"}
@@ -147,7 +140,6 @@ function ProfileMenu({
     anchorEl,
     email,
     firstName,
-    handleLogout,
     iconColor,
     initials,
     isAuthenticated,
@@ -198,9 +190,9 @@ function ProfileMenu({
         <Button
           variant={"outlined"}
           color={"error"}
-          onClick={async () => {
+          onClick={() => {
             setMenuOpen(false);
-            await handleLogout();
+            setLogoutConfirmOpen(true);
           }}
         >
           {"Log Out"}
@@ -210,7 +202,6 @@ function ProfileMenu({
   }, [
     email,
     firstName,
-    handleLogout,
     initials,
     isAuthenticated,
     lastName,
@@ -243,6 +234,10 @@ function ProfileMenu({
     <>
       {desktopMenu}
       {mobileMenu}
+      <LogoutConfirmDialog
+        open={logoutConfirmOpen}
+        onClose={() => setLogoutConfirmOpen(false)}
+      />
     </>
   );
 }
