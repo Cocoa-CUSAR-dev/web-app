@@ -43,7 +43,7 @@ function AuthForm({
       >
         {"Home"}
       </Link>
-      <Typography variant={"h2"} fontWeight={700} color={"primary.dark"}>
+      <Typography variant={"h2"} fontWeight={700}>
         {title}
       </Typography>
       <form
@@ -117,8 +117,8 @@ function AuthForm({
       bgcolor={"white"}
       sx={{
         border: "1px solid",
-        borderColor: "primary.light",
-        boxShadow: "0 12px 32px -12px rgba(81, 141, 41, 0.25)",
+        borderColor: "divider",
+        boxShadow: "0 4px 20px -8px rgba(0, 0, 0, 0.12)",
       }}
       alignItems={"center"}
       position={"relative"}
