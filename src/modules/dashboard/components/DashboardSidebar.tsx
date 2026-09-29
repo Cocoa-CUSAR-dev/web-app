@@ -12,17 +12,20 @@ import {
   Collapse,
   Drawer,
   IconButton,
-  Skeleton,
   Stack,
   Typography,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { useBreadcrumbs } from "@/hooks/useBreadcrumbs";
 
-import { dashboardPages } from "../dashboardConstants";
-import { useDashboardContent } from "../hooks/useDashboardContent";
+import {
+  dashboardMapModuleContents,
+  dashboardModuleContents,
+  dashboardPages,
+} from "../dashboardConstants";
+import { DashboardContent } from "../dashboardTypes";
 
 const breakpoint = "lg";
 
@@ -33,14 +36,44 @@ const pageIcons = {
   map: MapRounded,
 } as const;
 
+// Each page's sub-items are static (see dashboardConstants -- both
+// DashboardModule and DashboardMapModule just push this same list into the
+// old runtime context on mount), so the sidebar can read them directly
+// instead of only knowing whichever page happens to be mounted right now.
+// That's what lets every page's section be expanded from anywhere, not just
+// the one you're currently on.
+const contentByPageLink: Record<string, DashboardContent[]> = {
+  "/dashboard": dashboardModuleContents,
+  "/dashboard/map": dashboardMapModuleContents,
+};
+
 function DashboardSidebar() {
   const [open, setOpen] = useState<boolean>(false);
 
   const router = useRouter();
-  const { content, isLoading: isContentLoading } = useDashboardContent();
   const breadcrumbs = useBreadcrumbs();
 
-  const { isShowing, setIsShowing } = useDashboardContent();
+  const [openPages, setOpenPages] = useState<Set<string>>(new Set());
+
+  const currentPageLink = useMemo(() => {
+    return dashboardPages.find((page) => {
+      const pageLinkHierarchy = page["link"].split("/");
+      const pageLabel = pageLinkHierarchy[pageLinkHierarchy.length - 1];
+      return (
+        breadcrumbs[breadcrumbs.length - 1] === pageLabel.toLocaleLowerCase()
+      );
+    })?.link;
+  }, [breadcrumbs]);
+
+  // Auto-expand whichever page you navigate to, without collapsing a
+  // section you already opened manually.
+  useEffect(() => {
+    if (!currentPageLink) return;
+    setOpenPages((prev) => {
+      if (prev.has(currentPageLink)) return prev;
+      return new Set(prev).add(currentPageLink);
+    });
+  }, [currentPageLink]);
 
   const sidebarContent = useMemo(() => {
     return (
@@ -49,36 +82,12 @@ function DashboardSidebar() {
           const pageLinkHierarchy = page["link"].split("/");
           const pageLabel = pageLinkHierarchy[pageLinkHierarchy.length - 1];
           const pageLink = page["link"];
-          const isCurrentPage =
-            breadcrumbs[breadcrumbs.length - 1] ===
-            pageLabel.toLocaleLowerCase();
+          const isCurrentPage = pageLink === currentPageLink;
+          const isOpen = openPages.has(pageLink);
+          const pageContent = contentByPageLink[pageLink] ?? [];
           const Icon =
             pageIcons[pageLabel.toLocaleLowerCase() as keyof typeof pageIcons] ??
             SpaceDashboardRounded;
-
-          if (!isCurrentPage) {
-            return (
-              <Stack
-                key={"dashboard-content" + idx}
-                direction={"row"}
-                spacing={1}
-                alignItems={"center"}
-                onClick={() => router.push(pageLink)}
-                sx={{
-                  width: "100%",
-                  borderRadius: "0.5rem",
-                  padding: "0.5rem 0.75rem",
-                  cursor: "pointer",
-                  "&:hover": { bgcolor: "action.hover" },
-                }}
-              >
-                <Icon fontSize={"small"} sx={{ color: "text.secondary" }} />
-                <Typography variant={"body2"} fontWeight={500} noWrap>
-                  {pageLabel}
-                </Typography>
-              </Stack>
-            );
-          }
 
           return (
             <Stack key={"dashboard-content" + idx}>
@@ -86,81 +95,116 @@ function DashboardSidebar() {
                 direction={"row"}
                 spacing={1}
                 alignItems={"center"}
-                onClick={() => setIsShowing((isShowing) => !isShowing)}
+                onClick={() => {
+                  if (isCurrentPage) {
+                    setOpenPages((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(pageLink)) {
+                        next.delete(pageLink);
+                      } else {
+                        next.add(pageLink);
+                      }
+                      return next;
+                    });
+                    return;
+                  }
+                  router.push(pageLink);
+                }}
                 sx={{
                   width: "100%",
                   borderRadius: "0.5rem",
                   padding: "0.5rem 0.75rem",
                   cursor: "pointer",
-                  bgcolor: (theme) => alpha(theme.palette.primary.main, 0.1),
+                  ...(isCurrentPage
+                    ? {
+                        bgcolor: (theme) =>
+                          alpha(theme.palette.primary.main, 0.1),
+                      }
+                    : { "&:hover": { bgcolor: "action.hover" } }),
                 }}
               >
-                <Icon fontSize={"small"} sx={{ color: "primary.dark" }} />
+                <Icon
+                  fontSize={"small"}
+                  sx={{ color: isCurrentPage ? "primary.dark" : "text.secondary" }}
+                />
                 <Typography
                   variant={"body2"}
-                  fontWeight={600}
-                  color={"primary.dark"}
+                  fontWeight={isCurrentPage ? 600 : 500}
+                  color={isCurrentPage ? "primary.dark" : undefined}
                   noWrap
                   flex={1}
                 >
                   {pageLabel}
                 </Typography>
-                <ExpandMoreRounded
-                  fontSize={"small"}
-                  sx={{
-                    color: "primary.dark",
-                    transition: "transform 0.2s ease",
-                    transform: isShowing ? "rotate(180deg)" : "none",
+                <IconButton
+                  size={"small"}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setOpenPages((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(pageLink)) {
+                        next.delete(pageLink);
+                      } else {
+                        next.add(pageLink);
+                      }
+                      return next;
+                    });
                   }}
-                />
-              </Stack>
-              <Collapse in={isShowing}>
-                {isContentLoading || !content ? (
-                  <Box padding={"0.5rem 0.75rem 0.5rem 2.25rem"}>
-                    <Skeleton variant={"rounded"} height={"6rem"} />
-                  </Box>
-                ) : (
-                  <Stack
-                    padding={"0.25rem 0.5rem 0.25rem 1.75rem"}
-                    spacing={0.25}
-                    width={"100%"}
+                  sx={{ padding: "0.125rem" }}
+                >
+                  <ExpandMoreRounded
+                    fontSize={"small"}
                     sx={{
-                      borderLeft: "1px solid",
-                      borderColor: "divider",
-                      marginLeft: "1rem",
+                      color: isCurrentPage ? "primary.dark" : "text.secondary",
+                      transition: "transform 0.2s ease",
+                      transform: isOpen ? "rotate(180deg)" : "none",
                     }}
-                  >
-                    {content.map((content, innerIdx) => {
-                      return (
-                        <Box
-                          key={"inner-dashboard-content" + innerIdx}
-                          onClick={() => router.push(content["link"])}
-                          sx={{
-                            borderRadius: "0.5rem",
-                            padding: "0.375rem 0.75rem",
-                            cursor: "pointer",
-                            "&:hover": { bgcolor: "action.hover" },
-                          }}
+                  />
+                </IconButton>
+              </Stack>
+              <Collapse in={isOpen}>
+                <Stack
+                  padding={"0.25rem 0.5rem 0.25rem 1.75rem"}
+                  spacing={0.25}
+                  width={"100%"}
+                  sx={{
+                    borderLeft: "1px solid",
+                    borderColor: "divider",
+                    marginLeft: "1rem",
+                  }}
+                >
+                  {pageContent.map((content, innerIdx) => {
+                    return (
+                      <Box
+                        key={"inner-dashboard-content" + innerIdx}
+                        onClick={() =>
+                          router.push(pageLink + content["link"])
+                        }
+                        sx={{
+                          borderRadius: "0.5rem",
+                          padding: "0.375rem 0.75rem",
+                          cursor: "pointer",
+                          "&:hover": { bgcolor: "action.hover" },
+                        }}
+                      >
+                        <Typography
+                          variant={"body2"}
+                          color={"text.secondary"}
+                          noWrap
                         >
-                          <Typography
-                            variant={"body2"}
-                            color={"text.secondary"}
-                            noWrap
-                          >
-                            {content["label"]}
-                          </Typography>
-                        </Box>
-                      );
-                    })}
-                  </Stack>
-                )}
+                          {content["label"]}
+                        </Typography>
+                      </Box>
+                    );
+                  })}
+                </Stack>
               </Collapse>
             </Stack>
           );
         })}
       </Stack>
     );
-  }, [breadcrumbs, content, isContentLoading, isShowing, router, setIsShowing]);
+  }, [currentPageLink, openPages, router]);
 
   const desktopSidebar = useMemo(() => {
     return (
