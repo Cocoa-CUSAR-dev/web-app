@@ -1,0 +1,31 @@
+@keyframes cocoa-cup-loader-fill {
+  0% {
+    transform: translateY(38px) scaleY(0.15);
+  }
+  50%,
+  85% {
+    transform: translateY(0) scaleY(1);
+  }
+  100% {
+    transform: translateY(38px) scaleY(0.15);
+  }
+}
+
+@keyframes cocoa-cup-loader-steam {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+.cocoa-cup-loader-liquid {
+  transform-origin: 60px 100px;
+  animation: cocoa-cup-loader-fill 2.6s ease-in-out infinite;
+}
+
+.cocoa-cup-loader-steam {
+  animation: cocoa-cup-loader-steam 2.6s ease-in-out infinite;
+}
