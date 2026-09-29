@@ -128,8 +128,7 @@ function DashboardSidebar() {
     return (
       <Stack
         alignItems={"start"}
-        bgcolor={"#FFFFFF"}
-        color={"#FFFFFF"}
+        bgcolor={"background.paper"}
         display={{
           xs: "none",
           [breakpoint]: "flex",
@@ -138,7 +137,8 @@ function DashboardSidebar() {
         maxWidth={"50%"}
         height={"100%"}
         sx={{
-          borderRight: "1px solid #808080",
+          borderRight: "1px solid",
+          borderColor: "divider",
         }}
         padding={"1.5rem 0.5rem"}
       >
@@ -157,14 +157,15 @@ function DashboardSidebar() {
           sx={{
             height: "100%",
             borderRadius: "0",
-            backgroundColor: "#FFFFFF",
-            color: "#808080",
+            backgroundColor: "background.paper",
+            color: "text.secondary",
             display: {
               [breakpoint]: "none",
             },
-            outline: "1px solid #808080",
+            outline: "1px solid",
+            outlineColor: "divider",
             "&:hover": {
-              backgroundColor: "#F0F0F0",
+              backgroundColor: "action.hover",
             },
           }}
         >
