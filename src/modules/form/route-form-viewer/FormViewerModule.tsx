@@ -2,6 +2,7 @@
 
 import { FileDownloadRounded } from "@mui/icons-material";
 import {
+  alpha,
   Box,
   Button,
   Checkbox,
@@ -287,7 +288,7 @@ function FormViewerModule() {
               md: "block",
             }}
             height={"2px"}
-            bgcolor={"darkgrey"}
+            bgcolor={"divider"}
           ></Box>
           <Stack
             direction={"row"}
@@ -308,7 +309,7 @@ function FormViewerModule() {
                 md: "none",
               }}
               height={"2px"}
-              bgcolor={"darkgrey"}
+              bgcolor={"divider"}
               marginRight={"1rem"}
             ></Box>
             {formDownloadButton}
@@ -340,8 +341,9 @@ function FormViewerModule() {
         ) : (
           <Stack
             width={"100%"}
-            borderRadius={"0.25rem"}
-            border={"1px solid lightgrey"}
+            borderRadius={"0.5rem"}
+            border={"1px solid"}
+            borderColor={"divider"}
             divider={<Divider flexItem />}
             id={"task-list-container"}
           >
@@ -357,7 +359,8 @@ function FormViewerModule() {
                     backgroundColor: "white",
                     transition: "background-color 150ms ease",
                     "&:hover": {
-                      backgroundColor: "#F0FFC2",
+                      backgroundColor: (theme) =>
+                        alpha(theme.palette.primary.main, 0.08),
                       cursor: "pointer",
                     },
                   }}
