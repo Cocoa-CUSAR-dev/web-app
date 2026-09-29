@@ -1,7 +1,18 @@
 "use client";
 
-import { SearchRounded, ZoomInMapRounded, ZoomOutMapRounded } from "@mui/icons-material";
-import { Autocomplete, Box, Divider, Stack, TextField, Typography } from "@mui/material";
+import {
+  SearchRounded,
+  ZoomInMapRounded,
+  ZoomOutMapRounded,
+} from "@mui/icons-material";
+import {
+  Autocomplete,
+  Box,
+  Divider,
+  Stack,
+  TextField,
+  Typography,
+} from "@mui/material";
 import bbox from "@turf/bbox";
 import center from "@turf/center";
 import type { Map as MaplibreMap, MapLayerMouseEvent } from "maplibre-gl";
@@ -42,9 +53,9 @@ function DashboardMapModule() {
 
   // #region province search
   const mapRef = useRef<MapRef>(null);
-  const [provinceFeatures, setProvinceFeatures] = useState<
-    GeoJSON.Feature[]
-  >([]);
+  const [provinceFeatures, setProvinceFeatures] = useState<GeoJSON.Feature[]>(
+    [],
+  );
 
   useEffect(() => {
     let cancelled = false;

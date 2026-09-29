@@ -17,14 +17,12 @@ const features = [
   },
   {
     title: "Analytics Dashboard",
-    description:
-      "Track harvest trends, yields, and farmer activity over time.",
+    description: "Track harvest trends, yields, and farmer activity over time.",
     icon: InsightsRounded,
   },
   {
     title: "Farm Mapping",
-    description:
-      "View submissions and plots geographically across provinces.",
+    description: "View submissions and plots geographically across provinces.",
     icon: MapRounded,
   },
   {

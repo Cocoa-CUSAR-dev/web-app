@@ -42,7 +42,11 @@ function FormModule() {
           }
         </Typography>
       </Stack>
-      <Stack direction={{ xs: "column", sm: "row" }} spacing={2} flexWrap={"wrap"}>
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        spacing={2}
+        flexWrap={"wrap"}
+      >
         {forms.map(({ label, description, link, icon: Icon }) => (
           <Card
             key={label}

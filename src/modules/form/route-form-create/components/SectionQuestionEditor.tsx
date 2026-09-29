@@ -225,7 +225,10 @@ function SectionQuestionEditor({
                     })
                   }
                 />
-                <Stack direction={"row"} alignSelf={{ xs: "flex-end", md: "auto" }}>
+                <Stack
+                  direction={"row"}
+                  alignSelf={{ xs: "flex-end", md: "auto" }}
+                >
                   <Tooltip title={"Move section up"}>
                     <span>
                       <IconButton
@@ -275,7 +278,10 @@ function SectionQuestionEditor({
                       justifyContent={"space-between"}
                       alignItems={"center"}
                     >
-                      <Typography variant={"subtitle2"} color={"text.secondary"}>
+                      <Typography
+                        variant={"subtitle2"}
+                        color={"text.secondary"}
+                      >
                         {`Question ${questionIndex + 1}`}
                       </Typography>
                       <Stack direction={"row"}>

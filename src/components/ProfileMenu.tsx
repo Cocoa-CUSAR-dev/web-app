@@ -116,7 +116,11 @@ function ProfileMenu({
               </Stack>
             </Stack>
             {organization && (
-              <Typography noWrap={true} variant={"body2"} color={"text.secondary"}>
+              <Typography
+                noWrap={true}
+                variant={"body2"}
+                color={"text.secondary"}
+              >
                 {organization}
               </Typography>
             )}
@@ -177,7 +181,11 @@ function ProfileMenu({
                 {firstName + " " + lastName}
               </Typography>
             )}
-            <Typography variant={"body2"} color={"text.secondary"} noWrap={true}>
+            <Typography
+              variant={"body2"}
+              color={"text.secondary"}
+              noWrap={true}
+            >
               {email}
             </Typography>
           </Stack>

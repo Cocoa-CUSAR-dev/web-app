@@ -86,8 +86,9 @@ function DashboardSidebar() {
           const isOpen = openPages.has(pageLink);
           const pageContent = contentByPageLink[pageLink] ?? [];
           const Icon =
-            pageIcons[pageLabel.toLocaleLowerCase() as keyof typeof pageIcons] ??
-            SpaceDashboardRounded;
+            pageIcons[
+              pageLabel.toLocaleLowerCase() as keyof typeof pageIcons
+            ] ?? SpaceDashboardRounded;
 
           return (
             <Stack key={"dashboard-content" + idx}>
@@ -125,7 +126,9 @@ function DashboardSidebar() {
               >
                 <Icon
                   fontSize={"small"}
-                  sx={{ color: isCurrentPage ? "primary.dark" : "text.secondary" }}
+                  sx={{
+                    color: isCurrentPage ? "primary.dark" : "text.secondary",
+                  }}
                 />
                 <Typography
                   variant={"body2"}
@@ -177,9 +180,7 @@ function DashboardSidebar() {
                     return (
                       <Box
                         key={"inner-dashboard-content" + innerIdx}
-                        onClick={() =>
-                          router.push(pageLink + content["link"])
-                        }
+                        onClick={() => router.push(pageLink + content["link"])}
                         sx={{
                           borderRadius: "0.5rem",
                           padding: "0.375rem 0.75rem",
