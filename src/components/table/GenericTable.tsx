@@ -55,7 +55,7 @@ function GenericTable<TableType extends string>({
           borderRadius: "0.5rem",
           borderWidth: "1px",
           borderStyle: "solid",
-          borderColor: "#606060",
+          borderColor: "divider",
           scrollbarWidth: "thin",
         }}
       >
@@ -67,7 +67,7 @@ function GenericTable<TableType extends string>({
           }}
         >
           <TableHead>
-            <TableRow>
+            <TableRow sx={{ bgcolor: "action.hover" }}>
               {columns.map((column, idx) => {
                 if (excludedColumns.includes(column)) return null;
                 return (

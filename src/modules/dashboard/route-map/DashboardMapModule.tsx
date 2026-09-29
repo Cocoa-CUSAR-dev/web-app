@@ -146,7 +146,8 @@ function DashboardMapModule() {
         flexShrink={0}
         sx={{
           padding: "0.5px",
-          outline: "1px solid #808080",
+          outline: "1px solid",
+          outlineColor: "divider",
           transition: "250ms ease height",
         }}
       >
