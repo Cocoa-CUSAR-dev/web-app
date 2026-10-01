@@ -67,8 +67,8 @@ function HomeModule() {
           inset: 0,
           pointerEvents: "none",
           background: {
-            xs: "linear-gradient(180deg, rgba(253,243,228,0.85) 0%, rgba(253,243,228,0.6) 45%, rgba(253,243,228,0) 75%)",
-            md: "linear-gradient(90deg, rgba(253,243,228,0.85) 0%, rgba(253,243,228,0.55) 35%, rgba(253,243,228,0) 60%)",
+            xs: "linear-gradient(180deg, rgba(253,243,228,0.92) 0%, rgba(253,243,228,0.75) 45%, rgba(253,243,228,0) 80%)",
+            md: "linear-gradient(90deg, rgba(253,243,228,0.94) 0%, rgba(253,243,228,0.82) 38%, rgba(253,243,228,0.35) 55%, rgba(253,243,228,0) 68%)",
           },
         }}
       />
@@ -101,10 +101,13 @@ function HomeModule() {
         top={0}
         left={0}
         right={0}
-        height={"5.5rem"}
+        height={"4.5rem"}
         sx={{
-          background:
-            "linear-gradient(180deg, rgba(255,255,255,0.7), rgba(255,255,255,0))",
+          // Frosted bar so headings scrolling underneath don't collide with the nav links.
+          background: "rgba(253,243,228,0.72)",
+          backdropFilter: "blur(14px)",
+          WebkitBackdropFilter: "blur(14px)",
+          maskImage: "linear-gradient(180deg, #000 70%, transparent)",
           pointerEvents: "none",
         }}
       />

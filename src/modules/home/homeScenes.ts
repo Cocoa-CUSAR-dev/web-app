@@ -8,11 +8,13 @@ const homeScenes = [
   { id: "contact", label: "Contact" },
 ] as const;
 
+// Near-opaque on purpose: at lower opacity the scene's small cocoa trees and
+// palms showed through behind body text.
 const glassPanelSx = {
-  background: "rgba(255, 255, 255, 0.62)",
-  backdropFilter: "blur(16px) saturate(1.2)",
-  WebkitBackdropFilter: "blur(16px) saturate(1.2)",
-  border: "1px solid rgba(255, 255, 255, 0.8)",
+  background: "rgba(255, 252, 246, 0.9)",
+  backdropFilter: "blur(24px) saturate(1.1)",
+  WebkitBackdropFilter: "blur(24px) saturate(1.1)",
+  border: "1px solid rgba(255, 255, 255, 0.9)",
   borderRadius: "1.5rem",
   boxShadow: "0 1.25rem 2.5rem rgba(35, 54, 44, 0.12)",
 } as const;
@@ -20,7 +22,7 @@ const glassPanelSx = {
 const displayFont = "var(--bai-jamjuree), serif";
 
 const ink = palette.ink;
-const inkSoft = palette.sub;
+const inkSoft = "#33453c";
 const accent = palette.accent;
 
 export { accent, displayFont, glassPanelSx, homeScenes, ink, inkSoft };
