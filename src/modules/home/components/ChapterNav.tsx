@@ -23,9 +23,7 @@ function ChapterNav({ container, sections, onNavigate }: ChapterNavProps) {
           }
         }
       },
-      // Pinned chapters are taller than the viewport, so they never reach
-      // 50% visibility; 0.3 switches near the boundary between two.
-      { root: container.current, threshold: 0.3 },
+      { root: container.current, threshold: 0.5 },
     );
     for (const section of sections) {
       if (section.current) observer.observe(section.current);

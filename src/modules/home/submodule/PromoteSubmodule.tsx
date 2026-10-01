@@ -11,13 +11,7 @@ import type { Ref } from "react";
 
 import ChapterHeading from "../components/ChapterHeading";
 import { Reveal } from "../components/Reveal";
-import {
-  accent,
-  glassPanelSx,
-  ink,
-  inkSoft,
-  pinnedHeight,
-} from "../homeScenes";
+import { accent, glassPanelSx, ink, inkSoft } from "../homeScenes";
 
 const features = [
   {
@@ -52,86 +46,80 @@ function PromoteSubmodule({ ref }: PromoteSubmoduleProps) {
     <Box
       ref={ref}
       component={"section"}
-      minHeight={{ xs: "100dvh", md: pinnedHeight }}
+      minHeight={"100dvh"}
+      display={"flex"}
+      flexDirection={"column"}
+      justifyContent={"center"}
+      alignItems={"center"}
+      paddingX={{ xs: "1.5rem", md: "8%" }}
+      paddingY={"6rem"}
     >
-      <Box
-        top={0}
-        position={{ md: "sticky" }}
-        minHeight={"100dvh"}
-        display={"flex"}
-        flexDirection={"column"}
-        justifyContent={"center"}
+      <Stack
+        spacing={5}
+        width={"100%"}
+        maxWidth={"72rem"}
         alignItems={"center"}
-        paddingX={{ xs: "1.5rem", md: "8%" }}
-        paddingY={"6rem"}
       >
-        <Stack
-          spacing={5}
+        <Reveal>
+          <ChapterHeading
+            eyebrow={"The Journey · 02"}
+            title={"Crafted Tools for Research"}
+            align={"center"}
+          />
+        </Reveal>
+        <Box
           width={"100%"}
-          maxWidth={"72rem"}
-          alignItems={"center"}
+          sx={{
+            display: "grid",
+            gridTemplateColumns: {
+              xs: "1fr",
+              sm: "repeat(2, 1fr)",
+              lg: "repeat(4, 1fr)",
+            },
+            gap: 2.5,
+          }}
         >
-          <Reveal>
-            <ChapterHeading
-              eyebrow={"The Journey · 02"}
-              title={"Crafted Tools for Research"}
-              align={"center"}
-            />
-          </Reveal>
-          <Box
-            width={"100%"}
-            sx={{
-              display: "grid",
-              gridTemplateColumns: {
-                xs: "1fr",
-                sm: "repeat(2, 1fr)",
-                lg: "repeat(4, 1fr)",
-              },
-              gap: 2.5,
-            }}
-          >
-            {features.map(({ title, description, icon: Icon }, index) => (
-              <Reveal key={title} delay={0.1 * index}>
-                <Stack
-                  spacing={1.5}
-                  height={"100%"}
-                  padding={"1.75rem"}
+          {features.map(({ title, description, icon: Icon }, index) => (
+            <Reveal key={title} delay={0.1 * index}>
+              <Stack
+                spacing={1.5}
+                height={"100%"}
+                padding={"1.75rem"}
+                sx={{
+                  ...glassPanelSx,
+                  transition: "transform 0.35s ease, border-color 0.35s ease",
+                  "&:hover": {
+                    transform: "translateY(-6px)",
+                    borderColor: "rgba(59,125,85,0.45)",
+                  },
+                }}
+              >
+                <Box
+                  width={"3rem"}
+                  height={"3rem"}
+                  borderRadius={"1rem"}
+                  display={"flex"}
+                  alignItems={"center"}
+                  justifyContent={"center"}
                   sx={{
-                    ...glassPanelSx,
-                    transition: "transform 0.35s ease, border-color 0.35s ease",
-                    "&:hover": {
-                      transform: "translateY(-6px)",
-                      borderColor: "rgba(59,125,85,0.45)",
-                    },
+                    background:
+                      "linear-gradient(135deg, rgba(59,125,85,0.16), rgba(192,112,90,0.16))",
+                    color: accent,
                   }}
                 >
-                  <Box
-                    width={"3rem"}
-                    height={"3rem"}
-                    borderRadius={"1rem"}
-                    display={"flex"}
-                    alignItems={"center"}
-                    justifyContent={"center"}
-                    sx={{
-                      background:
-                        "linear-gradient(135deg, rgba(59,125,85,0.16), rgba(192,112,90,0.16))",
-                      color: accent,
-                    }}
-                  >
-                    <Icon />
-                  </Box>
-                  <Typography variant={"h6"} fontWeight={600} color={ink}>
-                    {title}
-                  </Typography>
-                  <Typography variant={"body2"} color={inkSoft}>
-                    {description}
-                  </Typography>
-                </Stack>
-              </Reveal>
-            ))}
-          </Box>
-        </Stack>
-      </Box>
+                  <Icon />
+                </Box>
+                <Typography variant={"h6"} fontWeight={600} color={ink}>
+                  {title}
+                </Typography>
+                <Typography variant={"body2"} color={inkSoft}>
+                  {description}
+                </Typography>
+              </Stack>
+            </Reveal>
+          ))}
+        </Box>
+      </Stack>
     </Box>
   );
 }

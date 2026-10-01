@@ -20,21 +20,8 @@ const glassPanelSx = {
 
 const displayFont = "var(--bai-jamjuree), serif";
 
-// On desktop each chapter is taller than the viewport and its content is
-// pinned (sticky) while the scene behind keeps moving -- this is the dwell
-// time that lets a chapter breathe before the camera pans to the next one.
-const pinnedHeight = "175dvh";
-
 const ink = palette.ink;
 const inkSoft = "#33453c";
 const accent = palette.accent;
 
-export {
-  accent,
-  displayFont,
-  glassPanelSx,
-  homeScenes,
-  ink,
-  inkSoft,
-  pinnedHeight,
-};
+export { accent, displayFont, glassPanelSx, homeScenes, ink, inkSoft };
