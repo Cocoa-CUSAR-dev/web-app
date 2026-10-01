@@ -37,3 +37,22 @@
 .cocoa-cup-loader-steam {
   animation: cocoa-cup-loader-steam 2.6s ease-in-out infinite;
 }
+
+@keyframes hero-scroll-line {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(200%);
+  }
+}
+
+.hero-scroll-line {
+  animation: hero-scroll-line 1.8s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-scroll-line {
+    animation: none;
+  }
+}

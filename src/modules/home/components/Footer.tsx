@@ -1,192 +1,164 @@
 "use client";
 
-import { FacebookRounded } from "@mui/icons-material";
+import { FacebookRounded, Instagram, X, YouTube } from "@mui/icons-material";
 import { Box, Link, Stack, Typography } from "@mui/material";
-import Image from "next/image";
-import { useState } from "react";
+import { type Ref, useState } from "react";
 
 import LogoutConfirmDialog from "@/components/LogoutConfirmDialog";
 import { useAuthInfo } from "@/hooks/useAuthInfo";
 
-function Footer() {
+import { accent, displayFont, glassPanelSx, ink, inkSoft } from "../homeScenes";
+import { Reveal } from "./Reveal";
+
+const linkSx = {
+  color: inkSoft,
+  transition: "color 0.2s ease",
+  "&:hover": { color: accent },
+} as const;
+
+const socials = [
+  { label: "Facebook", icon: FacebookRounded },
+  { label: "X", icon: X },
+  { label: "Instagram", icon: Instagram },
+  { label: "YouTube", icon: YouTube },
+] as const;
+
+interface FooterProps {
+  ref?: Ref<HTMLElement>;
+}
+
+function Footer({ ref }: FooterProps) {
   const { isAuthenticated } = useAuthInfo();
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState<boolean>(false);
 
   return (
-    <Stack
-      component={"footer"}
-      flexShrink={"0"}
-      direction={{
-        xs: "column",
-        md: "row",
-      }}
-      spacing={{
-        xs: 3,
-        md: 12,
-      }}
-      width={"100%"}
-      padding={"3rem"}
-      bgcolor={"#4B2E2B"}
-      color={"#FFFFFF"}
-      alignItems={"center"}
+    <Box
+      ref={ref}
+      component={"section"}
+      minHeight={"100dvh"}
+      display={"flex"}
+      flexDirection={"column"}
+      paddingX={{ xs: "1rem", md: "4%" }}
+      paddingBottom={"1.5rem"}
     >
-      <Stack direction={"column"} spacing={2} flex={"1"}>
-        <Typography variant={"h3"} fontWeight={600}>
-          {"Enhance Craft Chocolate Market"}
-        </Typography>
-        <Typography variant={"body1"}>
-          {
-            "Empowering and enhancing craft cocoa market in Thailand with data-driven decisions and researches from experts in the field. Drive businesses to go even further beyond with accurate guidance and powerful tools crafted to their needs."
-          }
-        </Typography>
-        <Stack direction={"row"} spacing={1.5} alignItems={"center"}>
-          <Box
-            component={"a"}
-            href={"/"}
-            width={"1.75rem"}
-            height={"1.75rem"}
-            color={"#FFFFFF"}
-          >
-            <FacebookRounded
-              sx={{
-                width: "100%",
-                height: "100%",
-              }}
-            />
-          </Box>
-          <Box
-            component={"a"}
-            href={"/"}
-            width={"1.5rem"}
-            height={"1.5rem"}
-            position={"relative"}
-          >
-            <Image
-              src={"/logos/x-logo-white.png"}
-              fill={true}
-              sizes={"(max-width: 1920px) 1.5rem"}
-              alt={"X Logo"}
-            />
-          </Box>
-          <Box
-            component={"a"}
-            href={"/"}
-            width={"1.5rem"}
-            height={"1.5rem"}
-            position={"relative"}
-          >
-            <Image
-              src={"/logos/ig-logo-white.png"}
-              fill={true}
-              sizes={"(max-width: 1920px) 1.5rem"}
-              alt={"Instagram Logo"}
-            />
-          </Box>
-          <Box
-            component={"a"}
-            href={"/"}
-            width={"2.5rem"}
-            height={"2.5rem"}
-            position={"relative"}
-          >
-            <Image
-              src={"/logos/yt-logo-white.png"}
-              fill={true}
-              sizes={"(max-width: 1920px) 1.5rem"}
-              alt={"YouTube Logo"}
-            />
-          </Box>
-        </Stack>
-      </Stack>
       <Stack
-        direction={"row"}
-        spacing={4}
-        width={{
-          xs: "100%",
-          md: "fit-content",
-        }}
+        flex={1}
+        justifyContent={"center"}
+        alignItems={"center"}
+        paddingY={"6rem"}
       >
-        <Stack
-          spacing={2}
-          alignItems={{
-            xs: "start",
-            md: "end",
-          }}
-        >
-          <Typography variant={"h3"} fontWeight={600}>
-            {"Pages"}
+        <Reveal>
+          <Stack spacing={2} alignItems={"center"} textAlign={"center"}>
+            <Typography
+              variant={"overline"}
+              color={accent}
+              letterSpacing={"0.3em"}
+            >
+              {"Under the same stars"}
+            </Typography>
+            <Typography
+              fontFamily={displayFont}
+              fontWeight={600}
+              color={ink}
+              fontSize={{ xs: "2.25rem", sm: "3.25rem", md: "4rem" }}
+              lineHeight={1.1}
+              maxWidth={"48rem"}
+              sx={{ textShadow: "0 0.25rem 1.5rem rgba(255,255,255,0.8)" }}
+            >
+              {"Enhance Craft Chocolate Market"}
+            </Typography>
+            <Typography color={inkSoft} maxWidth={"40rem"}>
+              {
+                "Empowering Thailand's craft cocoa market with data-driven decisions and research from experts in the field."
+              }
+            </Typography>
+          </Stack>
+        </Reveal>
+      </Stack>
+
+      <Stack
+        component={"footer"}
+        direction={{ xs: "column", md: "row" }}
+        spacing={{ xs: 3, md: 8 }}
+        padding={{ xs: "1.75rem", md: "2.25rem 2.75rem" }}
+        color={ink}
+        sx={glassPanelSx}
+      >
+        <Stack spacing={1.5} flex={1}>
+          <Typography
+            fontFamily={displayFont}
+            fontWeight={600}
+            fontSize={"1.35rem"}
+          >
+            {"Cocoa Supply Chain Databank"}
+          </Typography>
+          <Typography variant={"body2"} color={inkSoft} maxWidth={"28rem"}>
+            {
+              "A research platform for the Thai Cocoa Project by CUSAR, in collaboration with CU Intania and ISTC."
+            }
           </Typography>
           <Stack
-            spacing={1}
-            alignItems={{
-              xs: "start",
-              md: "end",
-            }}
+            direction={"row"}
+            spacing={1.75}
+            alignItems={"center"}
+            paddingTop={"0.5rem"}
           >
-            <Link underline={"none"} color={"inherit"} href={"/dashboard"}>
+            {socials.map(({ label, icon: Icon }) => (
+              <Box
+                key={label}
+                component={"a"}
+                href={"/"}
+                aria-label={label}
+                display={"flex"}
+                sx={{ color: ink, "&:hover": { color: accent } }}
+              >
+                <Icon />
+              </Box>
+            ))}
+          </Stack>
+        </Stack>
+        <Stack direction={"row"} spacing={{ xs: 6, md: 8 }}>
+          <Stack spacing={1.25}>
+            <Typography fontWeight={600} color={accent}>
+              {"Pages"}
+            </Typography>
+            <Link underline={"none"} href={"/dashboard"} sx={linkSx}>
               {"Dashboard"}
             </Link>
-            <Link underline={"none"} color={"inherit"} href={"/form"}>
+            <Link underline={"none"} href={"/form"} sx={linkSx}>
               {"Form"}
             </Link>
             {isAuthenticated ? (
               <Link
                 underline={"none"}
-                color={"inherit"}
                 component={"button"}
                 onClick={() => setLogoutConfirmOpen(true)}
+                sx={{ ...linkSx, textAlign: "left" }}
               >
                 {"Log Out"}
               </Link>
             ) : (
-              <Link
-                underline={"none"}
-                color={"inherit"}
-                href={"/auth?page=login"}
-              >
+              <Link underline={"none"} href={"/auth?page=login"} sx={linkSx}>
                 {"Log In"}
               </Link>
             )}
-            <Link underline={"none"} color={"inherit"} href={"/terms-of-use"}>
+            <Link underline={"none"} href={"/terms-of-use"} sx={linkSx}>
               {"Terms of Use"}
             </Link>
           </Stack>
-        </Stack>
-        <Stack
-          spacing={2}
-          alignItems={{
-            xs: "start",
-            md: "end",
-          }}
-        >
-          <Typography variant={"h3"} fontWeight={600}>
-            {"Contact"}
-          </Typography>
-          <Stack
-            spacing={1}
-            alignItems={{
-              xs: "start",
-              md: "end",
-            }}
-          >
-            <Link underline={"none"} color={"inherit"} href={"/dashboard"}>
+          <Stack spacing={1.25}>
+            <Typography fontWeight={600} color={accent}>
+              {"Contact"}
+            </Typography>
+            <Typography variant={"body2"} color={inkSoft}>
               {"Chulalongkorn University"}
-            </Link>
-            <Link
-              underline={"none"}
-              color={"inherit"}
-              href={"/form"}
-              maxWidth={"18rem"}
-            >
+            </Typography>
+            <Typography variant={"body2"} color={inkSoft}>
               {"ISTC"}
-            </Link>
-            <Link
-              underline={"none"}
-              color={"inherit"}
-              href={"/auth?page=login"}
-            >
+            </Typography>
+            <Typography variant={"body2"} color={inkSoft}>
               {"Chula Engineering"}
-            </Link>
+            </Typography>
           </Stack>
         </Stack>
       </Stack>
@@ -194,7 +166,7 @@ function Footer() {
         open={logoutConfirmOpen}
         onClose={() => setLogoutConfirmOpen(false)}
       />
-    </Stack>
+    </Box>
   );
 }
 
