@@ -36,9 +36,9 @@ const scrimBackground: Record<CopySide, string> = {
 };
 const scrimMobile = `linear-gradient(180deg, rgba(${SCRIM},0.92) 0%, rgba(${SCRIM},0.75) 45%, rgba(${SCRIM},0) 80%)`;
 
-// Crossfade while the next chapter's top travels from 85% to 35% of the
-// viewport -- short enough that two scenes never sit muddily on top of each other.
-const ENTER_OFFSET: ["start 0.85", "start 0.35"] = ["start 0.85", "start 0.35"];
+// Crossfade + camera pan while the next chapter's top travels from 95% to 20%
+// of the viewport: long and eased, so the move feels unhurried.
+const ENTER_OFFSET: ["start 0.95", "start 0.2"] = ["start 0.95", "start 0.2"];
 
 const easeOutCubic = (t: number) => 1 - (1 - t) ** 3;
 const easeInCubic = (t: number) => t ** 3;
