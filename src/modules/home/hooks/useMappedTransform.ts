@@ -6,8 +6,11 @@ function useMappedTransform<T>(
   value: MotionValue<number>,
   input: number[],
   output: T[],
+  ease?: (t: number) => number,
 ) {
-  return useTransform(value, (v) => transform(v, input, output));
+  return useTransform(value, (v) =>
+    transform(v, input, output, ease ? { ease } : undefined),
+  );
 }
 
 export { useMappedTransform };

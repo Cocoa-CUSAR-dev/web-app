@@ -16,6 +16,12 @@ import { type PaperLayer, paperScenes } from "../papercut/scenes";
 
 const SCENE_WIDTH = "max(110%, 105dvh)";
 
+// Crossfade while the next chapter's top travels from 85% to 35% of the
+// viewport -- short enough that two scenes never sit muddily on top of each other.
+const ENTER_OFFSET: ["start 0.85", "start 0.35"] = ["start 0.85", "start 0.35"];
+
+const easeOutCubic = (t: number) => 1 - (1 - t) ** 3;
+
 interface LayerProps {
   layer: PaperLayer;
   pass: MotionValue<number>;
@@ -88,12 +94,12 @@ function Scene({ index, container, sections, mouseX, mouseY }: SceneProps) {
   const { scrollYProgress: enter } = useScroll({
     container,
     target: sections[index],
-    offset: ["start end", "start 0.3"],
+    offset: ENTER_OFFSET,
   });
   const { scrollYProgress: nextEnter } = useScroll({
     container,
     target: sections[index + 1] ?? sections[index],
-    offset: ["start end", "start 0.3"],
+    offset: ENTER_OFFSET,
   });
   const { scrollYProgress: pass } = useScroll({
     container,
@@ -102,7 +108,19 @@ function Scene({ index, container, sections, mouseX, mouseY }: SceneProps) {
   });
 
   const opacity = useMappedTransform(enter, [0, 1], isFirst ? [1, 1] : [0, 1]);
-  const scale = useMappedTransform(enter, [0, 1], isFirst ? [1, 1] : [1.06, 1]);
+  // Incoming scene rises into place like the camera panning down onto it.
+  const y = useMappedTransform(
+    enter,
+    [0, 1],
+    isFirst ? ["0%", "0%"] : ["8%", "0%"],
+    easeOutCubic,
+  );
+  const exitY = useMappedTransform(
+    nextEnter,
+    [0, 1],
+    ["0%", "-4%"],
+    easeOutCubic,
+  );
   // Skip painting a scene once the next one fully covers it.
   const visibility = useTransform([enter, nextEnter], ([e, n]: number[]) =>
     (isFirst || e > 0) && (index === paperScenes.length - 1 || n < 1)
@@ -112,17 +130,19 @@ function Scene({ index, container, sections, mouseX, mouseY }: SceneProps) {
 
   return (
     <motion.div
-      style={{ position: "absolute", inset: 0, opacity, scale, visibility }}
+      style={{ position: "absolute", inset: 0, opacity, y, visibility }}
     >
-      {paperScenes[index].layers.map((layer, i) => (
-        <Layer
-          key={i}
-          layer={layer}
-          pass={pass}
-          mouseX={mouseX}
-          mouseY={mouseY}
-        />
-      ))}
+      <motion.div style={{ position: "absolute", inset: 0, y: exitY }}>
+        {paperScenes[index].layers.map((layer, i) => (
+          <Layer
+            key={i}
+            layer={layer}
+            pass={pass}
+            mouseX={mouseX}
+            mouseY={mouseY}
+          />
+        ))}
+      </motion.div>
     </motion.div>
   );
 }
