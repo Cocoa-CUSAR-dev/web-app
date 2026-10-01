@@ -137,8 +137,7 @@ function HeroSection({ ref, onStartJourney }: HeroSectionProps) {
                   padding: "0.8rem 2.25rem",
                   color: ink,
                   borderColor: "rgba(35,54,44,0.35)",
-                  background: "rgba(255,255,255,0.55)",
-                  backdropFilter: "blur(8px)",
+                  background: "rgba(255,255,255,0.78)",
                   "&:hover": {
                     borderColor: ink,
                     background: "rgba(255,255,255,0.8)",

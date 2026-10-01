@@ -103,10 +103,9 @@ function HomeModule() {
         right={0}
         height={"4.5rem"}
         sx={{
-          // Frosted bar so headings scrolling underneath don't collide with the nav links.
-          background: "rgba(253,243,228,0.72)",
-          backdropFilter: "blur(14px)",
-          WebkitBackdropFilter: "blur(14px)",
+          // Solid-ish bar (not backdrop-filter, which is costly over moving scenes) so
+          // headings scrolling underneath don't collide with the nav links.
+          background: "rgba(253,243,228,0.9)",
           maskImage: "linear-gradient(180deg, #000 70%, transparent)",
           pointerEvents: "none",
         }}

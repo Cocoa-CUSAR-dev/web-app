@@ -9,11 +9,10 @@ const homeScenes = [
 ] as const;
 
 // Near-opaque on purpose: at lower opacity the scene's small cocoa trees and
-// palms showed through behind body text.
+// palms showed through behind body text. No backdrop-filter: blurring the
+// moving scenes behind every panel each frame halved the scroll frame rate.
 const glassPanelSx = {
-  background: "rgba(255, 252, 246, 0.9)",
-  backdropFilter: "blur(24px) saturate(1.1)",
-  WebkitBackdropFilter: "blur(24px) saturate(1.1)",
+  background: "rgba(255, 252, 246, 0.94)",
   border: "1px solid rgba(255, 255, 255, 0.9)",
   borderRadius: "1.5rem",
   boxShadow: "0 1.25rem 2.5rem rgba(35, 54, 44, 0.12)",
