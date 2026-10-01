@@ -50,7 +50,13 @@ function Hill({
   bottom?: number;
 }) {
   const id = useSvgId("hill");
-  const top = smooth(points);
+  // Run the ridge well past both edges so the camera pan never reveals
+  // where a sheet ends (off-screen parts cost nothing to raster).
+  const top = smooth([
+    [-420, points[0][1]],
+    ...points,
+    [1860, points[points.length - 1][1]],
+  ]);
   const ridgeY = Math.min(...points.map(([, y]) => y));
   return (
     <>
@@ -69,7 +75,7 @@ function Hill({
         </linearGradient>
       </defs>
       <path
-        d={`${top} L1500,${bottom} L-60,${bottom} Z`}
+        d={`${top} L1860,${bottom} L-420,${bottom} Z`}
         fill={`url(#${id})`}
       />
       <path
@@ -105,7 +111,7 @@ function Mist({
           <stop offset={1} stopColor={color} stopOpacity={opacity} />
         </linearGradient>
       </defs>
-      <rect x={-60} y={y} width={1560} height={height} fill={`url(#${id})`} />
+      <rect x={-420} y={y} width={2280} height={height} fill={`url(#${id})`} />
     </>
   );
 }
@@ -606,8 +612,8 @@ function Grass({
   const r = rng(seed);
   return (
     <>
-      {Array.from({ length: 40 }, (_, i) => {
-        const x = i * 38 + r() * 10;
+      {Array.from({ length: 60 }, (_, i) => {
+        const x = -420 + i * 38 + r() * 10;
         const h = 22 + r() * 30;
         return (
           <path

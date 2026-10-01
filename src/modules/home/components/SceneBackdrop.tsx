@@ -12,9 +12,11 @@ import {
 } from "framer-motion";
 import {
   memo,
+  type ReactNode,
   type RefObject,
   startTransition,
   useEffect,
+  useId,
   useState,
 } from "react";
 
@@ -54,8 +56,56 @@ const subjectOf = (i: number) => subjectSide[paperScenes[i].copy];
 // Pan per unit of subject travel, in % of layer width, for a depth-1 layer.
 const PAN = 7;
 
+interface LayerPart {
+  depth: number;
+  shadow: boolean;
+  node: ReactNode;
+}
+interface RenderLayer extends PaperLayer {
+  parts: LayerPart[];
+}
+
+// Each composited layer is a full-screen GPU texture; with ~13 per scene the
+// browser ran out of tile memory on large screens and dropped tiles mid-scroll
+// (blocks flickering). Neighbouring static layers at similar depth are merged
+// into one; each keeps its own paper shadow, baked into the SVG.
+function mergeStaticLayers(layers: PaperLayer[]): RenderLayer[] {
+  const out: RenderLayer[] = [];
+  for (const layer of layers) {
+    const part = {
+      depth: layer.depth,
+      shadow: layer.shadow !== false,
+      node: layer.node,
+    };
+    const group = out.at(-1);
+    const joinable =
+      group &&
+      !group.motion &&
+      !layer.motion &&
+      (group.align ?? "xMidYMid") === (layer.align ?? "xMidYMid") &&
+      (group.depth === 0
+        ? layer.depth <= 0.1
+        : layer.depth - group.parts[0].depth <= 0.2);
+    if (group && joinable) {
+      group.parts.push(part);
+      if (group.depth !== 0) {
+        group.depth =
+          group.parts.reduce((sum, p) => sum + p.depth, 0) / group.parts.length;
+      }
+    } else {
+      out.push({ ...layer, parts: [part] });
+    }
+  }
+  return out;
+}
+
+const renderScenes = paperScenes.map((scene) => ({
+  ...scene,
+  layers: mergeStaticLayers(scene.layers),
+}));
+
 interface LayerProps {
-  layer: PaperLayer;
+  layer: RenderLayer;
   pass: MotionValue<number>;
   enter: MotionValue<number>;
   nextEnter: MotionValue<number>;
@@ -79,8 +129,9 @@ function Layer({
   mouseY,
   motionScale,
 }: LayerProps) {
-  const { depth, align = "xMidYMid", node } = layer;
+  const { depth, align = "xMidYMid", parts } = layer;
   const k = depth * motionScale;
+  const shadowId = useId().replace(/[^a-zA-Z0-9_-]/g, "");
   // Nearer layers sweep further than far ones and the sky stays put, so the
   // pan reads as one camera moving through a single world.
   const x = useTransform([mouseX, enter, nextEnter], ([m, e, n]: number[]) => {
@@ -90,7 +141,9 @@ function Layer({
   });
   const y = useTransform(
     [pass, mouseY],
-    ([p, m]: number[]) => (0.5 - p) * 140 * k - m * 16 * k,
+    // Rounded so server and client render the same style string.
+    ([p, m]: number[]) =>
+      Math.round(((0.5 - p) * 140 * k - m * 16 * k) * 10) / 10,
   );
 
   // The sky fills the whole viewport. Everything else keeps its 16:9 shape and
@@ -131,32 +184,45 @@ function Layer({
           animationDelay: layer.delay ? `${-layer.delay}s` : undefined,
         }}
       >
-        {/* The shadow lives on a static, non-composited child so it's
-            rasterized once into the moving layer, not re-filtered per frame. */}
-        <div
-          style={{
-            width: "100%",
-            height: "100%",
-            // Nearer sheets sit further above the ones behind, so they cast
-            // longer, softer, darker shadows.
-            filter:
-              depth >= 0.3 && layer.shadow !== false
-                ? `drop-shadow(0 ${(3 + depth * 9).toFixed(1)}px ${(5 + depth * 12).toFixed(1)}px rgba(43, 26, 14, ${(0.12 + depth * 0.16).toFixed(2)}))`
-                : undefined,
-          }}
+        <svg
+          viewBox={"0 0 1440 810"}
+          preserveAspectRatio={depth === 0 ? "xMidYMid slice" : "xMidYMax meet"}
+          width={"100%"}
+          height={"100%"}
+          style={{ display: "block", overflow: "visible" }}
         >
-          <svg
-            viewBox={"0 0 1440 810"}
-            preserveAspectRatio={
-              depth === 0 ? "xMidYMid slice" : "xMidYMax meet"
-            }
-            width={"100%"}
-            height={"100%"}
-            style={{ display: "block", overflow: "visible" }}
-          >
-            {node}
-          </svg>
-        </div>
+          {parts.map((part, i) => {
+            // Nearer sheets sit further above the ones behind, so they cast
+            // longer, softer, darker shadows. Static SVG filters are baked in
+            // at raster time, not re-applied per frame.
+            const hasShadow = part.shadow && part.depth >= 0.3;
+            const id = `paper-shadow-${shadowId}-${i}`;
+            return (
+              <g key={i} filter={hasShadow ? `url(#${id})` : undefined}>
+                {hasShadow && (
+                  <defs>
+                    <filter
+                      id={id}
+                      x={"-10%"}
+                      y={"-10%"}
+                      width={"120%"}
+                      height={"130%"}
+                    >
+                      <feDropShadow
+                        dx={0}
+                        dy={((3 + part.depth * 9) * 0.75).toFixed(1)}
+                        stdDeviation={((5 + part.depth * 12) * 0.4).toFixed(1)}
+                        floodColor={"#2b1a0e"}
+                        floodOpacity={(0.12 + part.depth * 0.16).toFixed(2)}
+                      />
+                    </filter>
+                  </defs>
+                )}
+                {part.node}
+              </g>
+            );
+          })}
+        </svg>
       </div>
     </motion.div>
   );
@@ -223,7 +289,7 @@ const Scene = memo(function Scene({
   return (
     <motion.div style={{ position: "absolute", inset: 0, opacity, y }}>
       <motion.div style={{ position: "absolute", inset: 0, y: exitY }}>
-        {paperScenes[index].layers.map((layer, i) => (
+        {renderScenes[index].layers.map((layer, i) => (
           <Layer
             key={i}
             layer={layer}
@@ -281,28 +347,38 @@ function SceneBackdrop({ container, sections }: SceneBackdropProps) {
     return () => window.removeEventListener("pointermove", onMove);
   }, [rawX, rawY]);
 
-  // Only the chapter in view and its neighbours are mounted. All five scenes
-  // at once meant ~80 full-screen GPU layers (well over 1GB at 2x DPR), and
-  // the browser evicting and re-rasterizing them is what made scrolling jank.
-  const [active, setActive] = useState<number>(0);
+  // Only scenes on screen or about to be are mounted -- usually one, two
+  // during a transition. Each mounted scene is a stack of full-screen GPU
+  // layers; keeping neighbours around ran large screens out of tile memory.
+  // A scene mounts ~0.4 viewport before its crossfade starts (time to
+  // rasterize, so it never flashes in) and stays until well after it's covered.
+  const [mounted, setMounted] = useState<string>("0");
   useEffect(() => {
     const scroller = container.current;
     if (!scroller) return;
     const update = () => {
-      const probe = scroller.clientHeight * 0.6;
-      let current = 0;
-      sections.forEach((section, i) => {
-        const el = section.current;
-        if (el && el.getBoundingClientRect().top <= probe) current = i;
-      });
+      const vh = scroller.clientHeight;
+      const tops = sections.map(
+        (section) => section.current?.getBoundingClientRect().top ?? Infinity,
+      );
+      const keep = tops
+        .map((top, i) => {
+          const approaching = i === 0 || top < vh * 1.25;
+          const coveredLongAgo =
+            i < tops.length - 1 && tops[i + 1] < -vh * 0.15;
+          return approaching && !coveredLongAgo ? i : -1;
+        })
+        .filter((i) => i >= 0)
+        .join(",");
       // Mounting a scene is a few hundred SVG nodes; let React slice that
       // work up instead of blocking a scroll frame.
-      startTransition(() => setActive(current));
+      startTransition(() => setMounted(keep));
     };
     update();
     scroller.addEventListener("scroll", update, { passive: true });
     return () => scroller.removeEventListener("scroll", update);
   }, [container, sections]);
+  const mountedSet = new Set(mounted.split(",").map(Number));
 
   return (
     <Box
@@ -311,7 +387,7 @@ function SceneBackdrop({ container, sections }: SceneBackdropProps) {
       aria-hidden={true}
     >
       {paperScenes.map((scene, index) =>
-        Math.abs(index - active) <= 1 ? (
+        mountedSet.has(index) ? (
           <Scene
             key={scene.id}
             index={index}
