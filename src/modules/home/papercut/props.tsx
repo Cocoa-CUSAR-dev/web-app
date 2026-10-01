@@ -299,14 +299,62 @@ function Stars({ seed, count = 40 }: { seed: number; count?: number }) {
   );
 }
 
+// Fermenting beans run warm; wisps rise off the boxes and fade.
+function Steam({ x, y, seed }: { x: number; y: number; seed: number }) {
+  const r = rng(seed);
+  return (
+    <>
+      {[0, 1, 2].map((i) => {
+        const dx = x + (i - 1) * 34 + r() * 10;
+        return (
+          <path
+            key={i}
+            className={"paper-steam"}
+            style={{ animationDelay: `${-(i * 1.5 + r())}s` }}
+            d={`M${f(dx)},${y} C${f(dx - 14)},${y - 24} ${f(dx + 14)},${y - 44} ${f(dx)},${y - 70} C${f(dx - 12)},${y - 92} ${f(dx + 10)},${y - 108} ${f(dx)},${y - 126}`}
+            stroke={"#ffffff"}
+            strokeWidth={7}
+            strokeLinecap={"round"}
+            fill={"none"}
+          />
+        );
+      })}
+    </>
+  );
+}
+
+function Fireflies({ seed, count = 26 }: { seed: number; count?: number }) {
+  const r = rng(seed);
+  return (
+    <>
+      {Array.from({ length: count }, (_, i) => {
+        const x = r() * 1440;
+        const y = 470 + r() * 290;
+        return (
+          <g
+            key={i}
+            className={"paper-firefly"}
+            style={{ animationDelay: `${-(r() * 3).toFixed(2)}s` }}
+          >
+            <circle cx={f(x)} cy={f(y)} r={9} fill={"#f4f1a6"} opacity={0.25} />
+            <circle cx={f(x)} cy={f(y)} r={2.6} fill={"#fffbd0"} />
+          </g>
+        );
+      })}
+    </>
+  );
+}
+
 export {
   Basket,
   ChocolateBar,
   DryingRack,
   FermentBox,
+  Fireflies,
   OpenPod,
   Sack,
   Sapling,
   Stall,
   Stars,
+  Steam,
 };

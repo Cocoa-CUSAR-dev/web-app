@@ -61,24 +61,47 @@ function Layer({ layer, pass, mouseX, mouseY }: LayerProps) {
         ...placement,
         x,
         y,
-        // Nearer sheets sit further above the ones behind, so they cast
-        // longer, softer, darker shadows.
-        filter:
-          depth > 0
-            ? `drop-shadow(0 ${(3 + depth * 9).toFixed(1)}px ${(5 + depth * 12).toFixed(1)}px rgba(43, 26, 14, ${(0.12 + depth * 0.16).toFixed(2)}))`
-            : undefined,
         willChange: "transform",
       }}
     >
-      <svg
-        viewBox={"0 0 1440 810"}
-        preserveAspectRatio={depth === 0 ? "xMidYMid slice" : "xMidYMax meet"}
-        width={"100%"}
-        height={"100%"}
-        style={{ display: "block", overflow: "visible" }}
+      {/* Ambient motion animates this whole composited box (cheap on the
+          GPU) rather than the SVG inside it (a repaint every frame). */}
+      <div
+        className={layer.motion ? `paper-${layer.motion}` : undefined}
+        style={{
+          width: "100%",
+          height: "100%",
+          transformOrigin: layer.origin,
+          animationDelay: layer.delay ? `${-layer.delay}s` : undefined,
+        }}
       >
-        {node}
-      </svg>
+        {/* The shadow lives on a static, non-composited child so it's
+            rasterized once into the moving layer, not re-filtered per frame. */}
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            // Nearer sheets sit further above the ones behind, so they cast
+            // longer, softer, darker shadows.
+            filter:
+              depth > 0 && layer.shadow !== false
+                ? `drop-shadow(0 ${(3 + depth * 9).toFixed(1)}px ${(5 + depth * 12).toFixed(1)}px rgba(43, 26, 14, ${(0.12 + depth * 0.16).toFixed(2)}))`
+                : undefined,
+          }}
+        >
+          <svg
+            viewBox={"0 0 1440 810"}
+            preserveAspectRatio={
+              depth === 0 ? "xMidYMid slice" : "xMidYMax meet"
+            }
+            width={"100%"}
+            height={"100%"}
+            style={{ display: "block", overflow: "visible" }}
+          >
+            {node}
+          </svg>
+        </div>
+      </div>
     </motion.div>
   );
 }

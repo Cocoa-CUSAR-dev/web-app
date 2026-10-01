@@ -2,16 +2,17 @@ import type { ReactNode } from "react";
 
 import { palette as P, shade } from "./palette";
 import {
-  Bird,
   Cloud,
   CocoaRows,
   CocoaTree,
+  Flock,
   Glow,
   Grass,
   Hill,
   Leaf,
   Mist,
   Palm,
+  type Point,
   Sky,
   SunRays,
 } from "./primitives";
@@ -19,11 +20,13 @@ import {
   Basket,
   DryingRack,
   FermentBox,
+  Fireflies,
   OpenPod,
   Sack,
   Sapling,
   Stall,
   Stars,
+  Steam,
 } from "./props";
 
 interface PaperLayer {
@@ -31,32 +34,109 @@ interface PaperLayer {
   depth: number;
   // Which edge stays in frame when the viewport is narrower than 16:9.
   align?: "xMinYMax" | "xMidYMid" | "xMaxYMax";
+  // Ambient animation applied to the whole layer (see global.css paper-*).
+  motion?: "sway" | "leaf" | "drift" | "spin" | "fly";
+  // CSS transform-origin for the motion, in % of the 16:9 layer box.
+  origin?: string;
+  // Seconds into the loop to start at, so layers don't move in lockstep.
+  delay?: number;
+  shadow?: boolean;
   node: ReactNode;
 }
 
-function CornerLeaves({ side }: { side: "left" | "right" | "both" }) {
-  const left = (
+// Scene coordinates (1440x810 viewBox) -> transform-origin percentages.
+const at = (x: number, y: number) =>
+  `${((x / 1440) * 100).toFixed(1)}% ${((y / 810) * 100).toFixed(1)}%`;
+
+const sunLayers = (
+  x: number,
+  y: number,
+  color: string = P.sun,
+): PaperLayer[] => [
+  {
+    depth: 0.06,
+    motion: "spin",
+    origin: at(x, y),
+    shadow: false,
+    node: <SunRays x={x} y={y} color={color} />,
+  },
+  {
+    depth: 0.08,
+    node: (
+      <>
+        <circle cx={x} cy={y} r={150} fill={color} opacity={0.25} />
+        <circle cx={x} cy={y} r={105} fill={color} opacity={0.45} />
+        <circle cx={x} cy={y} r={66} fill={color} />
+      </>
+    ),
+  },
+];
+
+const cloudLayer = (
+  clouds: [number, number, number][],
+  delay = 0,
+): PaperLayer => ({
+  depth: 0.1,
+  motion: "drift",
+  delay,
+  node: (
     <>
-      <Leaf x={-30} y={-20} angle={70} len={260} fill={P.fg} />
-      <Leaf x={20} y={-40} angle={58} len={230} fill={P.fg2} />
-      <Leaf x={-40} y={60} angle={40} len={210} fill={P.leaf[1]} />
-      <Leaf x={90} y={-30} angle={95} len={180} fill={P.young} width={0.85} />
+      {clouds.map(([x, y, s]) => (
+        <Cloud key={`${x}-${y}`} x={x} y={y} s={s} />
+      ))}
     </>
-  );
-  const right = (
-    <g transform={"translate(1440,0) scale(-1,1)"}>
-      <Leaf x={-30} y={-30} angle={75} len={240} fill={P.fg2} />
-      <Leaf x={30} y={-40} angle={60} len={200} fill={P.leaf[2]} />
-      <Leaf x={-30} y={70} angle={42} len={190} fill={P.fg} />
-    </g>
-  );
-  return (
+  ),
+});
+
+const flockLayer = (y: number, delay = 0): PaperLayer => ({
+  depth: 0.14,
+  motion: "fly",
+  delay,
+  shadow: false,
+  node: <Flock y={y} />,
+});
+
+const ground = (
+  seed: number,
+  points: readonly Point[] = [
+    [-20, 760],
+    [360, 730],
+    [760, 770],
+    [1100, 740],
+    [1460, 770],
+  ],
+): PaperLayer => ({
+  depth: 1,
+  node: (
     <>
-      {side !== "right" && left}
-      {side !== "left" && right}
+      <Hill points={points} fill={P.fg2} />
+      <Grass seed={seed} y={790} color1={P.fg} color2={P.fg2} />
     </>
-  );
-}
+  ),
+});
+
+// Big foreground cocoa leaves hanging into the corners, swaying from the edge.
+const cornerLeaves = (side: "left" | "right", delay = 0): PaperLayer => ({
+  depth: 1,
+  motion: "leaf",
+  origin: side === "left" ? "0% 0%" : "100% 0%",
+  delay,
+  node:
+    side === "left" ? (
+      <>
+        <Leaf x={-30} y={-20} angle={70} len={260} fill={P.fg} />
+        <Leaf x={20} y={-40} angle={58} len={230} fill={P.fg2} />
+        <Leaf x={-40} y={60} angle={40} len={210} fill={P.leaf[1]} />
+        <Leaf x={90} y={-30} angle={95} len={180} fill={P.young} width={0.85} />
+      </>
+    ) : (
+      <g transform={"translate(1440,0) scale(-1,1)"}>
+        <Leaf x={-30} y={-30} angle={75} len={240} fill={P.fg2} />
+        <Leaf x={30} y={-40} angle={60} len={200} fill={P.leaf[2]} />
+        <Leaf x={-30} y={70} angle={42} len={190} fill={P.fg} />
+      </g>
+    ),
+});
 
 function House({ x, y, s = 1 }: { x: number; y: number; s?: number }) {
   return (
@@ -80,42 +160,18 @@ function House({ x, y, s = 1 }: { x: number; y: number; s?: number }) {
   );
 }
 
-const foreground = (seed: number, side: "left" | "right" | "both") => (
-  <>
-    <Hill
-      points={[
-        [-20, 760],
-        [360, 730],
-        [760, 770],
-        [1100, 740],
-        [1460, 770],
-      ]}
-      fill={P.fg2}
-    />
-    <Grass seed={seed} y={790} color1={P.fg} color2={P.fg2} />
-    <CornerLeaves side={side} />
-  </>
-);
-
 const paperScenes: { id: string; layers: PaperLayer[] }[] = [
   {
     id: "home",
     layers: [
       { depth: 0, node: <Sky id={"sky-home"} colors={P.skyDawn} /> },
-      {
-        depth: 0.08,
-        node: (
-          <>
-            <SunRays x={1050} y={190} />
-            <circle cx={1050} cy={190} r={150} fill={P.sun} opacity={0.25} />
-            <circle cx={1050} cy={190} r={105} fill={P.sun} opacity={0.45} />
-            <circle cx={1050} cy={190} r={66} fill={P.sun} />
-            <Cloud x={300} y={150} />
-            <Cloud x={820} y={110} s={0.7} />
-            <Cloud x={1300} y={260} s={0.8} />
-          </>
-        ),
-      },
+      ...sunLayers(1050, 190),
+      cloudLayer([
+        [300, 150, 1],
+        [820, 110, 0.7],
+        [1300, 260, 0.8],
+      ]),
+      flockLayer(230),
       {
         depth: 0.18,
         node: (
@@ -156,9 +212,6 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
               fill={P.mtn[1]}
             />
             <Mist y={450} height={120} color={P.skyDawn[1]} />
-            <Bird x={760} y={230} />
-            <Bird x={800} y={250} s={0.8} />
-            <Bird x={730} y={262} s={0.7} />
           </>
         ),
       },
@@ -207,6 +260,8 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
       {
         depth: 0.78,
         align: "xMaxYMax",
+        motion: "sway",
+        origin: at(1150, 830),
         node: (
           <>
             <CocoaTree x={1150} base={830} height={320} seed={7} />
@@ -214,25 +269,22 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
           </>
         ),
       },
-      { depth: 1, node: foreground(3, "left") },
+      ground(3),
+      cornerLeaves("left"),
     ],
   },
   {
     id: "journey",
     layers: [
       { depth: 0, node: <Sky id={"sky-journey"} colors={P.skyDay} /> },
-      {
-        depth: 0.1,
-        node: (
-          <>
-            <SunRays x={380} y={170} />
-            <circle cx={380} cy={170} r={60} fill={P.sun} />
-            <circle cx={380} cy={170} r={100} fill={P.sun} opacity={0.35} />
-            <Cloud x={760} y={140} s={0.8} />
-            <Cloud x={1240} y={200} s={0.6} />
-          </>
-        ),
-      },
+      ...sunLayers(380, 170),
+      cloudLayer(
+        [
+          [760, 140, 0.8],
+          [1240, 200, 0.6],
+        ],
+        9,
+      ),
       {
         depth: 0.22,
         node: (
@@ -277,19 +329,27 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
       },
       {
         depth: 0.58,
+        node: (
+          <Hill
+            points={[
+              [-20, 680],
+              [360, 650],
+              [760, 670],
+              [1100, 640],
+              [1460, 660],
+            ]}
+            fill={P.mtn[3]}
+          />
+        ),
+      },
+      {
+        depth: 0.58,
         align: "xMaxYMax",
+        motion: "sway",
+        origin: at(980, 700),
+        delay: 2.2,
         node: (
           <>
-            <Hill
-              points={[
-                [-20, 680],
-                [360, 650],
-                [760, 670],
-                [1100, 640],
-                [1460, 660],
-              ]}
-              fill={P.mtn[3]}
-            />
             <CocoaTree x={980} base={700} height={250} seed={23} />
             <Glow x={990} y={340} rx={230} ry={120} opacity={0.38} />
           </>
@@ -305,42 +365,42 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
           </>
         ),
       },
+      ground(5),
       {
         depth: 1,
         align: "xMaxYMax",
+        motion: "sway",
+        origin: at(1380, 930),
+        delay: 1.3,
         node: (
-          <>
-            {foreground(5, "both")}
-            <g transform={"translate(1380,0) scale(1.5) translate(-1380,0)"}>
-              <CocoaTree
-                x={1380}
-                base={620}
-                height={380}
-                seed={29}
-                mirror={true}
-              />
-            </g>
-          </>
+          <g transform={"translate(1380,0) scale(1.5) translate(-1380,0)"}>
+            <CocoaTree
+              x={1380}
+              base={620}
+              height={380}
+              seed={29}
+              mirror={true}
+            />
+          </g>
         ),
       },
+      cornerLeaves("left", 1.1),
+      cornerLeaves("right", 2.7),
     ],
   },
   {
     id: "tools",
     layers: [
       { depth: 0, node: <Sky id={"sky-tools"} colors={P.skyDay} /> },
-      {
-        depth: 0.08,
-        node: (
-          <>
-            <SunRays x={720} y={130} count={16} />
-            <circle cx={720} cy={130} r={120} fill={P.sun} opacity={0.3} />
-            <circle cx={720} cy={130} r={70} fill={P.sun} />
-            <Cloud x={260} y={190} s={0.9} />
-            <Cloud x={1180} y={150} s={0.75} />
-          </>
-        ),
-      },
+      ...sunLayers(720, 130),
+      cloudLayer(
+        [
+          [260, 190, 0.9],
+          [1180, 150, 0.75],
+        ],
+        17,
+      ),
+      flockLayer(250, 20),
       {
         depth: 0.2,
         node: (
@@ -405,6 +465,16 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
         ),
       },
       {
+        depth: 0.52,
+        shadow: false,
+        node: (
+          <>
+            <Steam x={165} y={548} seed={3} />
+            <Steam x={375} y={563} seed={5} />
+          </>
+        ),
+      },
+      {
         depth: 0.74,
         node: (
           <>
@@ -423,7 +493,9 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
           </>
         ),
       },
-      { depth: 1, node: foreground(7, "both") },
+      ground(7),
+      cornerLeaves("left", 0.6),
+      cornerLeaves("right", 2.1),
     ],
   },
   {
@@ -433,18 +505,15 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
         depth: 0,
         node: <Sky id={"sky-impact"} colors={["#fde3cf", "#f3e6ee"]} />,
       },
-      {
-        depth: 0.08,
-        node: (
-          <>
-            <SunRays x={1120} y={300} color={"#ffc59e"} />
-            <circle cx={1120} cy={300} r={150} fill={"#ffc59e"} opacity={0.3} />
-            <circle cx={1120} cy={300} r={84} fill={"#ffc59e"} />
-            <Cloud x={420} y={160} s={0.85} />
-            <Cloud x={860} y={120} s={0.6} />
-          </>
-        ),
-      },
+      ...sunLayers(1120, 300, "#ffc59e"),
+      cloudLayer(
+        [
+          [420, 160, 0.85],
+          [860, 120, 0.6],
+        ],
+        25,
+      ),
+      flockLayer(200, 33),
       {
         depth: 0.2,
         node: (
@@ -520,7 +589,8 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
           </>
         ),
       },
-      { depth: 1, node: foreground(9, "left") },
+      ground(9),
+      cornerLeaves("left", 1.8),
     ],
   },
   {
@@ -541,6 +611,13 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
           </>
         ),
       },
+      cloudLayer(
+        [
+          [360, 210, 0.7],
+          [760, 150, 0.5],
+        ],
+        12,
+      ),
       {
         depth: 0.15,
         node: (
@@ -601,21 +678,24 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
           </>
         ),
       },
+      { depth: 0.6, shadow: false, node: <Fireflies seed={67} /> },
       {
         depth: 0.78,
         align: "xMinYMax",
+        motion: "sway",
+        origin: at(186, 760),
+        delay: 0.8,
         node: (
-          <>
-            <CocoaTree
-              x={170}
-              base={760}
-              height={280}
-              seed={61}
-              mirror={true}
-            />
-            <Sapling x={1240} y={720} s={1.2} />
-          </>
+          <CocoaTree x={170} base={760} height={280} seed={61} mirror={true} />
         ),
+      },
+      {
+        depth: 0.78,
+        align: "xMaxYMax",
+        motion: "sway",
+        origin: at(1240, 720),
+        delay: 3.1,
+        node: <Sapling x={1240} y={720} s={1.2} />,
       },
       {
         depth: 1,

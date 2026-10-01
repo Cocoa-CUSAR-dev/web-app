@@ -51,8 +51,140 @@
   animation: hero-scroll-line 1.8s cubic-bezier(0.65, 0, 0.35, 1) infinite;
 }
 
+/* Home paper-cut scenes: ambient motion. Layer-level classes animate whole
+   composited boxes; flap/steam/firefly animate small SVG parts. */
+@keyframes paper-sway {
+  0%,
+  100% {
+    transform: rotate(-0.6deg);
+  }
+  50% {
+    transform: rotate(0.8deg);
+  }
+}
+
+@keyframes paper-leaf {
+  0%,
+  100% {
+    transform: rotate(-1.4deg);
+  }
+  50% {
+    transform: rotate(1.8deg);
+  }
+}
+
+@keyframes paper-drift {
+  from {
+    transform: translateX(-3%);
+  }
+  to {
+    transform: translateX(3%);
+  }
+}
+
+@keyframes paper-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes paper-fly {
+  from {
+    transform: translate(-10%, 2%);
+  }
+  50% {
+    transform: translate(55%, -3%);
+  }
+  to {
+    transform: translate(120%, 1%);
+  }
+}
+
+@keyframes paper-flap {
+  from {
+    transform: scaleY(1);
+  }
+  to {
+    transform: scaleY(0.3);
+  }
+}
+
+@keyframes paper-steam {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scaleX(0.8);
+  }
+  30% {
+    opacity: 0.55;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-46px) scaleX(1.25);
+  }
+}
+
+@keyframes paper-firefly {
+  0%,
+  100% {
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.paper-sway {
+  animation: paper-sway 7s ease-in-out infinite;
+  will-change: transform;
+}
+
+.paper-leaf {
+  animation: paper-leaf 5.5s ease-in-out infinite;
+  will-change: transform;
+}
+
+.paper-drift {
+  animation: paper-drift 34s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.paper-spin {
+  animation: paper-spin 160s linear infinite;
+  will-change: transform;
+}
+
+.paper-fly {
+  animation: paper-fly 42s linear infinite;
+  will-change: transform;
+}
+
+.paper-flap {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: paper-flap 0.55s ease-in-out infinite alternate;
+}
+
+.paper-steam {
+  transform-box: fill-box;
+  transform-origin: bottom;
+  opacity: 0;
+  animation: paper-steam 4.8s ease-out infinite;
+}
+
+.paper-firefly {
+  animation: paper-firefly 2.8s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .hero-scroll-line {
+  .hero-scroll-line,
+  .paper-sway,
+  .paper-leaf,
+  .paper-drift,
+  .paper-spin,
+  .paper-fly,
+  .paper-flap,
+  .paper-steam,
+  .paper-firefly {
     animation: none;
   }
 }

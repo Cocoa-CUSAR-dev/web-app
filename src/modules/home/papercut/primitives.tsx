@@ -607,15 +607,45 @@ function Grass({
   );
 }
 
-function Bird({ x, y, s = 1 }: { x: number; y: number; s?: number }) {
+function Bird({
+  x,
+  y,
+  s = 1,
+  delay = 0,
+}: {
+  x: number;
+  y: number;
+  s?: number;
+  delay?: number;
+}) {
   return (
-    <path
-      d={`M${x - 10 * s},${y} Q${x - 5 * s},${y - 6 * s} ${x},${y} Q${x + 5 * s},${y - 6 * s} ${x + 10 * s},${y}`}
-      stroke={P.sub}
-      strokeWidth={2}
-      fill={"none"}
-      strokeLinecap={"round"}
-    />
+    <g className={"paper-flap"} style={{ animationDelay: `${-delay}s` }}>
+      <path
+        d={`M${x - 10 * s},${y} Q${x - 5 * s},${y - 6 * s} ${x},${y} Q${x + 5 * s},${y - 6 * s} ${x + 10 * s},${y}`}
+        stroke={P.sub}
+        strokeWidth={2}
+        fill={"none"}
+        strokeLinecap={"round"}
+      />
+    </g>
+  );
+}
+
+// A loose V of birds parked off the left edge; the layer's fly animation
+// carries them across the sky.
+function Flock({ y, count = 5 }: { y: number; count?: number }) {
+  return (
+    <>
+      {Array.from({ length: count }, (_, i) => (
+        <Bird
+          key={i}
+          x={-60 + i * 26}
+          y={y + Math.abs(i - (count - 1) / 2) * 12}
+          s={1 - i * 0.06}
+          delay={i * 0.17}
+        />
+      ))}
+    </>
   );
 }
 
@@ -625,6 +655,7 @@ export {
   CocoaRows,
   CocoaTree,
   f,
+  Flock,
   Glow,
   Grass,
   Hill,
