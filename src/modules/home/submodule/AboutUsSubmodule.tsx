@@ -47,13 +47,13 @@ function AboutUsSubmodule({ ref }: AboutUsSubmoduleProps) {
       paddingY={"6rem"}
     >
       <Stack spacing={4} maxWidth={"34rem"}>
-        <Reveal from={"right"}>
+        <Reveal from={"left"}>
           <ChapterHeading
             eyebrow={"The Journey · 01"}
             title={"From Farm to Data"}
           />
         </Reveal>
-        <Reveal from={"right"} delay={0.15}>
+        <Reveal from={"left"} delay={0.15}>
           <Stack
             spacing={2.5}
             padding={{ xs: "1.5rem", sm: "2rem" }}

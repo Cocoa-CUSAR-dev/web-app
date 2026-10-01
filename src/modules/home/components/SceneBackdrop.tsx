@@ -41,17 +41,46 @@ const scrimMobile = `linear-gradient(180deg, rgba(${SCRIM},0.92) 0%, rgba(${SCRI
 const ENTER_OFFSET: ["start 0.85", "start 0.35"] = ["start 0.85", "start 0.35"];
 
 const easeOutCubic = (t: number) => 1 - (1 - t) ** 3;
+const easeInCubic = (t: number) => t ** 3;
+
+// Where each chapter's main subject sits (-1 left, 0 centre, 1 right); the
+// copy takes the opposite side. Between chapters the camera pans from one
+// subject to the next instead of the art just swapping sides.
+const subjectSide: Record<CopySide, number> = { left: 1, center: 0, right: -1 };
+const subjectOf = (i: number) => subjectSide[paperScenes[i].copy];
+// Pan per unit of subject travel, in % of layer width, for a depth-1 layer.
+const PAN = 7;
 
 interface LayerProps {
   layer: PaperLayer;
   pass: MotionValue<number>;
+  enter: MotionValue<number>;
+  nextEnter: MotionValue<number>;
+  // Subject travel into and out of this scene (see subjectSide).
+  panIn: number;
+  panOut: number;
   mouseX: MotionValue<number>;
   mouseY: MotionValue<number>;
 }
 
-function Layer({ layer, pass, mouseX, mouseY }: LayerProps) {
+function Layer({
+  layer,
+  pass,
+  enter,
+  nextEnter,
+  panIn,
+  panOut,
+  mouseX,
+  mouseY,
+}: LayerProps) {
   const { depth, align = "xMidYMid", node } = layer;
-  const x = useTransform(mouseX, (m) => -m * 36 * depth);
+  // Nearer layers sweep further than far ones and the sky stays put, so the
+  // pan reads as one camera moving through a single world.
+  const x = useTransform([mouseX, enter, nextEnter], ([m, e, n]: number[]) => {
+    const pan =
+      (panIn * (1 - easeOutCubic(e)) - panOut * easeInCubic(n)) * PAN * depth;
+    return `calc(${pan.toFixed(2)}% + ${(-m * 36 * depth).toFixed(1)}px)`;
+  });
   const y = useTransform(
     [pass, mouseY],
     ([p, m]: number[]) => (0.5 - p) * 140 * depth - m * 16 * depth,
@@ -169,13 +198,13 @@ const Scene = memo(function Scene({
   const y = useMappedTransform(
     enter,
     [0, 1],
-    isFirst ? ["0%", "0%"] : ["8%", "0%"],
+    isFirst ? ["0%", "0%"] : ["4%", "0%"],
     easeOutCubic,
   );
   const exitY = useMappedTransform(
     nextEnter,
     [0, 1],
-    ["0%", "-4%"],
+    ["0%", "-2%"],
     easeOutCubic,
   );
   // Skip painting a scene once the next one fully covers it.
@@ -195,6 +224,14 @@ const Scene = memo(function Scene({
             key={i}
             layer={layer}
             pass={pass}
+            enter={enter}
+            nextEnter={nextEnter}
+            panIn={isFirst ? 0 : subjectOf(index) - subjectOf(index - 1)}
+            panOut={
+              index === paperScenes.length - 1
+                ? 0
+                : subjectOf(index + 1) - subjectOf(index)
+            }
             mouseX={mouseX}
             mouseY={mouseY}
           />

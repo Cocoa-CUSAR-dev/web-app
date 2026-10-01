@@ -24,13 +24,13 @@ function ImpactSubmodule({ ref }: ImpactSubmoduleProps) {
       paddingY={"6rem"}
     >
       <Stack spacing={4} maxWidth={"34rem"}>
-        <Reveal from={"left"}>
+        <Reveal from={"right"}>
           <ChapterHeading
             eyebrow={"The Journey · 03"}
             title={"To Market Impact"}
           />
         </Reveal>
-        <Reveal from={"left"} delay={0.15}>
+        <Reveal from={"right"} delay={0.15}>
           <Stack
             spacing={3}
             padding={{ xs: "1.5rem", sm: "2rem" }}
