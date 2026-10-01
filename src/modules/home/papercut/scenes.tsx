@@ -177,6 +177,7 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
         node: (
           <>
             <Hill
+              bottom={610}
               points={[
                 [-20, 430],
                 [160, 360],
@@ -199,6 +200,7 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
         node: (
           <>
             <Hill
+              bottom={670}
               points={[
                 [-20, 500],
                 [200, 430],
@@ -223,6 +225,7 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
             <Palm x={780} y={510} h={175} lean={-14} />
             <Palm x={1290} y={505} h={160} lean={10} />
             <Hill
+              bottom={750}
               points={[
                 [-20, 560],
                 [260, 500],
@@ -243,6 +246,7 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
         node: (
           <>
             <Hill
+              bottom={880}
               points={[
                 [-20, 640],
                 [300, 600],
@@ -292,6 +296,7 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
             <Palm x={300} y={470} h={190} lean={-10} />
             <Palm x={1020} y={460} h={210} lean={14} />
             <Hill
+              bottom={670}
               points={[
                 [-20, 470],
                 [240, 420],
@@ -312,6 +317,7 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
         node: (
           <>
             <Hill
+              bottom={790}
               points={[
                 [-20, 560],
                 [300, 520],
@@ -331,6 +337,7 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
         depth: 0.58,
         node: (
           <Hill
+            bottom={880}
             points={[
               [-20, 680],
               [360, 650],
@@ -406,6 +413,7 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
         node: (
           <>
             <Hill
+              bottom={630}
               points={[
                 [-20, 420],
                 [220, 370],
@@ -428,6 +436,7 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
             <Palm x={160} y={510} h={170} lean={12} />
             <Palm x={1300} y={500} h={190} lean={-12} />
             <Hill
+              bottom={750}
               points={[
                 [-20, 520],
                 [300, 480],
@@ -447,6 +456,7 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
         node: (
           <>
             <Hill
+              bottom={830}
               points={[
                 [-20, 640],
                 [360, 610],
@@ -479,6 +489,7 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
         node: (
           <>
             <Hill
+              bottom={880}
               points={[
                 [-20, 720],
                 [480, 700],
@@ -519,6 +530,7 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
         node: (
           <>
             <Hill
+              bottom={670}
               points={[
                 [-20, 450],
                 [260, 400],
@@ -547,6 +559,7 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
           <>
             <Palm x={420} y={540} h={170} lean={-8} />
             <Hill
+              bottom={810}
               points={[
                 [-20, 560],
                 [300, 520],
@@ -568,6 +581,7 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
         node: (
           <>
             <Hill
+              bottom={880}
               points={[
                 [-20, 700],
                 [400, 680],
@@ -623,6 +637,7 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
         node: (
           <>
             <Hill
+              bottom={650}
               points={[
                 [-20, 470],
                 [200, 410],
@@ -645,6 +660,7 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
             <Palm x={260} y={540} h={180} lean={10} />
             <Palm x={1180} y={530} h={200} lean={-10} />
             <Hill
+              bottom={740}
               points={[
                 [-20, 540],
                 [300, 500],
@@ -664,6 +680,7 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
         node: (
           <>
             <Hill
+              bottom={830}
               points={[
                 [-20, 630],
                 [360, 600],

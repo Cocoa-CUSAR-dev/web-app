@@ -9,7 +9,13 @@ import {
   useSpring,
   useTransform,
 } from "framer-motion";
-import { type RefObject, useEffect } from "react";
+import {
+  memo,
+  type RefObject,
+  startTransition,
+  useEffect,
+  useState,
+} from "react";
 
 import { useMappedTransform } from "../hooks/useMappedTransform";
 import { type PaperLayer, paperScenes } from "../papercut/scenes";
@@ -84,7 +90,7 @@ function Layer({ layer, pass, mouseX, mouseY }: LayerProps) {
             // Nearer sheets sit further above the ones behind, so they cast
             // longer, softer, darker shadows.
             filter:
-              depth > 0 && layer.shadow !== false
+              depth >= 0.3 && layer.shadow !== false
                 ? `drop-shadow(0 ${(3 + depth * 9).toFixed(1)}px ${(5 + depth * 12).toFixed(1)}px rgba(43, 26, 14, ${(0.12 + depth * 0.16).toFixed(2)}))`
                 : undefined,
           }}
@@ -114,7 +120,13 @@ interface SceneProps {
   mouseY: MotionValue<number>;
 }
 
-function Scene({ index, container, sections, mouseX, mouseY }: SceneProps) {
+const Scene = memo(function Scene({
+  index,
+  container,
+  sections,
+  mouseX,
+  mouseY,
+}: SceneProps) {
   const isFirst = index === 0;
   const { scrollYProgress: enter } = useScroll({
     container,
@@ -132,7 +144,13 @@ function Scene({ index, container, sections, mouseX, mouseY }: SceneProps) {
     offset: ["start end", "end start"],
   });
 
-  const opacity = useMappedTransform(enter, [0, 1], isFirst ? [1, 1] : [0, 1]);
+  // Floor of 0.001 (not 0) so the browser rasterizes an upcoming scene before
+  // it fades in, instead of mid-transition.
+  const opacity = useMappedTransform(
+    enter,
+    [0, 1],
+    isFirst ? [1, 1] : [0.001, 1],
+  );
   // Incoming scene rises into place like the camera panning down onto it.
   const y = useMappedTransform(
     enter,
@@ -170,7 +188,7 @@ function Scene({ index, container, sections, mouseX, mouseY }: SceneProps) {
       </motion.div>
     </motion.div>
   );
-}
+});
 
 interface SceneBackdropProps {
   container: RefObject<HTMLDivElement | null>;
@@ -196,29 +214,55 @@ function SceneBackdrop({ container, sections }: SceneBackdropProps) {
     return () => window.removeEventListener("pointermove", onMove);
   }, [rawX, rawY]);
 
+  // Only the chapter in view and its neighbours are mounted. All five scenes
+  // at once meant ~80 full-screen GPU layers (well over 1GB at 2x DPR), and
+  // the browser evicting and re-rasterizing them is what made scrolling jank.
+  const [active, setActive] = useState<number>(0);
+  useEffect(() => {
+    const scroller = container.current;
+    if (!scroller) return;
+    const update = () => {
+      const probe = scroller.clientHeight * 0.6;
+      let current = 0;
+      sections.forEach((section, i) => {
+        const el = section.current;
+        if (el && el.getBoundingClientRect().top <= probe) current = i;
+      });
+      // Mounting a scene is a few hundred SVG nodes; let React slice that
+      // work up instead of blocking a scroll frame.
+      startTransition(() => setActive(current));
+    };
+    update();
+    scroller.addEventListener("scroll", update, { passive: true });
+    return () => scroller.removeEventListener("scroll", update);
+  }, [container, sections]);
+
   return (
     <Box
       position={"absolute"}
       sx={{ inset: 0, overflow: "hidden", background: "#fdf3e4" }}
       aria-hidden={true}
     >
-      {paperScenes.map((scene, index) => (
-        <Scene
-          key={scene.id}
-          index={index}
-          container={container}
-          sections={sections}
-          mouseX={mouseX}
-          mouseY={mouseY}
-        />
-      ))}
+      {paperScenes.map((scene, index) =>
+        Math.abs(index - active) <= 1 ? (
+          <Scene
+            key={scene.id}
+            index={index}
+            container={container}
+            sections={sections}
+            mouseX={mouseX}
+            mouseY={mouseY}
+          />
+        ) : null,
+      )}
+      {/* Normal blending on purpose: mix-blend-mode over the moving layers
+          forced a full extra blend pass every frame. */}
       <Box
         position={"absolute"}
         sx={{
           inset: 0,
           backgroundImage: grain,
-          opacity: 0.16,
-          mixBlendMode: "multiply",
+          opacity: 0.08,
           pointerEvents: "none",
         }}
       />

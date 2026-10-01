@@ -27,8 +27,8 @@ function Reveal({ children, delay = 0, from = "bottom" }: RevealProps) {
   const root = useContext(ScrollRootContext);
   return (
     <motion.div
-      initial={{ opacity: 0, filter: "blur(6px)", ...offsets[from] }}
-      whileInView={{ opacity: 1, filter: "blur(0px)", x: 0, y: 0 }}
+      initial={{ opacity: 0, ...offsets[from] }}
+      whileInView={{ opacity: 1, x: 0, y: 0 }}
       viewport={{ root: root ?? undefined, amount: 0.35 }}
       transition={{ duration: 0.9, delay, ease: [0.16, 1, 0.3, 1] }}
     >

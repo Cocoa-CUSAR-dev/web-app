@@ -85,12 +85,14 @@ function FallingLeaves() {
         ctx.rotate(leaf.angle);
         // Flip on one axis over time so leaves look like they tumble.
         ctx.scale(s, s * Math.cos(time / 900 + leaf.phase));
-        ctx.shadowColor = "rgba(43, 26, 14, 0.22)";
-        ctx.shadowBlur = 6;
-        ctx.shadowOffsetY = 4;
+        // Offset dark copy as the shadow: canvas shadowBlur re-blurs every
+        // leaf on the CPU each frame.
+        ctx.fillStyle = "rgba(43, 26, 14, 0.14)";
+        ctx.translate(0, 18);
+        ctx.fill(leafPath);
+        ctx.translate(0, -18);
         ctx.fillStyle = leaf.color;
         ctx.fill(leafPath);
-        ctx.shadowColor = "transparent";
         ctx.strokeStyle = "rgba(255,255,255,0.4)";
         ctx.lineWidth = 2.5;
         ctx.stroke(midribPath);

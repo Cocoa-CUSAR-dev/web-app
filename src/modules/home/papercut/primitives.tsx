@@ -37,7 +37,18 @@ function useSvgId(prefix: string) {
 
 // A cut-paper hill: lit along the ridge, darkening toward its base, with a
 // bright cut edge on top.
-function Hill({ points, fill }: { points: readonly Point[]; fill: string }) {
+// `bottom` stops the fill just past where the next, nearer layer's ridge
+// covers it (plus room for parallax drift); filling every hill down to the
+// screen edge made the GPU overdraw the lower half 5-6 times per frame.
+function Hill({
+  points,
+  fill,
+  bottom = 900,
+}: {
+  points: readonly Point[];
+  fill: string;
+  bottom?: number;
+}) {
   const id = useSvgId("hill");
   const top = smooth(points);
   const ridgeY = Math.min(...points.map(([, y]) => y));
@@ -57,7 +68,10 @@ function Hill({ points, fill }: { points: readonly Point[]; fill: string }) {
           <stop offset={1} stopColor={shade(fill, -0.1)} />
         </linearGradient>
       </defs>
-      <path d={`${top} L1500,900 L-60,900 Z`} fill={`url(#${id})`} />
+      <path
+        d={`${top} L1500,${bottom} L-60,${bottom} Z`}
+        fill={`url(#${id})`}
+      />
       <path
         d={top}
         fill={"none"}
