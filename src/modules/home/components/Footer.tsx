@@ -42,11 +42,14 @@ function Footer({ ref }: FooterProps) {
       paddingX={{ xs: "1rem", md: "4%" }}
       paddingBottom={"1.5rem"}
     >
+      {/* On phones the headline sits up in the scrimmed sky; centred, it
+          landed on the hills and was hard to read. */}
       <Stack
         flex={1}
-        justifyContent={"center"}
+        justifyContent={{ xs: "flex-start", md: "center" }}
         alignItems={"center"}
-        paddingY={"6rem"}
+        paddingTop={{ xs: "5.5rem", md: "6rem" }}
+        paddingBottom={"6rem"}
       >
         <Reveal>
           <Stack spacing={2} alignItems={"center"} textAlign={"center"}>

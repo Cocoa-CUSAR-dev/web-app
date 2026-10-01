@@ -25,7 +25,9 @@ import {
   paperScenes,
 } from "../papercut/scenes";
 
-const SCENE_WIDTH = "max(110%, 105dvh)";
+// On portrait phones the 16:9 landscape is sized off the height (80dvh wide,
+// ~45% of the screen tall), leaving open sky above it for the copy.
+const SCENE_WIDTH = "max(110%, 80dvh)";
 
 // Light wash behind the chapter's copy so text never fights the art. On
 // phones copy always stacks at the top; on desktop it follows the copy side.

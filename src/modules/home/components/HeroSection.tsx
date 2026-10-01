@@ -40,13 +40,14 @@ function HeroSection({ ref, onStartJourney }: HeroSectionProps) {
       position={"relative"}
       minHeight={"100dvh"}
       display={"flex"}
-      alignItems={"center"}
+      // Phones: copy sits up in the open sky so the buttons clear the hills.
+      alignItems={{ xs: "flex-start", md: "center" }}
       paddingX={{ xs: "1.5rem", md: "8%" }}
-      paddingTop={"4rem"}
+      paddingTop={{ xs: "6rem", md: "4rem" }}
     >
       <motion.div initial={"hidden"} animate={"visible"} variants={container}>
         <Stack
-          spacing={2}
+          spacing={{ xs: 1.5, md: 2 }}
           maxWidth={"44rem"}
           alignItems={{ xs: "center", md: "flex-start" }}
           textAlign={{ xs: "center", md: "left" }}
@@ -105,8 +106,8 @@ function HeroSection({ ref, onStartJourney }: HeroSectionProps) {
           </motion.div>
           <motion.div variants={item}>
             <Stack
-              direction={{ xs: "column", sm: "row" }}
-              spacing={2}
+              direction={"row"}
+              spacing={{ xs: 1.5, sm: 2 }}
               paddingTop={"1rem"}
               alignItems={"center"}
             >
@@ -117,7 +118,7 @@ function HeroSection({ ref, onStartJourney }: HeroSectionProps) {
                 endIcon={<PlayArrowRounded />}
                 sx={{
                   borderRadius: "2rem",
-                  padding: "0.8rem 2.25rem",
+                  padding: { xs: "0.75rem 1.5rem", sm: "0.8rem 2.25rem" },
                   background: accent,
                   boxShadow: "0 0.75rem 1.75rem rgba(59,125,85,0.35)",
                   transition: "transform 0.25s ease, box-shadow 0.25s ease",
@@ -136,7 +137,7 @@ function HeroSection({ ref, onStartJourney }: HeroSectionProps) {
                 size={"large"}
                 sx={{
                   borderRadius: "2rem",
-                  padding: "0.8rem 2.25rem",
+                  padding: { xs: "0.75rem 1.5rem", sm: "0.8rem 2.25rem" },
                   color: ink,
                   borderColor: "rgba(35,54,44,0.35)",
                   background: "rgba(255,255,255,0.78)",
