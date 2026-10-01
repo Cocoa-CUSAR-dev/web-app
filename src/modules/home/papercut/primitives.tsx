@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { type ReactNode, useId } from "react";
 
 import { palette as P, shade } from "./palette";
 
@@ -30,18 +30,143 @@ function smooth(points: readonly Point[]) {
   return d;
 }
 
+// Ids must be unique across every inline SVG on the page, and usable in url().
+function useSvgId(prefix: string) {
+  return `${prefix}-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
+}
+
+// A cut-paper hill: lit along the ridge, darkening toward its base, with a
+// bright cut edge on top.
 function Hill({ points, fill }: { points: readonly Point[]; fill: string }) {
+  const id = useSvgId("hill");
   const top = smooth(points);
+  const ridgeY = Math.min(...points.map(([, y]) => y));
   return (
     <>
-      <path d={`${top} L1500,900 L-60,900 Z`} fill={fill} />
+      <defs>
+        <linearGradient
+          id={id}
+          gradientUnits={"userSpaceOnUse"}
+          x1={0}
+          y1={ridgeY}
+          x2={0}
+          y2={ridgeY + 300}
+        >
+          <stop offset={0} stopColor={shade(fill, 0.07)} />
+          <stop offset={0.55} stopColor={fill} />
+          <stop offset={1} stopColor={shade(fill, -0.1)} />
+        </linearGradient>
+      </defs>
+      <path d={`${top} L1500,900 L-60,900 Z`} fill={`url(#${id})`} />
       <path
         d={top}
         fill={"none"}
-        stroke={"rgba(255,255,255,.45)"}
+        stroke={"rgba(255,255,255,.55)"}
         strokeWidth={2.5}
       />
     </>
+  );
+}
+
+// Haze pooling at the foot of a far layer (atmospheric perspective); place it
+// so it ends where the next, nearer ridge rises.
+function Mist({
+  y,
+  height = 150,
+  color = "#ffffff",
+  opacity = 0.6,
+}: {
+  y: number;
+  height?: number;
+  color?: string;
+  opacity?: number;
+}) {
+  const id = useSvgId("mist");
+  return (
+    <>
+      <defs>
+        <linearGradient id={id} x1={0} y1={0} x2={0} y2={1}>
+          <stop offset={0} stopColor={color} stopOpacity={0} />
+          <stop offset={0.7} stopColor={color} stopOpacity={opacity} />
+          <stop offset={1} stopColor={color} stopOpacity={opacity} />
+        </linearGradient>
+      </defs>
+      <rect x={-60} y={y} width={1560} height={height} fill={`url(#${id})`} />
+    </>
+  );
+}
+
+// Soft radial light, e.g. sun falling on a canopy or a lantern's glow.
+function Glow({
+  x,
+  y,
+  rx,
+  ry = rx,
+  color = "#fff6e0",
+  opacity = 0.45,
+}: {
+  x: number;
+  y: number;
+  rx: number;
+  ry?: number;
+  color?: string;
+  opacity?: number;
+}) {
+  const id = useSvgId("glow");
+  return (
+    <>
+      <defs>
+        <radialGradient id={id}>
+          <stop offset={0} stopColor={color} stopOpacity={opacity} />
+          <stop offset={1} stopColor={color} stopOpacity={0} />
+        </radialGradient>
+      </defs>
+      <ellipse cx={x} cy={y} rx={rx} ry={ry} fill={`url(#${id})`} />
+    </>
+  );
+}
+
+function SunRays({
+  x,
+  y,
+  color = P.sun,
+  count = 14,
+  length = 1100,
+}: {
+  x: number;
+  y: number;
+  color?: string;
+  count?: number;
+  length?: number;
+}) {
+  const id = useSvgId("rays");
+  return (
+    <g>
+      <defs>
+        <radialGradient
+          id={id}
+          gradientUnits={"userSpaceOnUse"}
+          cx={x}
+          cy={y}
+          r={length}
+        >
+          <stop offset={0} stopColor={color} stopOpacity={0.55} />
+          <stop offset={0.6} stopColor={color} stopOpacity={0.08} />
+          <stop offset={1} stopColor={color} stopOpacity={0} />
+        </radialGradient>
+      </defs>
+      {Array.from({ length: count }, (_, i) => {
+        const a = (i / count) * Math.PI * 2;
+        const spread = i % 2 ? 0.05 : 0.09;
+        return (
+          <path
+            key={i}
+            d={`M${x},${y} L${f(x + Math.cos(a - spread) * length)},${f(y + Math.sin(a - spread) * length)} L${f(x + Math.cos(a + spread) * length)},${f(y + Math.sin(a + spread) * length)} Z`}
+            fill={`url(#${id})`}
+          />
+        );
+      })}
+    </g>
   );
 }
 
@@ -500,9 +625,11 @@ export {
   CocoaRows,
   CocoaTree,
   f,
+  Glow,
   Grass,
   Hill,
   Leaf,
+  Mist,
   Palm,
   Pod,
   type Point,
@@ -510,4 +637,5 @@ export {
   Sky,
   smooth,
   Sun,
+  SunRays,
 };

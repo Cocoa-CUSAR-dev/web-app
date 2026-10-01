@@ -6,11 +6,14 @@ import {
   Cloud,
   CocoaRows,
   CocoaTree,
+  Glow,
   Grass,
   Hill,
   Leaf,
+  Mist,
   Palm,
   Sky,
+  SunRays,
 } from "./primitives";
 import {
   Basket,
@@ -103,6 +106,7 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
         depth: 0.08,
         node: (
           <>
+            <SunRays x={1050} y={190} />
             <circle cx={1050} cy={190} r={150} fill={P.sun} opacity={0.25} />
             <circle cx={1050} cy={190} r={105} fill={P.sun} opacity={0.45} />
             <circle cx={1050} cy={190} r={66} fill={P.sun} />
@@ -115,20 +119,23 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
       {
         depth: 0.18,
         node: (
-          <Hill
-            points={[
-              [-20, 430],
-              [160, 360],
-              [320, 400],
-              [480, 320],
-              [660, 390],
-              [840, 330],
-              [1020, 380],
-              [1200, 300],
-              [1460, 360],
-            ]}
-            fill={P.mtn[0]}
-          />
+          <>
+            <Hill
+              points={[
+                [-20, 430],
+                [160, 360],
+                [320, 400],
+                [480, 320],
+                [660, 390],
+                [840, 330],
+                [1020, 380],
+                [1200, 300],
+                [1460, 360],
+              ]}
+              fill={P.mtn[0]}
+            />
+            <Mist y={380} height={140} color={P.skyDawn[1]} />
+          </>
         ),
       },
       {
@@ -148,6 +155,7 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
               ]}
               fill={P.mtn[1]}
             />
+            <Mist y={450} height={120} color={P.skyDawn[1]} />
             <Bird x={760} y={230} />
             <Bird x={800} y={250} s={0.8} />
             <Bird x={730} y={262} s={0.7} />
@@ -173,6 +181,7 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
               ]}
               fill={P.mtn[2]}
             />
+            <Mist y={520} height={110} color={P.skyDawn[1]} opacity={0.45} />
           </>
         ),
       },
@@ -198,7 +207,12 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
       {
         depth: 0.78,
         align: "xMaxYMax",
-        node: <CocoaTree x={1150} base={830} height={320} seed={7} />,
+        node: (
+          <>
+            <CocoaTree x={1150} base={830} height={320} seed={7} />
+            <Glow x={1150} y={360} rx={280} ry={150} opacity={0.4} />
+          </>
+        ),
       },
       { depth: 1, node: foreground(3, "left") },
     ],
@@ -211,6 +225,7 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
         depth: 0.1,
         node: (
           <>
+            <SunRays x={380} y={170} />
             <circle cx={380} cy={170} r={60} fill={P.sun} />
             <circle cx={380} cy={170} r={100} fill={P.sun} opacity={0.35} />
             <Cloud x={760} y={140} s={0.8} />
@@ -236,6 +251,7 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
               ]}
               fill={P.mtn[1]}
             />
+            <Mist y={430} height={130} color={P.skyDay[1]} />
           </>
         ),
       },
@@ -255,6 +271,7 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
               fill={P.mtn[2]}
             />
             <CocoaRows seed={21} x0={-20} y0={548} cols={22} rows={2} />
+            <Mist y={520} height={150} color={P.skyDay[1]} opacity={0.5} />
           </>
         ),
       },
@@ -274,6 +291,7 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
               fill={P.mtn[3]}
             />
             <CocoaTree x={980} base={700} height={250} seed={23} />
+            <Glow x={990} y={340} rx={230} ry={120} opacity={0.38} />
           </>
         ),
       },
@@ -315,6 +333,7 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
         depth: 0.08,
         node: (
           <>
+            <SunRays x={720} y={130} count={16} />
             <circle cx={720} cy={130} r={120} fill={P.sun} opacity={0.3} />
             <circle cx={720} cy={130} r={70} fill={P.sun} />
             <Cloud x={260} y={190} s={0.9} />
@@ -325,18 +344,21 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
       {
         depth: 0.2,
         node: (
-          <Hill
-            points={[
-              [-20, 420],
-              [220, 370],
-              [480, 400],
-              [760, 350],
-              [1020, 390],
-              [1260, 340],
-              [1460, 380],
-            ]}
-            fill={P.mtn[0]}
-          />
+          <>
+            <Hill
+              points={[
+                [-20, 420],
+                [220, 370],
+                [480, 400],
+                [760, 350],
+                [1020, 390],
+                [1260, 340],
+                [1460, 380],
+              ]}
+              fill={P.mtn[0]}
+            />
+            <Mist y={380} height={130} color={P.skyDay[1]} />
+          </>
         ),
       },
       {
@@ -356,6 +378,7 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
               ]}
               fill={P.mtn[1]}
             />
+            <Mist y={470} height={160} color={P.skyDay[1]} />
           </>
         ),
       },
@@ -377,6 +400,7 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
             <FermentBox x={290} y={575} w={170} />
             <Sack x={1250} y={650} s={0.9} />
             <Sack x={1340} y={660} s={0.8} />
+            <Mist y={600} height={110} color={P.skyDay[1]} opacity={0.35} />
           </>
         ),
       },
@@ -413,6 +437,7 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
         depth: 0.08,
         node: (
           <>
+            <SunRays x={1120} y={300} color={"#ffc59e"} />
             <circle cx={1120} cy={300} r={150} fill={"#ffc59e"} opacity={0.3} />
             <circle cx={1120} cy={300} r={84} fill={"#ffc59e"} />
             <Cloud x={420} y={160} s={0.85} />
@@ -443,6 +468,7 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
                 s={0.6 + (i % 3) * 0.08}
               />
             ))}
+            <Mist y={410} height={140} color={"#f3e6ee"} />
           </>
         ),
       },
@@ -463,6 +489,7 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
               fill={P.mtn[2]}
             />
             <CocoaRows seed={47} x0={-10} y0={575} cols={9} rows={2} />
+            <Mist y={510} height={180} color={"#f3e6ee"} opacity={0.5} />
           </>
         ),
       },
@@ -480,6 +507,14 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
                 [1460, 680],
               ]}
               fill={P.mtn[3]}
+            />
+            <Glow
+              x={1100}
+              y={600}
+              rx={320}
+              ry={170}
+              color={"#ffe2c4"}
+              opacity={0.45}
             />
             <Stall x={900} y={760} />
           </>
@@ -500,6 +535,7 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
         node: (
           <>
             <Stars seed={53} />
+            <Glow x={1120} y={160} rx={170} color={"#fff4e0"} opacity={0.55} />
             <circle cx={1120} cy={160} r={46} fill={"#fff4e0"} />
             <circle cx={1138} cy={150} r={40} fill={"#c9c3e0"} />
           </>
@@ -508,18 +544,21 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
       {
         depth: 0.15,
         node: (
-          <Hill
-            points={[
-              [-20, 470],
-              [200, 410],
-              [460, 450],
-              [740, 390],
-              [1000, 440],
-              [1260, 400],
-              [1460, 430],
-            ]}
-            fill={shade(P.mtn[0], -0.04)}
-          />
+          <>
+            <Hill
+              points={[
+                [-20, 470],
+                [200, 410],
+                [460, 450],
+                [740, 390],
+                [1000, 440],
+                [1260, 400],
+                [1460, 430],
+              ]}
+              fill={shade(P.mtn[0], -0.04)}
+            />
+            <Mist y={420} height={140} color={"#f6d9cf"} />
+          </>
         ),
       },
       {
@@ -539,6 +578,7 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
               ]}
               fill={shade(P.mtn[1], -0.06)}
             />
+            <Mist y={490} height={150} color={"#f6d9cf"} />
           </>
         ),
       },
@@ -557,6 +597,7 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
               fill={shade(P.mtn[2], -0.08)}
             />
             <CocoaRows seed={59} x0={380} y0={600} cols={11} rows={2} />
+            <Mist y={590} height={120} color={"#f6d9cf"} opacity={0.35} />
           </>
         ),
       },

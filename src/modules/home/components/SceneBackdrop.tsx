@@ -61,9 +61,11 @@ function Layer({ layer, pass, mouseX, mouseY }: LayerProps) {
         ...placement,
         x,
         y,
+        // Nearer sheets sit further above the ones behind, so they cast
+        // longer, softer, darker shadows.
         filter:
           depth > 0
-            ? "drop-shadow(0 6px 8px rgba(43, 26, 14, 0.2))"
+            ? `drop-shadow(0 ${(3 + depth * 9).toFixed(1)}px ${(5 + depth * 12).toFixed(1)}px rgba(43, 26, 14, ${(0.12 + depth * 0.16).toFixed(2)}))`
             : undefined,
         willChange: "transform",
       }}
