@@ -15,6 +15,18 @@ interface SplitWordsProps {
   color?: string;
 }
 
+const visuallyHiddenSx = {
+  position: "absolute",
+  width: "1px",
+  height: "1px",
+  padding: 0,
+  margin: "-1px",
+  overflow: "hidden",
+  clip: "rect(0 0 0 0)",
+  whiteSpace: "nowrap",
+  border: 0,
+} as const;
+
 // Each word rises out of its own clipped line box, like type set into a slot.
 function SplitWords({
   text,
@@ -32,44 +44,52 @@ function SplitWords({
           viewport: { root: root ?? undefined, amount: 0.6 },
         };
 
+  const words = text.split(" ");
+
   return (
-    <motion.span
-      initial={"hidden"}
-      {...playProps}
-      transition={{ staggerChildren: stagger, delayChildren: delay }}
-      style={{ display: "inline" }}
-      aria-label={text}
-    >
-      {text.split(" ").map((word, i) => (
-        <Box
-          key={`${word}-${i}`}
-          component={"span"}
-          aria-hidden={true}
-          sx={{
-            display: "inline-block",
-            overflow: "hidden",
-            verticalAlign: "bottom",
-            paddingBottom: "0.08em",
-            marginBottom: "-0.08em",
-          }}
-        >
-          <motion.span
-            variants={{
-              hidden: { y: "110%", rotate: 4 },
-              shown: {
-                y: "0%",
-                rotate: 0,
-                transition: { duration: 0.9, ease: [0.16, 1, 0.3, 1] },
-              },
+    <>
+      {/* The real text for assistive tech: aria-label on a plain span is
+          ignored by many screen readers, so the heading would read empty. */}
+      <Box component={"span"} sx={visuallyHiddenSx}>
+        {text}
+      </Box>
+      <motion.span
+        initial={"hidden"}
+        {...playProps}
+        transition={{ staggerChildren: stagger, delayChildren: delay }}
+        style={{ display: "inline" }}
+        aria-hidden={true}
+      >
+        {words.map((word, i) => (
+          <Box
+            key={`${word}-${i}`}
+            component={"span"}
+            sx={{
+              display: "inline-block",
+              overflow: "hidden",
+              verticalAlign: "bottom",
+              paddingBottom: "0.08em",
+              marginBottom: "-0.08em",
             }}
-            style={{ display: "inline-block", color }}
           >
-            {word}
-            {i < text.split(" ").length - 1 ? " " : ""}
-          </motion.span>
-        </Box>
-      ))}
-    </motion.span>
+            <motion.span
+              variants={{
+                hidden: { y: "110%", rotate: 4 },
+                shown: {
+                  y: "0%",
+                  rotate: 0,
+                  transition: { duration: 0.9, ease: [0.16, 1, 0.3, 1] },
+                },
+              }}
+              style={{ display: "inline-block", color }}
+            >
+              {word}
+              {i < words.length - 1 ? " " : ""}
+            </motion.span>
+          </Box>
+        ))}
+      </motion.span>
+    </>
   );
 }
 
