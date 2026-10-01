@@ -5,6 +5,7 @@ import {
   motion,
   type MotionValue,
   useMotionValue,
+  useReducedMotion,
   useScroll,
   useSpring,
   useTransform,
@@ -61,6 +62,8 @@ interface LayerProps {
   panOut: number;
   mouseX: MotionValue<number>;
   mouseY: MotionValue<number>;
+  // 0 under prefers-reduced-motion: no parallax or pan, just the crossfade.
+  motionScale: number;
 }
 
 function Layer({
@@ -72,18 +75,20 @@ function Layer({
   panOut,
   mouseX,
   mouseY,
+  motionScale,
 }: LayerProps) {
   const { depth, align = "xMidYMid", node } = layer;
+  const k = depth * motionScale;
   // Nearer layers sweep further than far ones and the sky stays put, so the
   // pan reads as one camera moving through a single world.
   const x = useTransform([mouseX, enter, nextEnter], ([m, e, n]: number[]) => {
     const pan =
-      (panIn * (1 - easeOutCubic(e)) - panOut * easeInCubic(n)) * PAN * depth;
-    return `calc(${pan.toFixed(2)}% + ${(-m * 36 * depth).toFixed(1)}px)`;
+      (panIn * (1 - easeOutCubic(e)) - panOut * easeInCubic(n)) * PAN * k;
+    return `calc(${pan.toFixed(2)}% + ${(-m * 36 * k).toFixed(1)}px)`;
   });
   const y = useTransform(
     [pass, mouseY],
-    ([p, m]: number[]) => (0.5 - p) * 140 * depth - m * 16 * depth,
+    ([p, m]: number[]) => (0.5 - p) * 140 * k - m * 16 * k,
   );
 
   // The sky fills the whole viewport. Everything else keeps its 16:9 shape and
@@ -161,6 +166,7 @@ interface SceneProps {
   sections: RefObject<HTMLElement | null>[];
   mouseX: MotionValue<number>;
   mouseY: MotionValue<number>;
+  motionScale: number;
 }
 
 const Scene = memo(function Scene({
@@ -169,6 +175,7 @@ const Scene = memo(function Scene({
   sections,
   mouseX,
   mouseY,
+  motionScale,
 }: SceneProps) {
   const isFirst = index === 0;
   const { scrollYProgress: enter } = useScroll({
@@ -198,13 +205,13 @@ const Scene = memo(function Scene({
   const y = useMappedTransform(
     enter,
     [0, 1],
-    isFirst ? ["0%", "0%"] : ["4%", "0%"],
+    isFirst || !motionScale ? ["0%", "0%"] : ["4%", "0%"],
     easeOutCubic,
   );
   const exitY = useMappedTransform(
     nextEnter,
     [0, 1],
-    ["0%", "-2%"],
+    motionScale ? ["0%", "-2%"] : ["0%", "0%"],
     easeOutCubic,
   );
   // Deliberately never visibility:hidden. A hidden scene isn't rasterized, so
@@ -229,6 +236,7 @@ const Scene = memo(function Scene({
             }
             mouseX={mouseX}
             mouseY={mouseY}
+            motionScale={motionScale}
           />
         ))}
       </motion.div>
@@ -259,6 +267,7 @@ function SceneBackdrop({ container, sections }: SceneBackdropProps) {
   const rawY = useMotionValue(0);
   const mouseX = useSpring(rawX, { stiffness: 60, damping: 20 });
   const mouseY = useSpring(rawY, { stiffness: 60, damping: 20 });
+  const motionScale = useReducedMotion() ? 0 : 1;
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -308,6 +317,7 @@ function SceneBackdrop({ container, sections }: SceneBackdropProps) {
             sections={sections}
             mouseX={mouseX}
             mouseY={mouseY}
+            motionScale={motionScale}
           />
         ) : null,
       )}

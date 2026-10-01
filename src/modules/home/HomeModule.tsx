@@ -1,6 +1,7 @@
 "use client";
 
 import { Box } from "@mui/material";
+import { MotionConfig } from "framer-motion";
 import Lenis from "lenis";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
@@ -51,60 +52,65 @@ function HomeModule() {
       if (lenisRef.current) {
         lenisRef.current.scrollTo(target, { duration: 1.8 });
       } else {
-        target.scrollIntoView({ behavior: "smooth" });
+        // Lenis is off under prefers-reduced-motion; jump instead of gliding.
+        target.scrollIntoView({ behavior: "auto" });
       }
     },
     [sectionRefs],
   );
 
   return (
-    <Box position={"relative"} height={"100dvh"} overflow={"hidden"}>
-      <SceneBackdrop container={scrollContainerRef} sections={sectionRefs} />
-      <FallingLeaves />
-      <Box
-        ref={scrollContainerRef}
-        position={"absolute"}
-        sx={{
-          inset: 0,
-          overflowY: "auto",
-          overflowX: "hidden",
-          scrollbarWidth: "thin",
-        }}
-      >
-        <ScrollRootContext value={scrollContainerRef}>
-          <Box ref={contentRef}>
-            <HeroSection
-              ref={heroRef}
-              onStartJourney={() => scrollToSection(1)}
-            />
-            <AboutUsSubmodule ref={aboutRef} />
-            <PromoteSubmodule ref={toolsRef} />
-            <ImpactSubmodule ref={impactRef} />
-            <Footer ref={footerRef} />
-          </Box>
-        </ScrollRootContext>
+    // "user": under prefers-reduced-motion, reveals and headings fade in
+    // without sliding (transforms off, opacity kept).
+    <MotionConfig reducedMotion={"user"}>
+      <Box position={"relative"} height={"100dvh"} overflow={"hidden"}>
+        <SceneBackdrop container={scrollContainerRef} sections={sectionRefs} />
+        <FallingLeaves />
+        <Box
+          ref={scrollContainerRef}
+          position={"absolute"}
+          sx={{
+            inset: 0,
+            overflowY: "auto",
+            overflowX: "hidden",
+            scrollbarWidth: "thin",
+          }}
+        >
+          <ScrollRootContext value={scrollContainerRef}>
+            <Box ref={contentRef}>
+              <HeroSection
+                ref={heroRef}
+                onStartJourney={() => scrollToSection(1)}
+              />
+              <AboutUsSubmodule ref={aboutRef} />
+              <PromoteSubmodule ref={toolsRef} />
+              <ImpactSubmodule ref={impactRef} />
+              <Footer ref={footerRef} />
+            </Box>
+          </ScrollRootContext>
+        </Box>
+        <Box
+          position={"absolute"}
+          top={0}
+          left={0}
+          right={0}
+          height={"4.5rem"}
+          sx={{
+            // Solid-ish bar (not backdrop-filter, which is costly over moving scenes) so
+            // headings scrolling underneath don't collide with the nav links.
+            background: "rgba(253,243,228,0.9)",
+            maskImage: "linear-gradient(180deg, #000 70%, transparent)",
+            pointerEvents: "none",
+          }}
+        />
+        <HeroNavBar />
+        <ChapterNav
+          container={scrollContainerRef}
+          sections={sectionRefs}
+          onNavigate={scrollToSection}
+        />
       </Box>
-      <Box
-        position={"absolute"}
-        top={0}
-        left={0}
-        right={0}
-        height={"4.5rem"}
-        sx={{
-          // Solid-ish bar (not backdrop-filter, which is costly over moving scenes) so
-          // headings scrolling underneath don't collide with the nav links.
-          background: "rgba(253,243,228,0.9)",
-          maskImage: "linear-gradient(180deg, #000 70%, transparent)",
-          pointerEvents: "none",
-        }}
-      />
-      <HeroNavBar />
-      <ChapterNav
-        container={scrollContainerRef}
-        sections={sectionRefs}
-        onNavigate={scrollToSection}
-      />
-    </Box>
+    </MotionConfig>
   );
 }
 
