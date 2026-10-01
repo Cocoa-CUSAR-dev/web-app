@@ -9,6 +9,7 @@ import { useAuthInfo } from "@/hooks/useAuthInfo";
 
 import { accent, displayFont, glassPanelSx, ink, inkSoft } from "../homeScenes";
 import { Reveal } from "./Reveal";
+import SplitWords from "./SplitWords";
 
 const linkSx = {
   color: inkSoft,
@@ -65,7 +66,7 @@ function Footer({ ref }: FooterProps) {
               maxWidth={"48rem"}
               sx={{ textShadow: "0 0.25rem 1.5rem rgba(255,255,255,0.8)" }}
             >
-              {"Enhance Craft Chocolate Market"}
+              <SplitWords text={"Enhance Craft Chocolate Market"} />
             </Typography>
             <Typography color={inkSoft} maxWidth={"40rem"}>
               {
