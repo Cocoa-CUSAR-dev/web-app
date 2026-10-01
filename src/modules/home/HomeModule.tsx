@@ -1,7 +1,8 @@
 "use client";
 
 import { Box } from "@mui/material";
-import { useMemo, useRef } from "react";
+import Lenis from "lenis";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import ChapterNav from "./components/ChapterNav";
 import FallingLeaves from "./components/FallingLeaves";
@@ -21,9 +22,39 @@ function HomeModule() {
   const toolsRef = useRef<HTMLElement>(null);
   const impactRef = useRef<HTMLElement>(null);
   const footerRef = useRef<HTMLElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const lenisRef = useRef<Lenis | null>(null);
   const sectionRefs = useMemo(
     () => [heroRef, aboutRef, toolsRef, impactRef, footerRef],
     [],
+  );
+
+  // Inertial wheel scrolling: native wheel steps (~100px per notch) made every
+  // scroll-linked layer jump instead of glide.
+  useEffect(() => {
+    const wrapper = scrollContainerRef.current;
+    const content = contentRef.current;
+    if (!wrapper || !content) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const lenis = new Lenis({ wrapper, content, lerp: 0.08, autoRaf: true });
+    lenisRef.current = lenis;
+    return () => {
+      lenis.destroy();
+      lenisRef.current = null;
+    };
+  }, []);
+
+  const scrollToSection = useCallback(
+    (index: number) => {
+      const target = sectionRefs[index].current;
+      if (!target) return;
+      if (lenisRef.current) {
+        lenisRef.current.scrollTo(target, { duration: 1.8 });
+      } else {
+        target.scrollIntoView({ behavior: "smooth" });
+      }
+    },
+    [sectionRefs],
   );
 
   return (
@@ -53,16 +84,16 @@ function HomeModule() {
         }}
       >
         <ScrollRootContext value={scrollContainerRef}>
-          <HeroSection
-            ref={heroRef}
-            onStartJourney={() =>
-              aboutRef.current?.scrollIntoView({ behavior: "smooth" })
-            }
-          />
-          <AboutUsSubmodule ref={aboutRef} />
-          <PromoteSubmodule ref={toolsRef} />
-          <ImpactSubmodule ref={impactRef} />
-          <Footer ref={footerRef} />
+          <Box ref={contentRef}>
+            <HeroSection
+              ref={heroRef}
+              onStartJourney={() => scrollToSection(1)}
+            />
+            <AboutUsSubmodule ref={aboutRef} />
+            <PromoteSubmodule ref={toolsRef} />
+            <ImpactSubmodule ref={impactRef} />
+            <Footer ref={footerRef} />
+          </Box>
         </ScrollRootContext>
       </Box>
       <Box
@@ -78,7 +109,11 @@ function HomeModule() {
         }}
       />
       <HeroNavBar />
-      <ChapterNav container={scrollContainerRef} sections={sectionRefs} />
+      <ChapterNav
+        container={scrollContainerRef}
+        sections={sectionRefs}
+        onNavigate={scrollToSection}
+      />
     </Box>
   );
 }

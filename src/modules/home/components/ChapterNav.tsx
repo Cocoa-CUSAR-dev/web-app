@@ -8,9 +8,10 @@ import { accent, homeScenes, ink } from "../homeScenes";
 interface ChapterNavProps {
   container: RefObject<HTMLDivElement | null>;
   sections: RefObject<HTMLElement | null>[];
+  onNavigate: (index: number) => void;
 }
 
-function ChapterNav({ container, sections }: ChapterNavProps) {
+function ChapterNav({ container, sections, onNavigate }: ChapterNavProps) {
   const [active, setActive] = useState<number>(0);
 
   useEffect(() => {
@@ -46,9 +47,7 @@ function ChapterNav({ container, sections }: ChapterNavProps) {
         return (
           <ButtonBase
             key={scene.id}
-            onClick={() =>
-              sections[index].current?.scrollIntoView({ behavior: "smooth" })
-            }
+            onClick={() => onNavigate(index)}
             aria-label={scene.label}
             aria-current={isActive ? "step" : undefined}
             sx={{
