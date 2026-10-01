@@ -6,7 +6,12 @@ import {
   InsightsRounded,
   MapRounded,
 } from "@mui/icons-material";
-import { alpha, Box, Stack, Typography } from "@mui/material";
+import { Box, Stack, Typography } from "@mui/material";
+import type { Ref } from "react";
+
+import ChapterHeading from "../components/ChapterHeading";
+import { Reveal } from "../components/Reveal";
+import { accent, glassPanelSx, ink, inkSoft } from "../homeScenes";
 
 const features = [
   {
@@ -32,75 +37,90 @@ const features = [
   },
 ] as const;
 
-function PromoteSubmodule() {
+interface PromoteSubmoduleProps {
+  ref?: Ref<HTMLElement>;
+}
+
+function PromoteSubmodule({ ref }: PromoteSubmoduleProps) {
   return (
-    <Stack
-      width={"100%"}
-      flexShrink={0}
+    <Box
+      ref={ref}
+      component={"section"}
+      minHeight={"100dvh"}
+      display={"flex"}
+      flexDirection={"column"}
+      justifyContent={"center"}
       alignItems={"center"}
-      spacing={4}
-      padding={{
-        xs: "4rem 1.5rem",
-        md: "6rem max(1.5rem, calc((100% - 1280px) / 2))",
-      }}
+      paddingX={{ xs: "1.5rem", md: "8%" }}
+      paddingY={"6rem"}
     >
-      <Stack spacing={1} alignItems={"center"} textAlign={"center"}>
-        <Typography
-          variant={"h2"}
-          fontWeight={600}
-          fontSize={{ xs: "1.75rem", sm: "2.25rem" }}
-        >
-          {"What You Can Do"}
-        </Typography>
-        <Typography color={"text.secondary"} maxWidth={"36rem"}>
-          {
-            "Everything researchers need to collect, analyze, and track cocoa farm data in one place."
-          }
-        </Typography>
-      </Stack>
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: {
-            xs: "1fr",
-            sm: "repeat(2, 1fr)",
-            md: "repeat(4, 1fr)",
-          },
-          gap: 3,
-          width: "100%",
-          maxWidth: "64rem",
-        }}
+      <Stack
+        spacing={5}
+        width={"100%"}
+        maxWidth={"72rem"}
+        alignItems={"center"}
       >
-        {features.map(({ title, description, icon: Icon }) => (
-          <Stack
-            key={title}
-            spacing={1.5}
-            alignItems={"center"}
-            textAlign={"center"}
-          >
-            <Stack
-              width={"3.5rem"}
-              height={"3.5rem"}
-              borderRadius={"50%"}
-              alignItems={"center"}
-              justifyContent={"center"}
-              sx={{
-                bgcolor: (theme) => alpha(theme.palette.primary.main, 0.12),
-                color: "primary.dark",
-              }}
-            >
-              <Icon fontSize={"medium"} />
-            </Stack>
-            <Typography variant={"h6"} fontWeight={600}>
-              {title}
-            </Typography>
-            <Typography variant={"body2"} color={"text.secondary"}>
-              {description}
-            </Typography>
-          </Stack>
-        ))}
-      </Box>
-    </Stack>
+        <Reveal>
+          <ChapterHeading
+            eyebrow={"The Journey · 02"}
+            title={"Crafted Tools for Research"}
+            align={"center"}
+          />
+        </Reveal>
+        <Box
+          width={"100%"}
+          sx={{
+            display: "grid",
+            gridTemplateColumns: {
+              xs: "1fr",
+              sm: "repeat(2, 1fr)",
+              lg: "repeat(4, 1fr)",
+            },
+            gap: 2.5,
+          }}
+        >
+          {features.map(({ title, description, icon: Icon }, index) => (
+            <Reveal key={title} delay={0.1 * index}>
+              <Stack
+                spacing={1.5}
+                height={"100%"}
+                padding={"1.75rem"}
+                sx={{
+                  ...glassPanelSx,
+                  transition: "transform 0.35s ease, border-color 0.35s ease",
+                  "&:hover": {
+                    transform: "translateY(-6px)",
+                    borderColor: "rgba(59,125,85,0.45)",
+                  },
+                }}
+              >
+                <Box
+                  width={"3rem"}
+                  height={"3rem"}
+                  borderRadius={"1rem"}
+                  display={"flex"}
+                  alignItems={"center"}
+                  justifyContent={"center"}
+                  sx={{
+                    background:
+                      "linear-gradient(135deg, rgba(59,125,85,0.16), rgba(192,112,90,0.16))",
+                    color: accent,
+                  }}
+                >
+                  <Icon />
+                </Box>
+                <Typography variant={"h6"} fontWeight={600} color={ink}>
+                  {title}
+                </Typography>
+                <Typography variant={"body2"} color={inkSoft}>
+                  {description}
+                </Typography>
+              </Stack>
+            </Reveal>
+          ))}
+        </Box>
+      </Stack>
+    </Box>
   );
 }
 
