@@ -13,7 +13,7 @@ test.describe('Landing Page Tests', () => {
   });
 
   test('Subtext Render Test', async ({ page }) => {
-    await expect(page.getByText('with ISTC and Chulalongkorn')).toBeVisible();
+    await expect(page.getByText('with ISTC and Chulalongkorn University', { exact: true })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Enhance Craft Chocolate Market' })).toBeVisible();
     await expect(page.getByText('Empowering and enhancing')).toBeVisible();
   });
