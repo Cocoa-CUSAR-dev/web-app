@@ -96,7 +96,26 @@ function DashboardSidebar() {
                 direction={"row"}
                 spacing={1}
                 alignItems={"center"}
+                role={"link"}
+                tabIndex={0}
                 onClick={() => {
+                  if (isCurrentPage) {
+                    setOpenPages((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(pageLink)) {
+                        next.delete(pageLink);
+                      } else {
+                        next.add(pageLink);
+                      }
+                      return next;
+                    });
+                    return;
+                  }
+                  router.push(pageLink);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key !== "Enter" && e.key !== " ") return;
+                  e.preventDefault();
                   if (isCurrentPage) {
                     setOpenPages((prev) => {
                       const next = new Set(prev);
@@ -180,7 +199,14 @@ function DashboardSidebar() {
                     return (
                       <Box
                         key={"inner-dashboard-content" + innerIdx}
+                        role={"link"}
+                        tabIndex={0}
                         onClick={() => router.push(pageLink + content["link"])}
+                        onKeyDown={(e) => {
+                          if (e.key !== "Enter" && e.key !== " ") return;
+                          e.preventDefault();
+                          router.push(pageLink + content["link"]);
+                        }}
                         sx={{
                           borderRadius: "0.5rem",
                           padding: "0.375rem 0.75rem",
