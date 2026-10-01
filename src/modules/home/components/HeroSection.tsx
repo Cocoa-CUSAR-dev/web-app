@@ -8,7 +8,6 @@ import type { Ref } from "react";
 import { useAuthInfo } from "@/hooks/useAuthInfo";
 
 import { accent, displayFont, ink, inkSoft } from "../homeScenes";
-import { palette } from "../papercut/palette";
 import SplitWords from "./SplitWords";
 
 const container = {
@@ -25,47 +24,6 @@ const item = {
     transition: { duration: 1, ease: [0.16, 1, 0.3, 1] as const },
   },
 };
-
-// A brush-cut underline that draws itself under the accent words on load.
-function HandUnderline() {
-  return (
-    <Box
-      component={"svg"}
-      viewBox={"0 0 300 24"}
-      preserveAspectRatio={"none"}
-      aria-hidden={true}
-      sx={{
-        position: "absolute",
-        left: "-2%",
-        bottom: "-0.2em",
-        width: "104%",
-        height: "0.32em",
-        overflow: "visible",
-      }}
-    >
-      <motion.path
-        d={"M4 16 C 70 5, 150 3, 296 11"}
-        fill={"none"}
-        stroke={palette.young}
-        strokeWidth={7}
-        strokeLinecap={"round"}
-        initial={{ pathLength: 0, opacity: 0 }}
-        animate={{ pathLength: 1, opacity: 0.9 }}
-        transition={{ delay: 1.15, duration: 1.1, ease: [0.65, 0, 0.35, 1] }}
-      />
-      <motion.path
-        d={"M30 22 C 110 14, 190 13, 270 18"}
-        fill={"none"}
-        stroke={palette.young}
-        strokeWidth={3}
-        strokeLinecap={"round"}
-        initial={{ pathLength: 0, opacity: 0 }}
-        animate={{ pathLength: 1, opacity: 0.55 }}
-        transition={{ delay: 1.5, duration: 0.9, ease: [0.65, 0, 0.35, 1] }}
-      />
-    </Box>
-  );
-}
 
 interface HeroSectionProps {
   ref?: Ref<HTMLElement>;
@@ -117,19 +75,12 @@ function HeroSection({ ref, onStartJourney }: HeroSectionProps) {
           >
             <SplitWords text={"Enhance"} trigger={"mount"} delay={0.35} />
             <br />
-            <Box
-              component={"span"}
-              position={"relative"}
-              display={"inline-block"}
-            >
-              <SplitWords
-                text={"Craft Chocolate"}
-                trigger={"mount"}
-                delay={0.5}
-                color={accent}
-              />
-              <HandUnderline />
-            </Box>
+            <SplitWords
+              text={"Craft Chocolate"}
+              trigger={"mount"}
+              delay={0.5}
+              color={accent}
+            />
           </Typography>
           <motion.div variants={item}>
             <Typography

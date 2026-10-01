@@ -10,7 +10,6 @@ import { Box, Stack, Typography } from "@mui/material";
 import type { Ref } from "react";
 
 import ChapterHeading from "../components/ChapterHeading";
-import PaperStack from "../components/PaperStack";
 import { Reveal } from "../components/Reveal";
 import { accent, glassPanelSx, ink, inkSoft } from "../homeScenes";
 
@@ -38,13 +37,6 @@ const features = [
   },
 ] as const;
 
-const cardTints = [
-  ["#d6e5dc", "#f6dccf"],
-  ["#e4def0", "#d6e5dc"],
-  ["#f6dccf", "#f3e7c4"],
-  ["#d3e3e8", "#e4def0"],
-] as const;
-
 interface PromoteSubmoduleProps {
   ref?: Ref<HTMLElement>;
 }
@@ -70,7 +62,6 @@ function PromoteSubmodule({ ref }: PromoteSubmoduleProps) {
       >
         <Reveal>
           <ChapterHeading
-            numeral={"02"}
             eyebrow={"The Journey · 02"}
             title={"Crafted Tools for Research"}
             align={"center"}
@@ -90,47 +81,41 @@ function PromoteSubmodule({ ref }: PromoteSubmoduleProps) {
         >
           {features.map(({ title, description, icon: Icon }, index) => (
             <Reveal key={title} delay={0.1 * index}>
-              <PaperStack
-                fill={true}
-                lean={index % 2 ? -1 : 1}
-                tints={cardTints[index % cardTints.length]}
+              <Stack
+                spacing={1.5}
+                height={"100%"}
+                padding={"1.75rem"}
+                sx={{
+                  ...glassPanelSx,
+                  transition: "transform 0.35s ease, border-color 0.35s ease",
+                  "&:hover": {
+                    transform: "translateY(-6px)",
+                    borderColor: "rgba(59,125,85,0.45)",
+                  },
+                }}
               >
-                <Stack
-                  spacing={1.5}
-                  height={"100%"}
-                  padding={"1.75rem"}
+                <Box
+                  width={"3rem"}
+                  height={"3rem"}
+                  borderRadius={"1rem"}
+                  display={"flex"}
+                  alignItems={"center"}
+                  justifyContent={"center"}
                   sx={{
-                    ...glassPanelSx,
-                    transition: "transform 0.35s ease, border-color 0.35s ease",
-                    "&:hover": {
-                      transform: "translateY(-6px)",
-                      borderColor: "rgba(59,125,85,0.45)",
-                    },
+                    background:
+                      "linear-gradient(135deg, rgba(59,125,85,0.16), rgba(192,112,90,0.16))",
+                    color: accent,
                   }}
                 >
-                  <Box
-                    width={"3rem"}
-                    height={"3rem"}
-                    borderRadius={"1rem"}
-                    display={"flex"}
-                    alignItems={"center"}
-                    justifyContent={"center"}
-                    sx={{
-                      background:
-                        "linear-gradient(135deg, rgba(59,125,85,0.16), rgba(192,112,90,0.16))",
-                      color: accent,
-                    }}
-                  >
-                    <Icon />
-                  </Box>
-                  <Typography variant={"h6"} fontWeight={600} color={ink}>
-                    {title}
-                  </Typography>
-                  <Typography variant={"body2"} color={inkSoft}>
-                    {description}
-                  </Typography>
-                </Stack>
-              </PaperStack>
+                  <Icon />
+                </Box>
+                <Typography variant={"h6"} fontWeight={600} color={ink}>
+                  {title}
+                </Typography>
+                <Typography variant={"body2"} color={inkSoft}>
+                  {description}
+                </Typography>
+              </Stack>
             </Reveal>
           ))}
         </Box>
