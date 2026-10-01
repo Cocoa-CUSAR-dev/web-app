@@ -207,17 +207,12 @@ const Scene = memo(function Scene({
     ["0%", "-2%"],
     easeOutCubic,
   );
-  // Skip painting a scene once the next one fully covers it.
-  const visibility = useTransform([enter, nextEnter], ([e, n]: number[]) =>
-    (isFirst || e > 0) && (index === paperScenes.length - 1 || n < 1)
-      ? "visible"
-      : "hidden",
-  );
-
+  // Deliberately never visibility:hidden. A hidden scene isn't rasterized, so
+  // when it started fading in the browser painted it on the spot and the
+  // cream backdrop flashed through. The mount window keeps at most three
+  // scenes around, so keeping them all painted is affordable.
   return (
-    <motion.div
-      style={{ position: "absolute", inset: 0, opacity, y, visibility }}
-    >
+    <motion.div style={{ position: "absolute", inset: 0, opacity, y }}>
       <motion.div style={{ position: "absolute", inset: 0, y: exitY }}>
         {paperScenes[index].layers.map((layer, i) => (
           <Layer
