@@ -35,7 +35,9 @@ function Footer({ ref }: FooterProps) {
   return (
     <Box
       ref={ref}
-      component={"section"}
+      // Not <section>: a <footer> nested in a sectioning element loses its
+      // contentinfo landmark role.
+      component={"div"}
       minHeight={"100dvh"}
       display={"flex"}
       flexDirection={"column"}
@@ -61,6 +63,7 @@ function Footer({ ref }: FooterProps) {
               {"Under the same stars"}
             </Typography>
             <Typography
+              component={"h2"}
               fontFamily={displayFont}
               fontWeight={600}
               color={ink}
@@ -123,7 +126,7 @@ function Footer({ ref }: FooterProps) {
         </Stack>
         <Stack direction={"row"} spacing={{ xs: 6, md: 8 }}>
           <Stack spacing={1.25}>
-            <Typography fontWeight={600} color={accent}>
+            <Typography component={"h3"} fontWeight={600} color={accent}>
               {"Pages"}
             </Typography>
             <Link underline={"none"} href={"/dashboard"} sx={linkSx}>
@@ -151,7 +154,7 @@ function Footer({ ref }: FooterProps) {
             </Link>
           </Stack>
           <Stack spacing={1.25}>
-            <Typography fontWeight={600} color={accent}>
+            <Typography component={"h3"} fontWeight={600} color={accent}>
               {"Contact"}
             </Typography>
             <Typography variant={"body2"} color={inkSoft}>

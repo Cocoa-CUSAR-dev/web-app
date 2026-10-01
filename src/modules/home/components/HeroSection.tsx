@@ -74,7 +74,7 @@ function HeroSection({ ref, onStartJourney }: HeroSectionProps) {
             fontSize={{ xs: "3rem", sm: "5rem", md: "6.25rem" }}
             sx={{ textShadow: "0 0.25rem 2rem rgba(255,255,255,0.8)" }}
           >
-            <SplitWords text={"Enhance"} trigger={"mount"} delay={0.35} />
+            <SplitWords text={"Enhance"} trigger={"mount"} delay={0.35} />{" "}
             <br />
             <SplitWords
               text={"Craft Chocolate"}

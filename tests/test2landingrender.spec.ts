@@ -7,22 +7,22 @@ test.describe('Landing Page Tests', () => {
       await page.goto('/');
   });
   test('Heading Render Test', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: 'Enhance', exact: true })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Craft Chocolate Market', exact: true })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'In Thailand' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Enhance Craft Chocolate', exact: true })).toBeVisible();
+    await expect(page.getByText('Market in Thailand', { exact: true })).toBeVisible();
   });
 
   test('Subtext Render Test', async ({ page }) => {
-    await expect(page.getByText('with ISTC and Chulalongkorn University', { exact: true })).toBeVisible();
+    await expect(page.getByText(/research platform built with ISTC and Chulalongkorn University/)).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Enhance Craft Chocolate Market' })).toBeVisible();
-    await expect(page.getByText('Empowering and enhancing')).toBeVisible();
+    await expect(page.getByText(/^Empowering Thailand's craft cocoa market/)).toBeVisible();
   });
 
 
   test('Social Media Links Render Test', async ({ page }) => {
-    await expect(page.getByRole('link', { name: 'X Logo' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Instagram Logo' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'YouTube Logo' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Facebook', exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'X', exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Instagram', exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'YouTube', exact: true })).toBeVisible();
   });
 
 
@@ -69,9 +69,12 @@ test.describe('Landing Page Tests', () => {
 
   test('Contact Section Render Test', async ({ page }) => {
     await expect(page.getByRole('heading', { name: 'Contact' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Chulalongkorn University' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'ISTC' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Chula Engineering' })).toBeVisible();
+    // Plain text for now: the old links pointed at /dashboard, /form and
+    // /auth; real partner URLs are still to be provided.
+    const footer = page.getByRole('contentinfo');
+    await expect(footer.getByText('Chulalongkorn University', { exact: true })).toBeVisible();
+    await expect(footer.getByText('ISTC', { exact: true })).toBeVisible();
+    await expect(footer.getByText('Chula Engineering', { exact: true })).toBeVisible();
   });
 
 });
