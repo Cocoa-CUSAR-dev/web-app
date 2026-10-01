@@ -51,21 +51,27 @@ function ChapterNav({ container, sections, onNavigate }: ChapterNavProps) {
             aria-label={scene.label}
             aria-current={isActive ? "step" : undefined}
             sx={{
+              position: "relative",
               justifyContent: "flex-end",
-              gap: 1.25,
               padding: "0.25rem",
               borderRadius: "1rem",
               "&:hover .chapter-label": { opacity: 1, transform: "none" },
             }}
           >
+            {/* Hover-only and out of flow, so labels never sit on top of
+                chapter copy (the active chapter shows as the long dot). */}
             <Typography
               className={"chapter-label"}
               variant={"caption"}
               color={ink}
               letterSpacing={"0.15em"}
               sx={{
-                opacity: isActive ? 1 : 0,
-                transform: isActive ? "none" : "translateX(6px)",
+                position: "absolute",
+                right: "calc(100% + 0.5rem)",
+                whiteSpace: "nowrap",
+                pointerEvents: "none",
+                opacity: 0,
+                transform: "translateX(6px)",
                 transition: "opacity 0.3s ease, transform 0.3s ease",
                 textShadow: "0 0 0.75rem rgba(255,255,255,0.9)",
               }}

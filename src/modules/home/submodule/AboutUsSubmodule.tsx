@@ -39,17 +39,21 @@ function AboutUsSubmodule({ ref }: AboutUsSubmoduleProps) {
       minHeight={"100dvh"}
       display={"flex"}
       alignItems={"center"}
-      paddingX={{ xs: "1.5rem", md: "8%" }}
+      // Copy sits right here (the scene's subject is on the left), clear of
+      // the chapter nav on the right edge.
+      justifyContent={{ xs: "flex-start", md: "flex-end" }}
+      paddingLeft={{ xs: "1.5rem", md: "8%" }}
+      paddingRight={{ xs: "1.5rem", md: "11%" }}
       paddingY={"6rem"}
     >
       <Stack spacing={4} maxWidth={"34rem"}>
-        <Reveal from={"left"}>
+        <Reveal from={"right"}>
           <ChapterHeading
             eyebrow={"The Journey · 01"}
             title={"From Farm to Data"}
           />
         </Reveal>
-        <Reveal from={"left"} delay={0.15}>
+        <Reveal from={"right"} delay={0.15}>
           <Stack
             spacing={2.5}
             padding={{ xs: "1.5rem", sm: "2rem" }}

@@ -29,6 +29,9 @@ import {
   Steam,
 } from "./props";
 
+// Which side of the viewport the chapter's copy sits on (desktop).
+type CopySide = "left" | "right" | "center";
+
 interface PaperLayer {
   // 0 = sky (static), 1 = nearest foreground (moves most).
   depth: number;
@@ -160,9 +163,10 @@ function House({ x, y, s = 1 }: { x: number; y: number; s?: number }) {
   );
 }
 
-const paperScenes: { id: string; layers: PaperLayer[] }[] = [
+const paperScenes: { id: string; copy: CopySide; layers: PaperLayer[] }[] = [
   {
     id: "home",
+    copy: "left",
     layers: [
       { depth: 0, node: <Sky id={"sky-home"} colors={P.skyDawn} /> },
       ...sunLayers(1050, 190),
@@ -279,13 +283,14 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
   },
   {
     id: "journey",
+    copy: "right",
     layers: [
       { depth: 0, node: <Sky id={"sky-journey"} colors={P.skyDay} /> },
-      ...sunLayers(380, 170),
+      ...sunLayers(1060, 170),
       cloudLayer(
         [
-          [760, 140, 0.8],
-          [1240, 200, 0.6],
+          [300, 140, 0.8],
+          [760, 200, 0.6],
         ],
         9,
       ),
@@ -351,43 +356,43 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
       },
       {
         depth: 0.58,
-        align: "xMaxYMax",
+        align: "xMinYMax",
         motion: "sway",
-        origin: at(980, 700),
+        origin: at(430, 700),
         delay: 2.2,
         node: (
           <>
-            <CocoaTree x={980} base={700} height={250} seed={23} />
-            <Glow x={990} y={340} rx={230} ry={120} opacity={0.38} />
+            <CocoaTree
+              x={430}
+              base={700}
+              height={250}
+              seed={23}
+              mirror={true}
+            />
+            <Glow x={440} y={340} rx={230} ry={120} opacity={0.38} />
           </>
         ),
       },
       {
         depth: 0.8,
-        align: "xMaxYMax",
+        align: "xMinYMax",
         node: (
           <>
-            <OpenPod x={1010} y={735} angle={-18} s={0.9} />
-            <Basket x={1210} y={790} s={1.05} />
+            <OpenPod x={420} y={735} angle={18} s={0.9} />
+            <Basket x={220} y={790} s={1.05} />
           </>
         ),
       },
       ground(5),
       {
         depth: 1,
-        align: "xMaxYMax",
+        align: "xMinYMax",
         motion: "sway",
-        origin: at(1380, 930),
+        origin: at(60, 930),
         delay: 1.3,
         node: (
-          <g transform={"translate(1380,0) scale(1.5) translate(-1380,0)"}>
-            <CocoaTree
-              x={1380}
-              base={620}
-              height={380}
-              seed={29}
-              mirror={true}
-            />
+          <g transform={"translate(60,0) scale(1.5) translate(-60,0)"}>
+            <CocoaTree x={60} base={620} height={380} seed={29} />
           </g>
         ),
       },
@@ -397,6 +402,7 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
   },
   {
     id: "tools",
+    copy: "center",
     layers: [
       { depth: 0, node: <Sky id={"sky-tools"} colors={P.skyDay} /> },
       ...sunLayers(720, 130),
@@ -511,6 +517,7 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
   },
   {
     id: "impact",
+    copy: "left",
     layers: [
       {
         depth: 0,
@@ -609,6 +616,7 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
   },
   {
     id: "contact",
+    copy: "center",
     layers: [
       {
         depth: 0,
@@ -733,4 +741,4 @@ const paperScenes: { id: string; layers: PaperLayer[] }[] = [
   },
 ];
 
-export { type PaperLayer, paperScenes };
+export { type CopySide, type PaperLayer, paperScenes };

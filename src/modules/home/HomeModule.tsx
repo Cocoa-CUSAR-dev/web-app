@@ -60,18 +60,6 @@ function HomeModule() {
   return (
     <Box position={"relative"} height={"100dvh"} overflow={"hidden"}>
       <SceneBackdrop container={scrollContainerRef} sections={sectionRefs} />
-      {/* Light scrim on the side the copy sits on, so text never fights the art. */}
-      <Box
-        position={"absolute"}
-        sx={{
-          inset: 0,
-          pointerEvents: "none",
-          background: {
-            xs: "linear-gradient(180deg, rgba(253,243,228,0.92) 0%, rgba(253,243,228,0.75) 45%, rgba(253,243,228,0) 80%)",
-            md: "linear-gradient(90deg, rgba(253,243,228,0.94) 0%, rgba(253,243,228,0.82) 38%, rgba(253,243,228,0.35) 55%, rgba(253,243,228,0) 68%)",
-          },
-        }}
-      />
       <FallingLeaves />
       <Box
         ref={scrollContainerRef}

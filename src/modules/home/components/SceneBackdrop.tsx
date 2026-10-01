@@ -18,9 +18,23 @@ import {
 } from "react";
 
 import { useMappedTransform } from "../hooks/useMappedTransform";
-import { type PaperLayer, paperScenes } from "../papercut/scenes";
+import {
+  type CopySide,
+  type PaperLayer,
+  paperScenes,
+} from "../papercut/scenes";
 
 const SCENE_WIDTH = "max(110%, 105dvh)";
+
+// Light wash behind the chapter's copy so text never fights the art. On
+// phones copy always stacks at the top; on desktop it follows the copy side.
+const SCRIM = "253,243,228";
+const scrimBackground: Record<CopySide, string> = {
+  left: `linear-gradient(90deg, rgba(${SCRIM},0.94) 0%, rgba(${SCRIM},0.82) 38%, rgba(${SCRIM},0.35) 55%, rgba(${SCRIM},0) 68%)`,
+  right: `linear-gradient(270deg, rgba(${SCRIM},0.94) 0%, rgba(${SCRIM},0.82) 38%, rgba(${SCRIM},0.35) 55%, rgba(${SCRIM},0) 68%)`,
+  center: `radial-gradient(ellipse 62% 72% at 50% 46%, rgba(${SCRIM},0.9) 0%, rgba(${SCRIM},0.7) 45%, rgba(${SCRIM},0) 80%)`,
+};
+const scrimMobile = `linear-gradient(180deg, rgba(${SCRIM},0.92) 0%, rgba(${SCRIM},0.75) 45%, rgba(${SCRIM},0) 80%)`;
 
 // Crossfade while the next chapter's top travels from 85% to 35% of the
 // viewport -- short enough that two scenes never sit muddily on top of each other.
@@ -186,6 +200,16 @@ const Scene = memo(function Scene({
           />
         ))}
       </motion.div>
+      <Box
+        position={"absolute"}
+        sx={{
+          inset: 0,
+          background: {
+            xs: scrimMobile,
+            md: scrimBackground[paperScenes[index].copy],
+          },
+        }}
+      />
     </motion.div>
   );
 });
