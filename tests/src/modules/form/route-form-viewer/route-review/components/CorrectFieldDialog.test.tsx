@@ -103,7 +103,9 @@ describe("CorrectFieldDialog", () => {
         body: JSON.stringify({ value: "7", reason: "typo" }),
       }),
     );
-    expect(toastSuccess).toHaveBeenCalledWith("Correction saved");
+    expect(toastSuccess).toHaveBeenCalledWith("Correction saved", undefined, {
+      duration: 3000,
+    });
   });
 
   it("shows the server's message and keeps the dialog open when the save is refused", async () => {

@@ -90,7 +90,8 @@ function CorrectFieldForm({
         );
         return;
       }
-      CustomToast.success("Correction saved");
+      // CustomToast stays up forever unless told otherwise.
+      CustomToast.success("Correction saved", undefined, { duration: 3000 });
       onSaved(responseId, (body as CorrectFieldResponse).value);
     } catch (e) {
       console.error(e);
