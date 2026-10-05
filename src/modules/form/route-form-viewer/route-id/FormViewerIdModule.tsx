@@ -1,6 +1,14 @@
 "use client";
 
-import { Box, Divider, Skeleton, Stack, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Divider,
+  Skeleton,
+  Stack,
+  Typography,
+} from "@mui/material";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { CustomToast } from "@/components/utility/CustomToast";
@@ -10,6 +18,7 @@ import ResponseTableModule from "./components/ResponseTable";
 import { TaskResponseResponse } from "./formViewerIdTypes";
 
 function FormViewerIdModule({ taskId }: { taskId: string }) {
+  const router = useRouter();
   const [responses, setResponses] = useState<Array<
     TaskResponseResponse["value"]
   > | null>(null);
@@ -132,22 +141,36 @@ function FormViewerIdModule({ taskId }: { taskId: string }) {
       divider={<Divider flexItem />}
       padding={{ xs: "1rem", sm: "1rem 2rem" }}
     >
-      <Stack direction={"row"} spacing={2} alignItems={"center"}>
-        <Typography variant={"h2"}>{"Response:"}</Typography>
-        {taskName ? (
-          <Typography variant={"h2"} noWrap>
-            {taskName}
-          </Typography>
-        ) : (
-          <Box height={"2.5rem"} width={"100%"}>
-            <Skeleton
-              variant={"rounded"}
-              width={"100%"}
-              height={"100%"}
-              animation={"wave"}
-            />
-          </Box>
-        )}
+      <Stack
+        direction={"row"}
+        spacing={2}
+        alignItems={"center"}
+        justifyContent={"space-between"}
+      >
+        <Stack direction={"row"} spacing={2} alignItems={"center"} minWidth={0}>
+          <Typography variant={"h2"}>{"Response:"}</Typography>
+          {taskName ? (
+            <Typography variant={"h2"} noWrap>
+              {taskName}
+            </Typography>
+          ) : (
+            <Box height={"2.5rem"} width={"100%"}>
+              <Skeleton
+                variant={"rounded"}
+                width={"100%"}
+                height={"100%"}
+                animation={"wave"}
+              />
+            </Box>
+          )}
+        </Stack>
+        <Button
+          variant={"contained"}
+          sx={{ flexShrink: 0 }}
+          onClick={() => router.push(`/form/form-viewer/${taskId}/review`)}
+        >
+          {"Review & correct"}
+        </Button>
       </Stack>
       <Stack spacing={4} paddingBottom={"3rem"}>
         {responses.length > 0 ? (
