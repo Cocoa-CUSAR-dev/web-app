@@ -19,6 +19,11 @@ import {
 
 const PORT = Number(process.env.MOCK_BACKEND_PORT || 4310);
 
+// SSO tokens already redeemed via /api/v1/auth/sso/exchange. Mirrors
+// web-backend's single-use rule (auth.sso_used_token): the first redemption
+// of a token gets a session, any replay is refused.
+const usedSsoTokens = new Set();
+
 function send(res, status, body, extraHeaders = {}) {
   const payload = body === undefined ? "" : JSON.stringify(body);
   res.writeHead(status, {
@@ -71,6 +76,20 @@ const server = http.createServer(async (req, res) => {
       res,
       200,
       { value: "login success", error: null },
+      { "Set-Cookie": `${TOKEN_NAME}=${TOKEN_VALUE}; Path=/; HttpOnly` },
+    );
+  }
+
+  if (method === "POST" && pathname === "/api/v1/auth/sso/exchange") {
+    const { token } = await readJsonBody(req);
+    if (typeof token !== "string" || token === "" || usedSsoTokens.has(token)) {
+      return send(res, 401, { value: null, error: "invalid sso token" });
+    }
+    usedSsoTokens.add(token);
+    return send(
+      res,
+      200,
+      { value: "ok", error: null },
       { "Set-Cookie": `${TOKEN_NAME}=${TOKEN_VALUE}; Path=/; HttpOnly` },
     );
   }
