@@ -20,10 +20,12 @@ const serverAuthApi = {
       return (await response.json())["value"] as AuthResponseType["value"];
     } catch (e) {
       if (e instanceof HttpError) {
-        console.error("Backend Error:", `${e.status} ${e.message}`);
         if (e.status === 401) {
+          // Not logged in -- the expected, normal case for an anonymous
+          // visitor, not a bug worth logging as an error.
           throw new CustomRedirectError("/auth?page=login&clear=true");
         }
+        console.error("Backend Error:", `${e.status} ${e.message}`);
       } else {
         console.error(
           e instanceof Error ? `${e.name}: ${e.message}` : "Unknown Error",

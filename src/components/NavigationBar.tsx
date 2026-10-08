@@ -210,12 +210,9 @@ function NavigationBar({ children }: { children: React.ReactNode }) {
         direction={"row"}
         alignItems={"center"}
         justifyContent={"space-between"}
-        sx={{
-          outline: "1px solid lightgray",
-        }}
         height={"3rem"}
         padding={"0 1.5rem"}
-        bgcolor={"#518D29"}
+        bgcolor={"primary.main"}
       >
         <AnimatedLink
           href={"/"}

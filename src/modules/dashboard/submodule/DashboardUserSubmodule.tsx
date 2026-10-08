@@ -48,25 +48,24 @@ function DashboardUserSubmodule() {
   return (
     <Stack
       alignItems={"start"}
-      minWidth={"54rem"}
       width={"100%"}
-      flexShrink={0}
       height={"auto"}
       spacing={2}
       padding={"2rem"}
       id={"dashboard-user-container"}
     >
       <Stack
-        direction={"row"}
+        direction={{ xs: "column", sm: "row" }}
         width={"100%"}
-        alignItems={"center"}
+        alignItems={{ xs: "start", sm: "center" }}
         justifyContent={"space-between"}
+        spacing={1}
       >
         <Typography variant={"h2"}>{"User Data"}</Typography>
         <FormGroup
           sx={{
             flexDirection: "row",
-            width: "fit",
+            flexWrap: "wrap",
           }}
         >
           <Tooltip
@@ -153,7 +152,11 @@ function DashboardUserSubmodule() {
       <Stack direction={"row"} width={"100%"} flexWrap={"wrap"} gap={"1rem"}>
         {isDeltaSelected && (
           <FitCard flex={1}>
-            <Box minWidth={"20rem"} width={"100%"} height={"20rem"}>
+            <Box
+              minWidth={{ xs: "0", sm: "20rem" }}
+              width={"100%"}
+              height={"20rem"}
+            >
               <MonthlyVerticalBarChartByYear
                 title={harvestTimeSeriesDeltaTitle}
                 datasets={dataHarvestTimeSeriesDelta}
@@ -164,7 +167,11 @@ function DashboardUserSubmodule() {
         )}
         {isSumSelected && (
           <FitCard flex={1}>
-            <Box minWidth={"20rem"} width={"100%"} height={"20rem"}>
+            <Box
+              minWidth={{ xs: "0", sm: "20rem" }}
+              width={"100%"}
+              height={"20rem"}
+            >
               <MonthlyVerticalBarChartByYear
                 title={harvestTimeSeriesSumTitle}
                 datasets={dataHarvestTimeSeriesSum}
