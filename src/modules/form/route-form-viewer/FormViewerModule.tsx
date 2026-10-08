@@ -2,7 +2,6 @@
 
 import { FileDownloadRounded } from "@mui/icons-material";
 import {
-  alpha,
   Box,
   Button,
   Checkbox,
@@ -253,12 +252,7 @@ function FormViewerModule() {
 
   // #region component
   return (
-    <Stack
-      spacing={3}
-      width={"100%"}
-      height={"100%"}
-      padding={{ xs: "1rem", sm: "1rem 2rem" }}
-    >
+    <Stack spacing={3} width={"100%"} height={"100%"}>
       <Stack
         width={"100%"}
         justifyContent={"space-between"}
@@ -293,7 +287,7 @@ function FormViewerModule() {
               md: "block",
             }}
             height={"2px"}
-            bgcolor={"divider"}
+            bgcolor={"darkgrey"}
           ></Box>
           <Stack
             direction={"row"}
@@ -314,7 +308,7 @@ function FormViewerModule() {
                 md: "none",
               }}
               height={"2px"}
-              bgcolor={"divider"}
+              bgcolor={"darkgrey"}
               marginRight={"1rem"}
             ></Box>
             {formDownloadButton}
@@ -346,9 +340,8 @@ function FormViewerModule() {
         ) : (
           <Stack
             width={"100%"}
-            borderRadius={"0.5rem"}
-            border={"1px solid"}
-            borderColor={"divider"}
+            borderRadius={"0.25rem"}
+            border={"1px solid lightgrey"}
             divider={<Divider flexItem />}
             id={"task-list-container"}
           >
@@ -364,8 +357,7 @@ function FormViewerModule() {
                     backgroundColor: "white",
                     transition: "background-color 150ms ease",
                     "&:hover": {
-                      backgroundColor: (theme) =>
-                        alpha(theme.palette.primary.main, 0.08),
+                      backgroundColor: "#F0FFC2",
                       cursor: "pointer",
                     },
                   }}

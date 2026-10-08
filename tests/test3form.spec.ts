@@ -16,26 +16,26 @@ test.describe('Form Tests', () => {
     test('Form Main Page Render Test', async ({ page }) => {
       await page.getByRole('link', { name: 'Form' }).click();
       await expect(page.locator('div').filter({ hasText: /^Form$/ })).toBeVisible();
-      await expect(page.getByRole('heading', { name: 'Form', exact: true })).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Form' })).toBeVisible();
       await expect(page.getByText('Currently, there are three')).toBeVisible();
-      await expect(page.getByText('please contact the development team')).toBeVisible();
-      await expect(page.getByText('Build a new form from scratch')).toBeVisible();
-      await expect(page.getByText('View the active form fields and edit them as needed')).toBeVisible();
-      await expect(page.getByText('View form responses from users by place')).toBeVisible();
+      await expect(page.getByText('Links for activies that can')).toBeVisible();
+      await expect(page.getByRole('listitem').filter({ hasText: 'Form Create—for creating a new form' })).toBeVisible();
+      await expect(page.getByRole('listitem').filter({ hasText: 'Form Edit—for viewing current' })).toBeVisible();
+      await expect(page.getByRole('listitem').filter({ hasText: 'Form Viewer—for viewing form' })).toBeVisible();
     });
 
     test('Form Edit Navigation', async ({ page }) => {
       await page.getByRole('link', { name: 'Form' }).click();
-      await page.getByRole('button', { name: 'Form Edit' }).click();
+      await page.getByRole('link', { name: 'Form Edit' }).click();
       await expect(page.getByRole('heading', { name: 'Form Edit' })).toBeVisible();
     });
 
     test('Form Viewer Navigation', async ({ page }) => {
       await page.getByRole('link', { name: 'Form' }).click();
-      await page.getByRole('button', { name: 'Form Edit' }).click();
+      await page.getByRole('link', { name: 'Form Edit' }).click();
       await page.getByLabel('breadcrumb').getByRole('link', { name: 'Form' }).click();
-      await expect(page.getByRole('heading', { name: 'Form', exact: true })).toBeVisible();
-      await page.getByRole('button', { name: 'Form Viewer' }).click();
+      await expect(page.getByRole('heading', { name: 'Form' })).toBeVisible();
+      await page.getByRole('link', { name: 'Form Viewer' }).click();
       await expect(page.getByRole('heading', { name: 'Form Viewer' })).toBeVisible();
       //await expect(page.getByRole('button', { name: 'Form Response CSV' })).toBeVisible();
     });
@@ -44,7 +44,7 @@ test.describe('Form Tests', () => {
   test.describe('Form Edit', () => {
     test.beforeEach(async ({ page }) => {
       await page.getByRole('link', { name: 'Form' }).click();
-      await page.getByRole('button', { name: 'Form Edit' }).click();
+      await page.getByRole('link', { name: 'Form Edit' }).click();
     });
 
     test('Form Edit Render Test with no Active Form', async ({ page }) => {
