@@ -3,15 +3,8 @@
 import { FacebookRounded } from "@mui/icons-material";
 import { Box, Link, Stack, Typography } from "@mui/material";
 import Image from "next/image";
-import { useState } from "react";
-
-import LogoutConfirmDialog from "@/components/LogoutConfirmDialog";
-import { useAuthInfo } from "@/hooks/useAuthInfo";
 
 function Footer() {
-  const { isAuthenticated } = useAuthInfo();
-  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState<boolean>(false);
-
   return (
     <Stack
       component={"footer"}
@@ -129,24 +122,13 @@ function Footer() {
             <Link underline={"none"} color={"inherit"} href={"/form"}>
               {"Form"}
             </Link>
-            {isAuthenticated ? (
-              <Link
-                underline={"none"}
-                color={"inherit"}
-                component={"button"}
-                onClick={() => setLogoutConfirmOpen(true)}
-              >
-                {"Log Out"}
-              </Link>
-            ) : (
-              <Link
-                underline={"none"}
-                color={"inherit"}
-                href={"/auth?page=login"}
-              >
-                {"Log In"}
-              </Link>
-            )}
+            <Link
+              underline={"none"}
+              color={"inherit"}
+              href={"/auth?page=login"}
+            >
+              {"Log In"}
+            </Link>
             <Link underline={"none"} color={"inherit"} href={"/terms-of-use"}>
               {"Terms of Use"}
             </Link>
@@ -190,10 +172,6 @@ function Footer() {
           </Stack>
         </Stack>
       </Stack>
-      <LogoutConfirmDialog
-        open={logoutConfirmOpen}
-        onClose={() => setLogoutConfirmOpen(false)}
-      />
     </Stack>
   );
 }

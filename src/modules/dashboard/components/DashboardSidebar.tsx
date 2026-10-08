@@ -1,255 +1,146 @@
 "use client";
 
+import { DoubleArrowRounded, NavigateNextRounded } from "@mui/icons-material";
 import {
-  DoubleArrowRounded,
-  ExpandMoreRounded,
-  MapRounded,
-  SpaceDashboardRounded,
-} from "@mui/icons-material";
-import {
-  alpha,
   Box,
   Collapse,
   Drawer,
   IconButton,
+  Skeleton,
   Stack,
   Typography,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
+import AnimatedLink from "@/components/utility/AnimatedLink";
 import { useBreadcrumbs } from "@/hooks/useBreadcrumbs";
 
-import {
-  dashboardMapModuleContents,
-  dashboardModuleContents,
-  dashboardPages,
-} from "../dashboardConstants";
-import { DashboardContent } from "../dashboardTypes";
+import { dashboardPages } from "../dashboardConstants";
+import { useDashboardContent } from "../hooks/useDashboardContent";
 
 const breakpoint = "lg";
-
-// Only two top-level pages exist today (see dashboardConstants) -- keyed by
-// their last path segment, same key `sidebarContent` already derives below.
-const pageIcons = {
-  dashboard: SpaceDashboardRounded,
-  map: MapRounded,
-} as const;
-
-// Each page's sub-items are static (see dashboardConstants -- both
-// DashboardModule and DashboardMapModule just push this same list into the
-// old runtime context on mount), so the sidebar can read them directly
-// instead of only knowing whichever page happens to be mounted right now.
-// That's what lets every page's section be expanded from anywhere, not just
-// the one you're currently on.
-const contentByPageLink: Record<string, DashboardContent[]> = {
-  "/dashboard": dashboardModuleContents,
-  "/dashboard/map": dashboardMapModuleContents,
-};
 
 function DashboardSidebar() {
   const [open, setOpen] = useState<boolean>(false);
 
   const router = useRouter();
+  const { content, isLoading: isContentLoading } = useDashboardContent();
   const breadcrumbs = useBreadcrumbs();
 
-  const [openPages, setOpenPages] = useState<Set<string>>(new Set());
-
-  const currentPageLink = useMemo(() => {
-    return dashboardPages.find((page) => {
-      const pageLinkHierarchy = page["link"].split("/");
-      const pageLabel = pageLinkHierarchy[pageLinkHierarchy.length - 1];
-      return (
-        breadcrumbs[breadcrumbs.length - 1] === pageLabel.toLocaleLowerCase()
-      );
-    })?.link;
-  }, [breadcrumbs]);
-
-  // Auto-expand whichever page you navigate to, without collapsing a
-  // section you already opened manually.
-  useEffect(() => {
-    if (!currentPageLink) return;
-    setOpenPages((prev) => {
-      if (prev.has(currentPageLink)) return prev;
-      return new Set(prev).add(currentPageLink);
-    });
-  }, [currentPageLink]);
+  const { isShowing, setIsShowing } = useDashboardContent();
 
   const sidebarContent = useMemo(() => {
     return (
-      <Stack id={"sidebar-content"} width={"100%"} spacing={0.5}>
+      <Stack id={"sidebar-content"} width={"100%"}>
         {dashboardPages.map((page, idx) => {
           const pageLinkHierarchy = page["link"].split("/");
           const pageLabel = pageLinkHierarchy[pageLinkHierarchy.length - 1];
           const pageLink = page["link"];
-          const isCurrentPage = pageLink === currentPageLink;
-          const isOpen = openPages.has(pageLink);
-          const pageContent = contentByPageLink[pageLink] ?? [];
-          const Icon =
-            pageIcons[
-              pageLabel.toLocaleLowerCase() as keyof typeof pageIcons
-            ] ?? SpaceDashboardRounded;
+          const isCurrentPage =
+            breadcrumbs[breadcrumbs.length - 1] ===
+            pageLabel.toLocaleLowerCase();
+
+          if (!isCurrentPage) {
+            return (
+              <Stack
+                key={"dashboard-content" + idx}
+                direction={"row"}
+                spacing={"0.5"}
+                alignItems={"center"}
+                width={"100%"}
+              >
+                <IconButton
+                  onClick={() => {
+                    router.push(pageLink);
+                  }}
+                  sx={{
+                    padding: "0.25rem",
+                  }}
+                >
+                  <NavigateNextRounded />
+                </IconButton>
+                <AnimatedLink
+                  href={pageLink}
+                  underline={"none"}
+                  color={"#000000"}
+                  bottomLineGap={3}
+                  paddingTop={"0.125rem"}
+                  noWrap
+                >
+                  {pageLabel}
+                </AnimatedLink>
+              </Stack>
+            );
+          }
 
           return (
             <Stack key={"dashboard-content" + idx}>
-              <Stack
-                direction={"row"}
-                spacing={1}
-                alignItems={"center"}
-                role={"link"}
-                tabIndex={0}
-                onClick={() => {
-                  if (isCurrentPage) {
-                    setOpenPages((prev) => {
-                      const next = new Set(prev);
-                      if (next.has(pageLink)) {
-                        next.delete(pageLink);
-                      } else {
-                        next.add(pageLink);
-                      }
-                      return next;
-                    });
-                    return;
-                  }
-                  router.push(pageLink);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key !== "Enter" && e.key !== " ") return;
-                  e.preventDefault();
-                  if (isCurrentPage) {
-                    setOpenPages((prev) => {
-                      const next = new Set(prev);
-                      if (next.has(pageLink)) {
-                        next.delete(pageLink);
-                      } else {
-                        next.add(pageLink);
-                      }
-                      return next;
-                    });
-                    return;
-                  }
-                  router.push(pageLink);
-                }}
-                sx={{
-                  width: "100%",
-                  borderRadius: "0.5rem",
-                  padding: "0.5rem 0.75rem",
-                  cursor: "pointer",
-                  ...(isCurrentPage
-                    ? {
-                        bgcolor: (theme) =>
-                          alpha(theme.palette.primary.main, 0.1),
-                      }
-                    : { "&:hover": { bgcolor: "action.hover" } }),
-                }}
-              >
-                <Icon
-                  fontSize={"small"}
-                  sx={{
-                    color: isCurrentPage ? "primary.dark" : "text.secondary",
+              <Stack direction={"row"} alignItems={"center"}>
+                <IconButton
+                  onClick={() => {
+                    setIsShowing((isShowing) => !isShowing);
                   }}
-                />
-                <Typography
-                  variant={"body2"}
-                  fontWeight={isCurrentPage ? 600 : 500}
-                  color={isCurrentPage ? "primary.dark" : undefined}
-                  noWrap
-                  flex={1}
+                  sx={{
+                    padding: "0.25rem",
+                    rotate: isShowing ? "90deg" : "none",
+                  }}
                 >
+                  <NavigateNextRounded color={"action"} />
+                </IconButton>
+                <Typography color={"#000000"} paddingTop={"0.125rem"} noWrap>
                   {pageLabel}
                 </Typography>
-                <IconButton
-                  size={"small"}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setOpenPages((prev) => {
-                      const next = new Set(prev);
-                      if (next.has(pageLink)) {
-                        next.delete(pageLink);
-                      } else {
-                        next.add(pageLink);
-                      }
-                      return next;
-                    });
-                  }}
-                  sx={{ padding: "0.125rem" }}
-                >
-                  <ExpandMoreRounded
-                    fontSize={"small"}
-                    sx={{
-                      color: isCurrentPage ? "primary.dark" : "text.secondary",
-                      transition: "transform 0.2s ease",
-                      transform: isOpen ? "rotate(180deg)" : "none",
-                    }}
-                  />
-                </IconButton>
               </Stack>
-              <Collapse in={isOpen}>
-                <Stack
-                  padding={"0.25rem 0.5rem 0.25rem 1.75rem"}
-                  spacing={0.25}
-                  width={"100%"}
-                  sx={{
-                    borderLeft: "1px solid",
-                    borderColor: "divider",
-                    marginLeft: "1rem",
-                  }}
-                >
-                  {pageContent.map((content, innerIdx) => {
-                    return (
-                      <Box
-                        key={"inner-dashboard-content" + innerIdx}
-                        role={"link"}
-                        tabIndex={0}
-                        onClick={() => router.push(pageLink + content["link"])}
-                        onKeyDown={(e) => {
-                          if (e.key !== "Enter" && e.key !== " ") return;
-                          e.preventDefault();
-                          router.push(pageLink + content["link"]);
-                        }}
-                        sx={{
-                          borderRadius: "0.5rem",
-                          padding: "0.375rem 0.75rem",
-                          cursor: "pointer",
-                          "&:hover": { bgcolor: "action.hover" },
-                        }}
-                      >
-                        <Typography
+              <Collapse in={isShowing}>
+                {isContentLoading || !content ? (
+                  <Box padding={"0.5rem 2rem"}>
+                    <Skeleton variant={"rectangular"} height={"8rem"} />
+                  </Box>
+                ) : (
+                  <Stack padding={"0.5rem 2rem"} spacing={1} width={"100%"}>
+                    {content.map((content, innerIdx) => {
+                      return (
+                        <AnimatedLink
+                          key={"inner-dashboard-content" + innerIdx}
+                          href={content["link"]}
+                          underline={"none"}
+                          width={"fit-content"}
+                          color={"black"}
                           variant={"body2"}
-                          color={"text.secondary"}
                           noWrap
                         >
                           {content["label"]}
-                        </Typography>
-                      </Box>
-                    );
-                  })}
-                </Stack>
+                        </AnimatedLink>
+                      );
+                    })}
+                  </Stack>
+                )}
               </Collapse>
             </Stack>
           );
         })}
       </Stack>
     );
-  }, [currentPageLink, openPages, router]);
+  }, [breadcrumbs, content, isContentLoading, isShowing, router, setIsShowing]);
 
   const desktopSidebar = useMemo(() => {
     return (
       <Stack
         alignItems={"start"}
-        bgcolor={"background.paper"}
+        bgcolor={"#FFFFFF"}
+        color={"#FFFFFF"}
         display={{
           xs: "none",
           [breakpoint]: "flex",
         }}
-        width={"13rem"}
+        width={"10rem"}
         maxWidth={"50%"}
         height={"100%"}
         sx={{
-          borderRight: "1px solid",
-          borderColor: "divider",
+          borderRight: "1px solid #808080",
         }}
-        padding={"1.5rem 0.75rem"}
+        padding={"1.5rem 0.5rem"}
       >
         {sidebarContent}
       </Stack>
@@ -266,15 +157,14 @@ function DashboardSidebar() {
           sx={{
             height: "100%",
             borderRadius: "0",
-            backgroundColor: "background.paper",
-            color: "text.secondary",
+            backgroundColor: "#FFFFFF",
+            color: "#808080",
             display: {
               [breakpoint]: "none",
             },
-            outline: "1px solid",
-            outlineColor: "divider",
+            outline: "1px solid #808080",
             "&:hover": {
-              backgroundColor: "action.hover",
+              backgroundColor: "#F0F0F0",
             },
           }}
         >
@@ -293,10 +183,11 @@ function DashboardSidebar() {
           anchor={"left"}
         >
           <Stack
-            bgcolor={"background.paper"}
+            bgcolor={"#white"}
+            color={"white"}
             width={"16rem"}
             height={"100%"}
-            padding={"1.5rem 0.75rem"}
+            padding={"1.5rem 0.5rem"}
           >
             {sidebarContent}
           </Stack>
