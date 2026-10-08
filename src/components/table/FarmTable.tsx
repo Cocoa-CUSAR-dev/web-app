@@ -53,7 +53,7 @@ function FarmTable({
           borderRadius: "0.5rem",
           borderWidth: "1px",
           borderStyle: "solid",
-          borderColor: "divider",
+          borderColor: "#606060",
           scrollbarWidth: "thin",
         }}
       >
@@ -64,7 +64,7 @@ function FarmTable({
           }}
         >
           <TableHead>
-            <TableRow sx={{ bgcolor: "action.hover" }}>
+            <TableRow>
               {farmColumns.map((column, idx) => {
                 if (excludedColumns.includes(column)) return null;
                 return (

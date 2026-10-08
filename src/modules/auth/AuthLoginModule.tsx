@@ -76,7 +76,6 @@ function AuthLoginModule({
               fullWidth
               variant={"outlined"}
               onClick={() => {
-                setIsCheckedTermsOfService(true);
                 setModalOpen(false);
               }}
             >

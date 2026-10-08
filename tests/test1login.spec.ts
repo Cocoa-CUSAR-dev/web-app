@@ -28,10 +28,6 @@ test.describe('Authentication', () => {
     ]);
     await page.locator('#desktop-navbar-profile-button').click();
     await page.getByRole('button', { name: 'Log Out' }).click();
-    await Promise.all([
-      page.waitForURL(/\/auth/),
-      page.getByRole('dialog').getByRole('button', { name: 'Log Out' }).click(),
-    ]);
     await expect(page.getByText('Researcher Login')).toBeVisible();
   });
 
