@@ -3,6 +3,7 @@
 import {
   Button,
   CircularProgress,
+  Link,
   MenuItem,
   Paper,
   Select,
@@ -10,13 +11,21 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import NextLink from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { CustomToast } from "@/components/utility/CustomToast";
 import { useAuthInfo } from "@/hooks/useAuthInfo";
 import { fetchResponse } from "@/libs/fetchResponse";
 
+import { findDefinitionProblems } from "../formDefinition/formDefinitionChecks";
+import FormProblemList from "../formDefinition/FormProblemList";
+import {
+  FormSaveError,
+  saveFormDefinition,
+  useHandlerCatalog,
+} from "../formDefinition/saveFormDefinition";
 import ReminderSettings from "../reminder/ReminderSettings";
 import { ReminderValue } from "../reminder/reminderTypes";
 import {
@@ -71,6 +80,9 @@ function FormCreateModule() {
     null,
   );
   const [boxLoading, setBoxLoading] = useState<boolean>(false);
+  const [saveErrors, setSaveErrors] = useState<string[]>([]);
+  const catalog = useHandlerCatalog();
+  const catalogEntry = catalog?.handlers.find((h) => h.handler === handler);
   const [duplicating, setDuplicating] = useState<boolean>(
     Boolean(duplicateFromFormId),
   );
@@ -168,13 +180,26 @@ function FormCreateModule() {
   }, [handler]);
 
   // #region validation
+  const problems = useMemo(
+    () =>
+      findDefinitionProblems({
+        sections,
+        handlerFields,
+        dependencies: catalog?.dependencies ?? [],
+        registrationParentField: catalogEntry?.parentField ?? null,
+        fieldLabels: catalog?.fieldLabels,
+      }),
+    [catalog, catalogEntry, handlerFields, sections],
+  );
+
   const isFormValid =
     Boolean(title.trim()) &&
     Boolean(handler.trim()) &&
     Boolean(openAt) &&
     Boolean(closeAt) &&
     isSectionsValid(sections) &&
-    isReminderValid(reminder);
+    isReminderValid(reminder) &&
+    problems.length === 0;
 
   // #region submit
   const handleSubmit = useCallback(async () => {
@@ -211,11 +236,9 @@ function FormCreateModule() {
         ...(reminder.enabled && { reminder: toReminderRequest(reminder) }),
       };
 
+      setSaveErrors([]);
       const response = await CustomToast.promise(
-        fetchResponse("/api/v1/forms", {
-          method: "POST",
-          body: JSON.stringify(body),
-        }),
+        saveFormDefinition("/api/v1/forms", "POST", body),
         {
           loading: "creating form...",
           success: "form created successfully",
@@ -231,6 +254,7 @@ function FormCreateModule() {
       router.push("/form/form-edit");
     } catch (e) {
       console.error(e);
+      if (e instanceof FormSaveError) setSaveErrors(e.messages);
     } finally {
       setBoxLoading(false);
     }
@@ -314,12 +338,28 @@ function FormCreateModule() {
           <MenuItem value={""} disabled>
             {handlers === null ? "loading handlers..." : "Select a handler"}
           </MenuItem>
-          {handlers?.map((h) => (
-            <MenuItem key={h} value={h}>
-              {h}
-            </MenuItem>
-          ))}
+          {handlers?.map((h) => {
+            const labelTh = catalog?.handlers.find(
+              (entry) => entry.handler === h,
+            )?.labelTh;
+            return (
+              <MenuItem key={h} value={h}>
+                {labelTh ? `${labelTh} (${h})` : h}
+              </MenuItem>
+            );
+          })}
         </Select>
+        <Typography variant={"body2"} color={"text.secondary"}>
+          {catalogEntry?.descriptionTh}{" "}
+          <Link
+            component={NextLink}
+            href={"/form/data-map"}
+            target={"_blank"}
+            rel={"noopener"}
+          >
+            {"ดูแผนผังข้อมูล"}
+          </Link>
+        </Typography>
         <MultipleSubmitCheckbox
           checked={isMultipleSubmit}
           onChange={setIsMultipleSubmit}
@@ -334,7 +374,17 @@ function FormCreateModule() {
         handler={handler}
         handlerFields={handlerFields}
         isMultipleSubmit={isMultipleSubmit}
+        dependencies={catalog?.dependencies}
+        registrationParentField={catalogEntry?.parentField ?? null}
+        fieldLabels={catalog?.fieldLabels}
+        problems={problems}
       />
+
+      <FormProblemList
+        title={"ยังสร้างฟอร์มไม่ได้ ต้องแก้ก่อน:"}
+        messages={problems.map((problem) => problem.message)}
+      />
+      <FormProblemList title={"ระบบไม่รับฟอร์มนี้:"} messages={saveErrors} />
 
       <Stack alignSelf={"end"} direction={"row"} spacing={2}>
         <Button

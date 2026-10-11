@@ -9,12 +9,26 @@ import {
   Typography,
 } from "@mui/material";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import { CustomToast } from "@/components/utility/CustomToast";
 import { useAuthInfo } from "@/hooks/useAuthInfo";
 import { fetchResponse } from "@/libs/fetchResponse";
 
+import { findDefinitionProblems } from "../../formDefinition/formDefinitionChecks";
+import FormProblemList from "../../formDefinition/FormProblemList";
+import {
+  FormSaveError,
+  saveFormDefinition,
+  useHandlerCatalog,
+} from "../../formDefinition/saveFormDefinition";
 import SectionQuestionEditor, {
   isSectionsValid,
   MultipleSubmitCheckbox,
@@ -51,6 +65,9 @@ function FormFullEditModuleInner() {
   );
   const [loadingForm, setLoadingForm] = useState<boolean>(true);
   const [boxLoading, setBoxLoading] = useState<boolean>(false);
+  const [saveErrors, setSaveErrors] = useState<string[]>([]);
+  const catalog = useHandlerCatalog();
+  const catalogEntry = catalog?.handlers.find((h) => h.handler === handler);
 
   const loadForm = useCallback(async () => {
     if (!formId) return;
@@ -123,7 +140,19 @@ function FormFullEditModuleInner() {
     })();
   }, [handler]);
 
-  const isFormValid = isSectionsValid(sections);
+  const problems = useMemo(
+    () =>
+      findDefinitionProblems({
+        sections,
+        handlerFields,
+        dependencies: catalog?.dependencies ?? [],
+        registrationParentField: catalogEntry?.parentField ?? null,
+        fieldLabels: catalog?.fieldLabels,
+      }),
+    [catalog, catalogEntry, handlerFields, sections],
+  );
+
+  const isFormValid = isSectionsValid(sections) && problems.length === 0;
 
   const handleSubmit = useCallback(async () => {
     if (!formId || !isFormValid) return;
@@ -157,11 +186,9 @@ function FormFullEditModuleInner() {
         })),
       };
 
+      setSaveErrors([]);
       await CustomToast.promise(
-        fetchResponse(`/api/v1/forms/${formId}`, {
-          method: "PUT",
-          body: JSON.stringify(body),
-        }),
+        saveFormDefinition(`/api/v1/forms/${formId}`, "PUT", body),
         {
           loading: "saving form...",
           success: "form saved successfully",
@@ -176,6 +203,7 @@ function FormFullEditModuleInner() {
       await loadForm();
     } catch (e) {
       console.error(e);
+      if (e instanceof FormSaveError) setSaveErrors(e.messages);
     } finally {
       setBoxLoading(false);
     }
@@ -206,7 +234,7 @@ function FormFullEditModuleInner() {
     <Stack width={"100%"} spacing={2} padding={{ xs: "1rem", sm: "1rem 2rem" }}>
       <Typography variant={"h2"}>{`Full Edit — ${title}`}</Typography>
       <Typography variant={"body2"} color={"text.secondary"}>
-        {`Handler: ${handler || "unknown"} (fixed — create a new form to change it)`}
+        {`Handler: ${catalogEntry ? `${catalogEntry.labelTh} (${handler})` : handler || "unknown"} (fixed — create a new form to change it)`}
       </Typography>
 
       <TextField
@@ -227,7 +255,17 @@ function FormFullEditModuleInner() {
         handler={handler}
         handlerFields={handlerFields}
         isMultipleSubmit={isMultipleSubmit}
+        dependencies={catalog?.dependencies}
+        registrationParentField={catalogEntry?.parentField ?? null}
+        fieldLabels={catalog?.fieldLabels}
+        problems={problems}
       />
+
+      <FormProblemList
+        title={"ยังบันทึกไม่ได้ ต้องแก้ก่อน:"}
+        messages={problems.map((problem) => problem.message)}
+      />
+      <FormProblemList title={"ระบบไม่รับการแก้ไขนี้:"} messages={saveErrors} />
 
       <Stack alignSelf={"end"} direction={"row"} spacing={2}>
         <Button
