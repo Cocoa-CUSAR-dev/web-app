@@ -69,6 +69,10 @@ function NavigationBar({ children }: { children: React.ReactNode }) {
 
   const { roles } = useAuthInfo();
   const isAdmin = roles?.includes("admin");
+  // /history is the farmer's own submissions: its API needs
+  // read:response:own, which only the farmer role has, so for a researcher
+  // or admin the link only leads to an error (docs-and-plan#245).
+  const canSeeHistory = roles?.includes("farmer");
 
   // #region desktop menu
   const desktopMenu = useMemo(() => {
@@ -109,14 +113,16 @@ function NavigationBar({ children }: { children: React.ReactNode }) {
           <AnimatedLink href={"/form"} underline={"none"} color={"white"}>
             {"Form"}
           </AnimatedLink>
-          <AnimatedLink href={"/history"} underline={"none"} color={"white"}>
-            {"History"}
-          </AnimatedLink>
+          {canSeeHistory && (
+            <AnimatedLink href={"/history"} underline={"none"} color={"white"}>
+              {"History"}
+            </AnimatedLink>
+          )}
           <ProfileMenu setMenuOpen={setMenuOpen} />
         </Stack>
       </Stack>
     );
-  }, [isAdmin]);
+  }, [isAdmin, canSeeHistory]);
 
   const mobileMenu = useMemo(() => {
     return (
@@ -185,13 +191,15 @@ function NavigationBar({ children }: { children: React.ReactNode }) {
               <AnimatedLink href={"/form"} underline={"none"} color={"black"}>
                 {"Form"}
               </AnimatedLink>
-              <AnimatedLink
-                href={"/history"}
-                underline={"none"}
-                color={"black"}
-              >
-                {"History"}
-              </AnimatedLink>
+              {canSeeHistory && (
+                <AnimatedLink
+                  href={"/history"}
+                  underline={"none"}
+                  color={"black"}
+                >
+                  {"History"}
+                </AnimatedLink>
+              )}
             </Stack>
             <Box>
               <ProfileMenu setMenuOpen={setMenuOpen} />
@@ -200,7 +208,7 @@ function NavigationBar({ children }: { children: React.ReactNode }) {
         </Drawer>
       </>
     );
-  }, [menuOpen]);
+  }, [menuOpen, canSeeHistory]);
 
   // #region navbar
   const navigationBar = useMemo(() => {
