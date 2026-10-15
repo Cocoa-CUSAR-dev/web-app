@@ -17,17 +17,26 @@ import { CustomToast } from "@/components/utility/CustomToast";
 import { useAuthInfo } from "@/hooks/useAuthInfo";
 import { fetchResponse } from "@/libs/fetchResponse";
 
+import RecurrenceSettings from "../recurrence/RecurrenceSettings";
+import { RecurrenceValue } from "../recurrence/recurrenceTypes";
+import {
+  defaultRecurrenceValue,
+  recurrenceError,
+  toRecurrenceRequest,
+} from "../recurrence/recurrenceUtils";
 import ReminderSettings from "../reminder/ReminderSettings";
-import { ReminderValue } from "../reminder/reminderTypes";
+import { ReminderRecipient, ReminderValue } from "../reminder/reminderTypes";
 import {
   defaultReminderValue,
   isReminderValid,
+  toRecipientRequests,
   toReminderRequest,
 } from "../reminder/reminderUtils";
 import {
   GetFormIdResponse,
   GetFormsResponse,
 } from "../route-form-edit/formEditTypes";
+import AudienceSettings from "./components/AudienceSettings";
 import SectionQuestionEditor, {
   emptySection,
   isSectionsValid,
@@ -65,6 +74,10 @@ function FormCreateModule() {
   const [reminder, setReminder] = useState<ReminderValue>(
     defaultReminderValue(),
   );
+  const [recurrence, setRecurrence] = useState<RecurrenceValue>(
+    defaultRecurrenceValue(),
+  );
+  const [recipients, setRecipients] = useState<ReminderRecipient[]>([]);
 
   const [handlers, setHandlers] = useState<string[] | null>(null);
   const [handlerFields, setHandlerFields] = useState<HandlerField[] | null>(
@@ -174,7 +187,8 @@ function FormCreateModule() {
     Boolean(openAt) &&
     Boolean(closeAt) &&
     isSectionsValid(sections) &&
-    isReminderValid(reminder);
+    isReminderValid(reminder) &&
+    recurrenceError(recurrence, openAt, closeAt) === null;
 
   // #region submit
   const handleSubmit = useCallback(async () => {
@@ -187,6 +201,7 @@ function FormCreateModule() {
       const toastId = "form-create-toast-id";
       toastIdRef.current = toastId;
 
+      const recurrenceRequest = toRecurrenceRequest(recurrence);
       const body: CreateFormRequest = {
         title,
         description: description.trim() || null,
@@ -209,28 +224,40 @@ function FormCreateModule() {
           })),
         })),
         ...(reminder.enabled && { reminder: toReminderRequest(reminder) }),
+        ...(recurrenceRequest && { recurrence: recurrenceRequest }),
+        ...(recipients.length > 0 && {
+          recipients: toRecipientRequests(recipients),
+        }),
       };
 
-      const response = await CustomToast.promise(
-        fetchResponse("/api/v1/forms", {
-          method: "POST",
-          body: JSON.stringify(body),
-        }),
-        {
-          loading: "creating form...",
-          success: "form created successfully",
-          error: "failed to create form, please try again",
-        },
-        undefined,
-        {
-          duration: 3000,
-          id: toastId,
-        },
-      );
-      await response.json();
+      // Raw fetch, not fetchResponse: that one drops the response body on an
+      // error, and the backend's reason ("The chosen recipients do not match
+      // any user", a bad weekday, ...) is what the researcher needs to see.
+      const response = await fetch("/api/v1/forms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!response.ok) {
+        const reason = (await response.json().catch(() => null))?.error;
+        CustomToast.error(
+          "failed to create form, please try again",
+          typeof reason === "string" ? reason : undefined,
+          { duration: 5000, id: toastId },
+        );
+        return;
+      }
+      CustomToast.success("form created successfully", undefined, {
+        duration: 3000,
+        id: toastId,
+      });
       router.push("/form/form-edit");
     } catch (e) {
       console.error(e);
+      CustomToast.error("failed to create form, please try again", undefined, {
+        duration: 5000,
+        id: "form-create-toast-id",
+      });
     } finally {
       setBoxLoading(false);
     }
@@ -241,6 +268,8 @@ function FormCreateModule() {
     isFormValid,
     isMultipleSubmit,
     openAt,
+    recipients,
+    recurrence,
     reminder,
     router,
     sections,
@@ -324,6 +353,15 @@ function FormCreateModule() {
           checked={isMultipleSubmit}
           onChange={setIsMultipleSubmit}
         />
+
+        <RecurrenceSettings
+          value={recurrence}
+          onChange={setRecurrence}
+          openAt={openAt}
+          closeAt={closeAt}
+        />
+
+        <AudienceSettings recipients={recipients} onChange={setRecipients} />
 
         <ReminderSettings value={reminder} onChange={setReminder} />
       </Stack>
