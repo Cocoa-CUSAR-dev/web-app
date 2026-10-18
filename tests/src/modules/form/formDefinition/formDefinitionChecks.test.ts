@@ -9,6 +9,7 @@ import {
   parentQuestion,
   requiredChecklist,
   unmetDependency,
+  withRequiredQuestions,
 } from "@/modules/form/formDefinition/formDefinitionChecks";
 
 import {
@@ -263,5 +264,69 @@ describe("builder helpers", () => {
       "farm_id",
       "plot_id",
     ]);
+  });
+});
+
+describe("withRequiredQuestions (Create: picking a handler)", () => {
+  const blank = question("", { label: "", isMandatory: false });
+  const fill = (
+    entry: typeof farmActivity,
+    sections: ReturnType<typeof section>[],
+  ) =>
+    withRequiredQuestions({
+      sections,
+      handlerFields: entry.fields,
+      dependencies: catalog.dependencies,
+      registrationParentField: entry.parentField,
+      fieldLabels: catalog.fieldLabels,
+    });
+  const fieldsOf = (sections: ReturnType<typeof section>[]) =>
+    sections.flatMap((s) => s.questions.map((q) => q.fieldName));
+
+  it("replaces the blank starter question with every required field", () => {
+    const next = fill(farmActivity, [section(blank)]);
+
+    expect(fieldsOf(next)).toEqual(["farm_id", "farm_activity_type_id"]);
+    expect(next[0].questions[0]).toMatchObject({
+      label: "ฟาร์ม",
+      inputType: "OPTION",
+      isMandatory: true,
+    });
+    expect(
+      findDefinitionProblems({
+        sections: next,
+        handlerFields: farmActivity.fields,
+        dependencies: catalog.dependencies,
+        registrationParentField: null,
+      }),
+    ).toEqual([]);
+  });
+
+  it("puts the farm before a required plot (plot_breed)", () => {
+    expect(fieldsOf(fill(plotBreed, [section(blank)]))).toEqual([
+      "farm_id",
+      "plot_id",
+      "breed_id",
+    ]);
+  });
+
+  it("appends only what's missing to a form that already has questions", () => {
+    const next = fill(farmActivity, [section(question("farm_id"))]);
+
+    expect(fieldsOf(next)).toEqual(["farm_id", "farm_activity_type_id"]);
+  });
+
+  it("doesn't add a child handler's parent field (the picker supplies it)", () => {
+    expect(fieldsOf(fill(fertilizer, [section(blank)]))).toEqual([
+      "fertilizer_id",
+    ]);
+  });
+
+  it("changes nothing when every required field is already asked", () => {
+    const sections = [
+      section(question("farm_id"), question("farm_activity_type_id")),
+    ];
+
+    expect(fill(farmActivity, sections)).toBe(sections);
   });
 });

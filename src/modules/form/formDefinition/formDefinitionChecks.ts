@@ -293,6 +293,57 @@ function appendQuestion(
   );
 }
 
+// Picking a handler on Create starts the form with a question for every
+// required field, so a researcher never has to discover them one by one. A
+// required field that depends on another (plot_id on farm_id) gets its parent
+// question first. The untouched blank question a new form starts with is
+// replaced; otherwise (e.g. a duplicated form) the questions are appended.
+function withRequiredQuestions({
+  sections,
+  handlerFields,
+  dependencies,
+  registrationParentField,
+  fieldLabels,
+}: {
+  sections: SectionInput[];
+  handlerFields: HandlerField[];
+  dependencies: FieldDependency[];
+  registrationParentField: string | null;
+  fieldLabels?: Record<string, string>;
+}): SectionInput[] {
+  const asked = new Set(
+    askedQuestions(sections).map(({ question }) => question.fieldName!.trim()),
+  );
+  const toAdd: string[] = [];
+  requiredChecklist(handlerFields, sections)
+    .filter((item) => !item.asked)
+    .forEach(({ name }) => {
+      const parent = dependencies.find(
+        (d) => d.childField === name,
+      )?.parentField;
+      if (
+        parent &&
+        parent !== registrationParentField &&
+        !asked.has(parent) &&
+        !toAdd.includes(parent)
+      ) {
+        toAdd.push(parent);
+      }
+      if (!toAdd.includes(name)) toAdd.push(name);
+    });
+  if (toAdd.length === 0 || sections.length === 0) return sections;
+
+  const questions = toAdd.map((name) =>
+    parentQuestion(name, handlerFields, fieldLabels),
+  );
+  const isBlank = (q: QuestionInput) =>
+    !q.label.trim() && !q.fieldName?.trim() && !q.description?.trim();
+  if (sections.length === 1 && sections[0].questions.every(isBlank)) {
+    return [{ ...sections[0], questions }];
+  }
+  return questions.reduce(appendQuestion, sections);
+}
+
 export type { DefinitionProblem, QuestionPosition };
 export {
   appendQuestion,
@@ -305,4 +356,5 @@ export {
   parentQuestion,
   requiredChecklist,
   unmetDependency,
+  withRequiredQuestions,
 };

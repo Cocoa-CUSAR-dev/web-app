@@ -19,7 +19,10 @@ import { CustomToast } from "@/components/utility/CustomToast";
 import { useAuthInfo } from "@/hooks/useAuthInfo";
 import { fetchResponse } from "@/libs/fetchResponse";
 
-import { findDefinitionProblems } from "../formDefinition/formDefinitionChecks";
+import {
+  findDefinitionProblems,
+  withRequiredQuestions,
+} from "../formDefinition/formDefinitionChecks";
 import FormProblemList from "../formDefinition/FormProblemList";
 import {
   FormSaveError,
@@ -38,6 +41,7 @@ import {
   GetFormsResponse,
 } from "../route-form-edit/formEditTypes";
 import SectionQuestionEditor, {
+  emptyQuestion,
   emptySection,
   isSectionsValid,
   MultipleSubmitCheckbox,
@@ -47,6 +51,7 @@ import {
   HandlerField,
   HandlerFieldsResponse,
   HandlersResponse,
+  QuestionInput,
   SectionInput,
 } from "./formCreateTypes";
 
@@ -79,6 +84,9 @@ function FormCreateModule() {
   const [handlerFields, setHandlerFields] = useState<HandlerField[] | null>(
     null,
   );
+  // Which handler handlerFields belongs to -- right after the handler
+  // changes, handlerFields still holds the previous handler's columns.
+  const [fieldsHandler, setFieldsHandler] = useState<string>("");
   const [boxLoading, setBoxLoading] = useState<boolean>(false);
   const [saveErrors, setSaveErrors] = useState<string[]>([]);
   const catalog = useHandlerCatalog();
@@ -162,7 +170,9 @@ function FormCreateModule() {
       setHandlerFields(null);
       return;
     }
+    let cancelled = false;
     (async () => {
+      let fields: HandlerField[] = [];
       try {
         const response = await fetchResponse(
           `/api/v1/forms/handlers/${handler}/fields`,
@@ -171,13 +181,66 @@ function FormCreateModule() {
           },
         );
         const { value }: HandlerFieldsResponse = await response.json();
-        setHandlerFields(value);
+        fields = value;
       } catch (e) {
         console.error(e);
-        setHandlerFields([]);
       }
+      // A slower response for a handler the researcher already moved away
+      // from must not overwrite the current one's fields.
+      if (cancelled) return;
+      setHandlerFields(fields);
+      setFieldsHandler(handler);
     })();
+    return () => {
+      cancelled = true;
+    };
   }, [handler]);
+
+  // #region required questions
+  // Picking a handler adds a question for every field its table requires
+  // (and the farm before a plot), so the researcher starts from a form that
+  // can be submitted instead of discovering the gaps one by one. Switching
+  // to another handler removes the questions added for the previous one --
+  // as long as nobody has edited them since (an edited question is a new
+  // object, so it's no longer in autoAdded).
+  const autoFilledFor = useRef<string>("");
+  const autoAdded = useRef(new WeakSet<QuestionInput>());
+  useEffect(() => {
+    if (
+      !handler ||
+      fieldsHandler !== handler ||
+      !handlerFields ||
+      !catalog ||
+      autoFilledFor.current === handler
+    ) {
+      return;
+    }
+    autoFilledFor.current = handler;
+    setSections((prev) => {
+      const kept = prev.map((section) => {
+        const questions = section.questions.filter(
+          (question) => !autoAdded.current.has(question),
+        );
+        return {
+          ...section,
+          questions: questions.length > 0 ? questions : [emptyQuestion()],
+        };
+      });
+      const next = withRequiredQuestions({
+        sections: kept,
+        handlerFields,
+        dependencies: catalog.dependencies,
+        registrationParentField: catalogEntry?.parentField ?? null,
+        fieldLabels: catalog.fieldLabels,
+      });
+      const before = new Set(kept.flatMap((section) => section.questions));
+      next
+        .flatMap((section) => section.questions)
+        .filter((question) => !before.has(question))
+        .forEach((question) => autoAdded.current.add(question));
+      return next;
+    });
+  }, [catalog, catalogEntry, fieldsHandler, handler, handlerFields]);
 
   // #region validation
   const problems = useMemo(
