@@ -12,7 +12,6 @@ import {
 } from "framer-motion";
 import {
   memo,
-  type ReactNode,
   type RefObject,
   startTransition,
   useEffect,
@@ -21,11 +20,10 @@ import {
 } from "react";
 
 import { useMappedTransform } from "../hooks/useMappedTransform";
-import {
-  type CopySide,
-  type PaperLayer,
-  paperScenes,
-} from "../papercut/scenes";
+import LayerArt from "../papercut/LayerArt";
+import { rasterFor } from "../papercut/raster";
+import { type RenderLayer, renderScenes } from "../papercut/renderLayers";
+import { type CopySide, paperScenes } from "../papercut/scenes";
 
 // On portrait phones the 16:9 landscape is sized off the height (80dvh wide,
 // ~45% of the screen tall), leaving open sky above it for the copy.
@@ -56,56 +54,11 @@ const subjectOf = (i: number) => subjectSide[paperScenes[i].copy];
 // Pan per unit of subject travel, in % of layer width, for a depth-1 layer.
 const PAN = 7;
 
-interface LayerPart {
-  depth: number;
-  shadow: boolean;
-  node: ReactNode;
-}
-interface RenderLayer extends PaperLayer {
-  parts: LayerPart[];
-}
-
-// Each composited layer is a full-screen GPU texture; with ~13 per scene the
-// browser ran out of tile memory on large screens and dropped tiles mid-scroll
-// (blocks flickering). Neighbouring static layers at similar depth are merged
-// into one; each keeps its own paper shadow, baked into the SVG.
-function mergeStaticLayers(layers: PaperLayer[]): RenderLayer[] {
-  const out: RenderLayer[] = [];
-  for (const layer of layers) {
-    const part = {
-      depth: layer.depth,
-      shadow: layer.shadow !== false,
-      node: layer.node,
-    };
-    const group = out.at(-1);
-    const joinable =
-      group &&
-      !group.motion &&
-      !layer.motion &&
-      (group.align ?? "xMidYMid") === (layer.align ?? "xMidYMid") &&
-      (group.depth === 0
-        ? layer.depth <= 0.1
-        : layer.depth - group.parts[0].depth <= 0.2);
-    if (group && joinable) {
-      group.parts.push(part);
-      if (group.depth !== 0) {
-        group.depth =
-          group.parts.reduce((sum, p) => sum + p.depth, 0) / group.parts.length;
-      }
-    } else {
-      out.push({ ...layer, parts: [part] });
-    }
-  }
-  return out;
-}
-
-const renderScenes = paperScenes.map((scene) => ({
-  ...scene,
-  layers: mergeStaticLayers(scene.layers),
-}));
-
 interface LayerProps {
   layer: RenderLayer;
+  // A pre-rendered image of this layer (static layers only), drawn instead
+  // of the live SVG -- see papercut/raster.ts.
+  raster: ReturnType<typeof rasterFor>;
   pass: MotionValue<number>;
   enter: MotionValue<number>;
   nextEnter: MotionValue<number>;
@@ -120,6 +73,7 @@ interface LayerProps {
 
 function Layer({
   layer,
+  raster,
   pass,
   enter,
   nextEnter,
@@ -178,51 +132,46 @@ function Layer({
       <div
         className={layer.motion ? `paper-${layer.motion}` : undefined}
         style={{
+          position: "relative",
           width: "100%",
           height: "100%",
           transformOrigin: layer.origin,
           animationDelay: layer.delay ? `${-layer.delay}s` : undefined,
         }}
       >
-        <svg
-          viewBox={"0 0 1440 810"}
-          preserveAspectRatio={depth === 0 ? "xMidYMid slice" : "xMidYMax meet"}
-          width={"100%"}
-          height={"100%"}
-          style={{ display: "block", overflow: "visible" }}
-        >
-          {parts.map((part, i) => {
-            // Nearer sheets sit further above the ones behind, so they cast
-            // longer, softer, darker shadows. Static SVG filters are baked in
-            // at raster time, not re-applied per frame.
-            const hasShadow = part.shadow && part.depth >= 0.3;
-            const id = `paper-shadow-${shadowId}-${i}`;
-            return (
-              <g key={i} filter={hasShadow ? `url(#${id})` : undefined}>
-                {hasShadow && (
-                  <defs>
-                    <filter
-                      id={id}
-                      x={"-10%"}
-                      y={"-10%"}
-                      width={"120%"}
-                      height={"130%"}
-                    >
-                      <feDropShadow
-                        dx={0}
-                        dy={((3 + part.depth * 9) * 0.75).toFixed(1)}
-                        stdDeviation={((5 + part.depth * 12) * 0.4).toFixed(1)}
-                        floodColor={"#2b1a0e"}
-                        floodOpacity={(0.12 + part.depth * 0.16).toFixed(2)}
-                      />
-                    </filter>
-                  </defs>
-                )}
-                {part.node}
-              </g>
-            );
-          })}
-        </svg>
+        {raster ? (
+          // Plain <img>, not next/image: the file is already the exact asset
+          // (pre-rendered WebP), and its box has to line up with the layer's
+          // 1440x810 viewBox, art past the frame included.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={raster.src}
+            alt={""}
+            decoding={"async"}
+            draggable={false}
+            style={{
+              position: "absolute",
+              left: `${(raster.bounds.x / 1440) * 100}%`,
+              top: `${(raster.bounds.y / 810) * 100}%`,
+              width: `${(raster.bounds.width / 1440) * 100}%`,
+              height: `${(raster.bounds.height / 810) * 100}%`,
+              pointerEvents: "none",
+              userSelect: "none",
+            }}
+          />
+        ) : (
+          <svg
+            viewBox={"0 0 1440 810"}
+            preserveAspectRatio={
+              depth === 0 ? "xMidYMid slice" : "xMidYMax meet"
+            }
+            width={"100%"}
+            height={"100%"}
+            style={{ display: "block", overflow: "visible" }}
+          >
+            <LayerArt parts={parts} idPrefix={shadowId} />
+          </svg>
+        )}
       </div>
     </motion.div>
   );
@@ -293,6 +242,11 @@ const Scene = memo(function Scene({
           <Layer
             key={i}
             layer={layer}
+            raster={
+              layer.motion || layer.depth === 0
+                ? null
+                : rasterFor(paperScenes[index].id, i)
+            }
             pass={pass}
             enter={enter}
             nextEnter={nextEnter}
@@ -346,6 +300,32 @@ function SceneBackdrop({ container, sections }: SceneBackdropProps) {
     window.addEventListener("pointermove", onMove);
     return () => window.removeEventListener("pointermove", onMove);
   }, [rawX, rawY]);
+
+  // Scenes mount just before they fade in; fetch and decode every layer
+  // image while the page is idle so none is still loading when its scene
+  // appears. All of them together are a few hundred KB.
+  useEffect(() => {
+    const preload = () => {
+      renderScenes.forEach((scene, sceneIndex) =>
+        scene.layers.forEach((layer, i) => {
+          const raster =
+            layer.motion || layer.depth === 0
+              ? null
+              : rasterFor(paperScenes[sceneIndex].id, i);
+          if (!raster) return;
+          const image = new Image();
+          image.src = raster.src;
+          image.decode().catch(() => {});
+        }),
+      );
+    };
+    if ("requestIdleCallback" in window) {
+      const id = window.requestIdleCallback(preload, { timeout: 2000 });
+      return () => window.cancelIdleCallback(id);
+    }
+    const id = setTimeout(preload, 500);
+    return () => clearTimeout(id);
+  }, []);
 
   // Only scenes on screen or about to be are mounted -- usually one, two
   // during a transition. Each mounted scene is a stack of full-screen GPU
