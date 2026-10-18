@@ -12,6 +12,12 @@ import {
   useMediaQuery,
   useTheme,
 } from "@mui/material";
+import {
+  AnimatePresence,
+  LayoutGroup,
+  motion,
+  useReducedMotion,
+} from "framer-motion";
 import { useRouter } from "next/navigation";
 import {
   useCallback,
@@ -30,7 +36,9 @@ import {
   HandlerCatalogResponse,
 } from "../formDefinition/handlerCatalogTypes";
 import { GetFormsResponse } from "../route-form-edit/formEditTypes";
-import HandlerDetailDrawer from "./components/HandlerDetailDrawer";
+import HandlerDetailDrawer, {
+  detailPanelWidth,
+} from "./components/HandlerDetailDrawer";
 import {
   buildColumns,
   buildEdges,
@@ -100,6 +108,13 @@ function DataMapModule() {
   // the cards actually landed, and redrawn whenever the grid resizes.
   const containerRef = useRef<HTMLDivElement | null>(null);
   const cardRefs = useRef(new Map<string, HTMLElement>());
+  // Cards currently shown -- a card still fading out after a click isn't
+  // one, so no line is drawn to it.
+  const shownIds = useRef(new Set<string>());
+  const rectOf = (id: string) =>
+    shownIds.current.has(id)
+      ? cardRefs.current.get(id)?.getBoundingClientRect()
+      : undefined;
   const [lines, setLines] = useState<Line[]>([]);
 
   const setCardRef = useCallback(
@@ -119,8 +134,8 @@ function DataMapModule() {
     const origin = container.getBoundingClientRect();
     const next: Line[] = [];
     edges.forEach(({ from, to }) => {
-      const a = cardRefs.current.get(from)?.getBoundingClientRect();
-      const b = cardRefs.current.get(to)?.getBoundingClientRect();
+      const a = rectOf(from);
+      const b = rectOf(to);
       // Only left -> right: same-column links are listed in the detail
       // panel instead of drawn over the cards.
       if (!a || !b || a.right > b.left) return;
@@ -139,8 +154,8 @@ function DataMapModule() {
     // Parent -> child: an elbow down the left edge into the indented child.
     catalog?.handlers.forEach(({ handler, parentHandler }) => {
       if (!parentHandler) return;
-      const a = cardRefs.current.get(parentHandler)?.getBoundingClientRect();
-      const b = cardRefs.current.get(handler)?.getBoundingClientRect();
+      const a = rectOf(parentHandler);
+      const b = rectOf(handler);
       if (!a || !b || b.left <= a.left) return;
       const x = a.left + 10 - origin.left;
       const y = b.top + b.height / 2 - origin.top;
@@ -163,7 +178,36 @@ function DataMapModule() {
     return () => observer.disconnect();
   }, [measure, columns]);
 
-  const focus = hovered ?? selected;
+  // #region open/close animation
+  // Opening a card glides the cards it's linked to into place and fades
+  // the rest out (and back on close). The lines are hidden while the cards
+  // move and redrawn once they've landed.
+  const reduceMotion = useReducedMotion();
+  const transition = {
+    duration: reduceMotion ? 0 : 0.4,
+    ease: [0.4, 0, 0.2, 1] as const,
+  };
+  const [settling, setSettling] = useState<boolean>(false);
+  useEffect(() => {
+    if (reduceMotion) {
+      measure();
+      return;
+    }
+    setSettling(true);
+    const timer = setTimeout(() => {
+      measure();
+      setSettling(false);
+    }, 450);
+    return () => clearTimeout(timer);
+  }, [measure, reduceMotion, selected]);
+  const linesSx = {
+    opacity: settling ? 0 : 1,
+    transition: settling ? "none" : "opacity 0.25s ease",
+  };
+
+  // A clicked card holds the focus while its panel is open; hovering only
+  // previews when nothing is open.
+  const focus = selected ?? hovered;
   // A child record (fertilizer) belongs to its parent record (a garden
   // activity), so it inherits the parent's farm and plot: focusing a child
   // lights up the whole chain up to the top-level handler.
@@ -198,14 +242,24 @@ function DataMapModule() {
     return ids;
   }, [catalog, chain, edges, focus]);
 
-  // A card in the left half gets the panel on the right, and vice versa.
-  const selectedColumn = columns
-    ? dataMapColumns.findIndex(({ key }) =>
-        columns[key].some((node) => node.id === selected),
-      )
-    : -1;
-  const drawerSide =
-    selectedColumn >= Math.ceil(dataMapColumns.length / 2) ? "left" : "right";
+  // With a card open, the map (left of the detail panel) keeps only that
+  // card and the cards it connects to; empty columns drop out.
+  const isFiltered = selected !== null && related !== null;
+  const shownColumns = columns
+    ? dataMapColumns
+        .map((column) => ({
+          ...column,
+          nodes: columns[column.key].filter(
+            (node) => !isFiltered || related!.has(node.id),
+          ),
+        }))
+        .filter((column) => column.nodes.length > 0)
+    : [];
+  useLayoutEffect(() => {
+    shownIds.current = new Set(
+      shownColumns.flatMap((column) => column.nodes.map((node) => node.id)),
+    );
+  });
 
   const selectedEntry =
     catalog?.handlers.find((h) => h.handler === selected) ?? null;
@@ -232,7 +286,14 @@ function DataMapModule() {
   }
 
   return (
-    <Stack spacing={2} padding={{ xs: "1rem 0", sm: "1rem 2rem" }}>
+    <Stack
+      spacing={2}
+      padding={{ xs: "1rem 0", sm: "1rem 2rem" }}
+      // Leave room for the detail panel so it never covers the map.
+      paddingRight={{
+        md: isFiltered ? `calc(${detailPanelWidth} + 1rem)` : undefined,
+      }}
+    >
       <Stack spacing={0.5}>
         <Typography variant={"h2"}>{"แผนผังข้อมูล"}</Typography>
         <Typography color={"text.secondary"}>
@@ -250,6 +311,11 @@ function DataMapModule() {
           <Legend color={theme.palette.success.main} text={"มีฟอร์มใช้งาน"} />
           <Legend color={theme.palette.grey[400]} text={"ยังไม่มีฟอร์ม"} />
         </Stack>
+        {isFiltered && selectedEntry && (
+          <Typography variant={"body2"} color={"primary.main"}>
+            {`แสดงเฉพาะที่เกี่ยวกับ "${selectedEntry.labelTh}" ปิดแผงด้านขวาเพื่อดูทั้งหมด`}
+          </Typography>
+        )}
       </Stack>
 
       <Box
@@ -258,7 +324,7 @@ function DataMapModule() {
         display={"grid"}
         gridTemplateColumns={{
           xs: "minmax(0, 1fr)",
-          md: `repeat(${dataMapColumns.length}, minmax(0, 1fr))`,
+          md: `repeat(${shownColumns.length}, minmax(0, 1fr))`,
         }}
         columnGap={"2.5rem"}
         rowGap={2}
@@ -269,7 +335,12 @@ function DataMapModule() {
             component={"svg"}
             position={"absolute"}
             zIndex={0}
-            sx={{ inset: 0, pointerEvents: "none", overflow: "visible" }}
+            sx={{
+              inset: 0,
+              pointerEvents: "none",
+              overflow: "visible",
+              ...linesSx,
+            }}
             width={"100%"}
             height={"100%"}
             aria-hidden
@@ -293,7 +364,12 @@ function DataMapModule() {
             component={"svg"}
             position={"absolute"}
             zIndex={2}
-            sx={{ inset: 0, pointerEvents: "none", overflow: "visible" }}
+            sx={{
+              inset: 0,
+              pointerEvents: "none",
+              overflow: "visible",
+              ...linesSx,
+            }}
             width={"100%"}
             height={"100%"}
             aria-hidden
@@ -311,29 +387,52 @@ function DataMapModule() {
           </Box>
         )}
 
-        {dataMapColumns.map((column) => (
-          <Stack
-            key={column.key}
-            spacing={1.5}
-            position={"relative"}
-            zIndex={1}
-          >
-            <Typography variant={"subtitle2"} color={"text.secondary"}>
-              {column.title}
-            </Typography>
-            {columns[column.key].map((node) => (
-              <DataMapCard
-                key={node.id}
-                node={node}
-                cardRef={setCardRef(node.id)}
-                isFocused={focus === node.id}
-                isDimmed={related !== null && !related.has(node.id)}
-                onHover={setHovered}
-                onSelect={setSelected}
-              />
+        <LayoutGroup>
+          <AnimatePresence initial={false} mode={"popLayout"}>
+            {shownColumns.map((column) => (
+              <motion.div
+                key={column.key}
+                layout={"position"}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={transition}
+                style={{ position: "relative", zIndex: 1, minWidth: 0 }}
+              >
+                <Stack spacing={1.5}>
+                  <Typography variant={"subtitle2"} color={"text.secondary"}>
+                    {column.title}
+                  </Typography>
+                  <AnimatePresence initial={false} mode={"popLayout"}>
+                    {column.nodes.map((node) => (
+                      <motion.div
+                        key={node.id}
+                        layout={"position"}
+                        initial={{ opacity: 0, scale: 0.96 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.96 }}
+                        transition={transition}
+                      >
+                        <DataMapCard
+                          node={node}
+                          cardRef={setCardRef(node.id)}
+                          isFocused={focus === node.id}
+                          isDimmed={
+                            !isFiltered &&
+                            related !== null &&
+                            !related.has(node.id)
+                          }
+                          onHover={setHovered}
+                          onSelect={setSelected}
+                        />
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </Stack>
+              </motion.div>
             ))}
-          </Stack>
-        ))}
+          </AnimatePresence>
+        </LayoutGroup>
       </Box>
 
       {catalog.dependencies.length > 0 && (
@@ -357,7 +456,6 @@ function DataMapModule() {
         catalog={catalog}
         entry={selectedEntry}
         forms={forms.filter((form) => form.handler === selected)}
-        side={drawerSide}
         onClose={() => setSelected(null)}
       />
     </Stack>

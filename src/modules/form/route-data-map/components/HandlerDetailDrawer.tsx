@@ -24,28 +24,27 @@ import {
 import { GetFormsResponse } from "../../route-form-edit/formEditTypes";
 import { fieldRows, frequencyLabels, referenceLabel } from "../dataMapLayout";
 
+// The map leaves this much room on the right while the panel is open.
+const detailPanelWidth = "32rem";
+
 // View 2 (doc §3.4): one handler's columns -- type, required, what it
 // points at, what it depends on, how many forms ask it -- and its forms.
 function HandlerDetailDrawer({
   catalog,
   entry,
   forms,
-  side,
   onClose,
 }: {
   catalog: HandlerCatalog;
   entry: CatalogEntry | null;
   forms: GetFormsResponse["value"];
-  // The side away from the clicked card, so the card and its highlighted
-  // links stay in view next to the panel.
-  side: "left" | "right";
   onClose: () => void;
 }) {
   return (
     // Persistent, not modal: no dimmed backdrop over the map, and clicking
     // another card just switches the panel to it.
     <Drawer
-      anchor={side}
+      anchor={"right"}
       variant={"persistent"}
       open={entry !== null}
       onClose={onClose}
@@ -55,11 +54,16 @@ function HandlerDetailDrawer({
         <Stack
           spacing={2}
           padding={"1.5rem"}
-          width={{ xs: "100vw", sm: "32rem" }}
+          width={{ xs: "100vw", sm: detailPanelWidth }}
           maxWidth={"100vw"}
           boxSizing={"border-box"}
         >
-          <Stack direction={"row"} justifyContent={"space-between"}>
+          <Stack
+            direction={"row"}
+            justifyContent={"space-between"}
+            alignItems={"flex-start"}
+            spacing={1}
+          >
             <Stack spacing={0.5} minWidth={0}>
               <Typography variant={"h5"} fontWeight={600}>
                 {entry.labelTh}
@@ -67,7 +71,7 @@ function HandlerDetailDrawer({
               <Typography
                 variant={"body2"}
                 color={"text.secondary"}
-                sx={{ wordBreak: "break-all" }}
+                sx={{ overflowWrap: "anywhere" }}
               >
                 {`${entry.handler} → ${entry.table} · ${frequencyLabels[entry.frequency]}`}
               </Typography>
@@ -82,7 +86,11 @@ function HandlerDetailDrawer({
                 </Typography>
               )}
             </Stack>
-            <IconButton onClick={onClose} aria-label={"ปิด"}>
+            <IconButton
+              onClick={onClose}
+              aria-label={"ปิด"}
+              sx={{ flexShrink: 0 }}
+            >
               <CloseRounded />
             </IconButton>
           </Stack>
@@ -122,7 +130,7 @@ function HandlerDetailDrawer({
                     <TableCell align={"center"}>
                       {row.required ? "✔" : ""}
                     </TableCell>
-                    <TableCell sx={{ wordBreak: "break-all" }}>
+                    <TableCell sx={{ overflowWrap: "anywhere" }}>
                       {row.reference ?? "—"}
                     </TableCell>
                     <TableCell>{row.dependsOn ?? "—"}</TableCell>
@@ -163,3 +171,4 @@ function HandlerDetailDrawer({
 }
 
 export default HandlerDetailDrawer;
+export { detailPanelWidth };
