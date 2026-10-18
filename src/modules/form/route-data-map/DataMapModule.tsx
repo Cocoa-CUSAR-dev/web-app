@@ -39,7 +39,9 @@ import {
   frequencyLabels,
 } from "./dataMapLayout";
 
-type Line = { from: string; to: string; d: string };
+// "fk": a foreign key between cards; "parent": a child handler hanging off
+// its parent (fertilizer under garden activity), drawn only when focused.
+type Line = { from: string; to: string; d: string; kind: "fk" | "parent" };
 
 function DataMapModule() {
   const { roles, isAuthenticated } = useAuthInfo();
@@ -130,11 +132,27 @@ function DataMapModule() {
       next.push({
         from,
         to,
+        kind: "fk",
         d: `M ${x1} ${y1} C ${x1 + bend} ${y1}, ${x2 - bend} ${y2}, ${x2} ${y2}`,
       });
     });
+    // Parent -> child: an elbow down the left edge into the indented child.
+    catalog?.handlers.forEach(({ handler, parentHandler }) => {
+      if (!parentHandler) return;
+      const a = cardRefs.current.get(parentHandler)?.getBoundingClientRect();
+      const b = cardRefs.current.get(handler)?.getBoundingClientRect();
+      if (!a || !b || b.left <= a.left) return;
+      const x = a.left + 10 - origin.left;
+      const y = b.top + b.height / 2 - origin.top;
+      next.push({
+        from: parentHandler,
+        to: handler,
+        kind: "parent",
+        d: `M ${x} ${a.bottom - origin.top} V ${y} H ${b.left - origin.left}`,
+      });
+    });
     setLines(next);
-  }, [edges, isWide]);
+  }, [catalog, edges, isWide]);
 
   useLayoutEffect(() => {
     measure();
@@ -146,23 +164,48 @@ function DataMapModule() {
   }, [measure, columns]);
 
   const focus = hovered ?? selected;
-  // The focused card and everything it's linked to (an arrow, or a
-  // parent/child handler) stay; every other card fades.
-  const related = useMemo(() => {
+  // A child record (fertilizer) belongs to its parent record (a garden
+  // activity), so it inherits the parent's farm and plot: focusing a child
+  // lights up the whole chain up to the top-level handler.
+  const chain = useMemo(() => {
     if (focus === null || !catalog) return null;
-    const ids = new Set([focus]);
+    const ids = [focus];
+    let current = catalog.handlers.find((h) => h.handler === focus);
+    while (current?.parentHandler && !ids.includes(current.parentHandler)) {
+      ids.push(current.parentHandler);
+      const parent: string = current.parentHandler;
+      current = catalog.handlers.find((h) => h.handler === parent);
+    }
+    return new Set(ids);
+  }, [catalog, focus]);
+  const isActive = (line: Line) =>
+    chain !== null &&
+    (line.kind === "fk"
+      ? chain.has(line.from) || chain.has(line.to)
+      : chain.has(line.to) || line.from === focus);
+  // The chain, everything its arrows reach and the focused card's children
+  // stay; every other card fades.
+  const related = useMemo(() => {
+    if (chain === null || !catalog) return null;
+    const ids = new Set(chain);
     edges.forEach(({ from, to }) => {
-      if (from === focus) ids.add(to);
-      if (to === focus) ids.add(from);
+      if (chain.has(from)) ids.add(to);
+      if (chain.has(to)) ids.add(from);
     });
     catalog.handlers.forEach((h) => {
-      if (h.handler === focus && h.parentHandler) ids.add(h.parentHandler);
       if (h.parentHandler === focus) ids.add(h.handler);
     });
     return ids;
-  }, [catalog, edges, focus]);
-  const isActive = (line: Line) =>
-    focus !== null && (line.from === focus || line.to === focus);
+  }, [catalog, chain, edges, focus]);
+
+  // A card in the left half gets the panel on the right, and vice versa.
+  const selectedColumn = columns
+    ? dataMapColumns.findIndex(({ key }) =>
+        columns[key].some((node) => node.id === selected),
+      )
+    : -1;
+  const drawerSide =
+    selectedColumn >= Math.ceil(dataMapColumns.length / 2) ? "left" : "right";
 
   const selectedEntry =
     catalog?.handlers.find((h) => h.handler === selected) ?? null;
@@ -314,6 +357,7 @@ function DataMapModule() {
         catalog={catalog}
         entry={selectedEntry}
         forms={forms.filter((form) => form.handler === selected)}
+        side={drawerSide}
         onClose={() => setSelected(null)}
       />
     </Stack>
@@ -371,21 +415,10 @@ function DataMapCard({
   const hasForms = entry.forms.count > 0;
   return (
     <Box
-      marginLeft={node.depth === 1 ? "1.25rem" : 0}
+      paddingLeft={node.depth === 1 ? "1.5rem" : 0}
       position={"relative"}
       sx={fade(isDimmed)}
     >
-      {node.depth === 1 && (
-        <Typography
-          position={"absolute"}
-          left={"-1.1rem"}
-          top={"0.6rem"}
-          color={"text.secondary"}
-          aria-hidden
-        >
-          {"↳"}
-        </Typography>
-      )}
       <Card
         ref={cardRef}
         variant={"outlined"}

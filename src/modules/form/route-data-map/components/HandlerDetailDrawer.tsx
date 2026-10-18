@@ -30,20 +30,32 @@ function HandlerDetailDrawer({
   catalog,
   entry,
   forms,
+  side,
   onClose,
 }: {
   catalog: HandlerCatalog;
   entry: CatalogEntry | null;
   forms: GetFormsResponse["value"];
+  // The side away from the clicked card, so the card and its highlighted
+  // links stay in view next to the panel.
+  side: "left" | "right";
   onClose: () => void;
 }) {
   return (
-    <Drawer anchor={"right"} open={entry !== null} onClose={onClose}>
+    // Persistent, not modal: no dimmed backdrop over the map, and clicking
+    // another card just switches the panel to it.
+    <Drawer
+      anchor={side}
+      variant={"persistent"}
+      open={entry !== null}
+      onClose={onClose}
+      slotProps={{ paper: { elevation: 8, sx: { borderWidth: 0 } } }}
+    >
       {entry && (
         <Stack
           spacing={2}
           padding={"1.5rem"}
-          width={{ xs: "100vw", sm: "36rem" }}
+          width={{ xs: "100vw", sm: "32rem" }}
           maxWidth={"100vw"}
           boxSizing={"border-box"}
         >
