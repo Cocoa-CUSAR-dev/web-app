@@ -8,6 +8,8 @@ import ProfileMenu from "@/components/ProfileMenu";
 import AnimatedLink from "@/components/utility/AnimatedLink";
 import { useAuthInfo } from "@/hooks/useAuthInfo";
 
+import { ink } from "../homeScenes";
+
 function HeroNavBar() {
   const { isAuthenticated } = useAuthInfo();
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState<boolean>(false);
@@ -26,10 +28,10 @@ function HeroNavBar() {
     >
       <Box />
       <Stack direction={"row"} spacing={2} alignItems={"center"}>
-        <AnimatedLink underline={"none"} href={"/form"} color={"#FFFFFF"}>
+        <AnimatedLink underline={"none"} href={"/form"} color={ink}>
           {"Form"}
         </AnimatedLink>
-        <AnimatedLink underline={"none"} href={"/dashboard"} color={"#FFFFFF"}>
+        <AnimatedLink underline={"none"} href={"/dashboard"} color={ink}>
           {"Dashboard"}
         </AnimatedLink>
         {/* ProfileMenu's mobile-authenticated variant assumes a parent
@@ -39,8 +41,8 @@ function HeroNavBar() {
         <Box display={{ xs: "none", sm: "block" }}>
           <ProfileMenu
             setMenuOpen={() => {}}
-            iconColor={"white"}
-            loginTextColor={"#FFFFFF"}
+            iconColor={ink}
+            loginTextColor={ink}
           />
         </Box>
         <Box display={{ xs: "block", sm: "none" }}>
@@ -49,7 +51,7 @@ function HeroNavBar() {
               underline={"none"}
               component={"button"}
               onClick={() => setLogoutConfirmOpen(true)}
-              color={"#FFFFFF"}
+              color={ink}
             >
               {"Log Out"}
             </AnimatedLink>
@@ -57,7 +59,7 @@ function HeroNavBar() {
             <AnimatedLink
               underline={"none"}
               href={"/auth?page=login"}
-              color={"#FFFFFF"}
+              color={ink}
             >
               {"Log In"}
             </AnimatedLink>
