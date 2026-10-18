@@ -146,6 +146,24 @@ function DataMapModule() {
   }, [measure, columns]);
 
   const focus = hovered ?? selected;
+  // The focused card and everything it's linked to (an arrow, or a
+  // parent/child handler) stay; every other card fades.
+  const related = useMemo(() => {
+    if (focus === null || !catalog) return null;
+    const ids = new Set([focus]);
+    edges.forEach(({ from, to }) => {
+      if (from === focus) ids.add(to);
+      if (to === focus) ids.add(from);
+    });
+    catalog.handlers.forEach((h) => {
+      if (h.handler === focus && h.parentHandler) ids.add(h.parentHandler);
+      if (h.parentHandler === focus) ids.add(h.handler);
+    });
+    return ids;
+  }, [catalog, edges, focus]);
+  const isActive = (line: Line) =>
+    focus !== null && (line.from === focus || line.to === focus);
+
   const selectedEntry =
     catalog?.handlers.find((h) => h.handler === selected) ?? null;
 
@@ -202,36 +220,61 @@ function DataMapModule() {
         columnGap={"2.5rem"}
         rowGap={2}
       >
+        {/* Every link, faint, behind the cards. */}
         {isWide && (
           <Box
             component={"svg"}
             position={"absolute"}
+            zIndex={0}
             sx={{ inset: 0, pointerEvents: "none", overflow: "visible" }}
             width={"100%"}
             height={"100%"}
             aria-hidden
           >
-            {lines.map((line) => {
-              const active =
-                focus !== null && (line.from === focus || line.to === focus);
-              return (
-                <path
-                  key={`${line.from}->${line.to}`}
-                  d={line.d}
-                  fill={"none"}
-                  stroke={
-                    active ? theme.palette.primary.main : theme.palette.divider
-                  }
-                  strokeWidth={active ? 2 : 1}
-                  opacity={focus !== null && !active ? 0.35 : 1}
-                />
-              );
-            })}
+            {lines.map((line) => (
+              <path
+                key={`${line.from}->${line.to}`}
+                d={line.d}
+                fill={"none"}
+                stroke={theme.palette.divider}
+                strokeWidth={1}
+                opacity={focus !== null ? 0.3 : 1}
+              />
+            ))}
+          </Box>
+        )}
+        {/* The focused card's links, drawn over the cards so they're never
+            hidden behind one. */}
+        {isWide && focus !== null && (
+          <Box
+            component={"svg"}
+            position={"absolute"}
+            zIndex={2}
+            sx={{ inset: 0, pointerEvents: "none", overflow: "visible" }}
+            width={"100%"}
+            height={"100%"}
+            aria-hidden
+          >
+            {lines.filter(isActive).map((line) => (
+              <path
+                key={`${line.from}->${line.to}`}
+                d={line.d}
+                fill={"none"}
+                stroke={theme.palette.primary.main}
+                strokeWidth={2.5}
+                strokeLinecap={"round"}
+              />
+            ))}
           </Box>
         )}
 
         {dataMapColumns.map((column) => (
-          <Stack key={column.key} spacing={1.5} position={"relative"}>
+          <Stack
+            key={column.key}
+            spacing={1.5}
+            position={"relative"}
+            zIndex={1}
+          >
             <Typography variant={"subtitle2"} color={"text.secondary"}>
               {column.title}
             </Typography>
@@ -241,6 +284,7 @@ function DataMapModule() {
                 node={node}
                 cardRef={setCardRef(node.id)}
                 isFocused={focus === node.id}
+                isDimmed={related !== null && !related.has(node.id)}
                 onHover={setHovered}
                 onSelect={setSelected}
               />
@@ -289,12 +333,14 @@ function DataMapCard({
   node,
   cardRef,
   isFocused,
+  isDimmed,
   onHover,
   onSelect,
 }: {
   node: DataMapNode;
   cardRef: (element: HTMLElement | null) => void;
   isFocused: boolean;
+  isDimmed: boolean;
   onHover: (id: string | null) => void;
   onSelect: (id: string) => void;
 }) {
@@ -307,7 +353,11 @@ function DataMapCard({
           padding: "0.75rem",
           bgcolor: "action.hover",
           color: "text.secondary",
+          borderColor: isFocused ? "primary.main" : undefined,
+          ...fade(isDimmed),
         }}
+        onMouseEnter={() => onHover(node.id)}
+        onMouseLeave={() => onHover(null)}
       >
         <Typography fontWeight={600}>{node.table.labelTh}</Typography>
         <Typography variant={"caption"} display={"block"}>
@@ -320,7 +370,11 @@ function DataMapCard({
   const { entry } = node;
   const hasForms = entry.forms.count > 0;
   return (
-    <Box marginLeft={node.depth === 1 ? "1.25rem" : 0} position={"relative"}>
+    <Box
+      marginLeft={node.depth === 1 ? "1.25rem" : 0}
+      position={"relative"}
+      sx={fade(isDimmed)}
+    >
       {node.depth === 1 && (
         <Typography
           position={"absolute"}
@@ -388,6 +442,14 @@ function DataMapCard({
       </Card>
     </Box>
   );
+}
+
+// Cards not linked to the hovered/selected one step back.
+function fade(isDimmed: boolean) {
+  return {
+    opacity: isDimmed ? 0.3 : 1,
+    transition: "opacity 0.15s ease",
+  };
 }
 
 export default DataMapModule;
