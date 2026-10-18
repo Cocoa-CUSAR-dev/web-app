@@ -125,8 +125,8 @@ function Layer({
         x,
         y,
         // Only promoted to its own GPU layer when it actually moves: with
-        // parallax off (lite / reduced motion) every layer would otherwise
-        // still be a full-screen texture, the very thing lite mode is for.
+        // parallax off (reduced motion) every layer would otherwise still be
+        // a full-screen texture for nothing.
         willChange: motionScale ? "transform" : "auto",
       }}
     >
@@ -282,8 +282,9 @@ const Scene = memo(function Scene({
 interface SceneBackdropProps {
   container: RefObject<HTMLDivElement | null>;
   sections: RefObject<HTMLElement | null>[];
-  // Lite mode (hooks/useLiteMode): no parallax, pan or mouse tracking, no
-  // per-layer GPU layers, no paper grain. Scenes still crossfade.
+  // Lite mode (hooks/useLiteMode): the layers still part and pan while
+  // scrolling, but nothing runs while the page sits still -- no mouse
+  // tracking (a spring settling every frame) and no paper grain.
   lite?: boolean;
 }
 
@@ -300,7 +301,7 @@ function SceneBackdrop({
   const mouseX = useSpring(rawX, { stiffness: 60, damping: 20 });
   const mouseY = useSpring(rawY, { stiffness: 60, damping: 20 });
   const reducedMotion = useReducedMotion();
-  const motionScale = reducedMotion || lite ? 0 : 1;
+  const motionScale = reducedMotion ? 0 : 1;
 
   useEffect(() => {
     if (lite) return;

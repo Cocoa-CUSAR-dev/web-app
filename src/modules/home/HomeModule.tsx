@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Box } from "@mui/material";
 import { MotionConfig } from "framer-motion";
@@ -10,12 +10,16 @@ import FallingLeaves from "./components/FallingLeaves";
 import Footer from "./components/Footer";
 import HeroNavBar from "./components/HeroNavbar";
 import HeroSection from "./components/HeroSection";
+import LiteModeToggle from "./components/LiteModeToggle";
 import { ScrollRootContext } from "./components/Reveal";
 import SceneBackdrop from "./components/SceneBackdrop";
 import { useLiteMode } from "./hooks/useLiteMode";
 import AboutUsSubmodule from "./submodule/AboutUsSubmodule";
 import ImpactSubmodule from "./submodule/ImpactSubmodule";
 import PromoteSubmodule from "./submodule/PromoteSubmodule";
+
+// Frames Lenis keeps ticking after a scroll settles before its loop sleeps.
+const LENIS_IDLE_FRAMES = 30;
 
 function HomeModule() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -25,8 +29,8 @@ function HomeModule() {
   const impactRef = useRef<HTMLElement>(null);
   const footerRef = useRef<HTMLElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  const lenisRef = useRef<Lenis | null>(null);
-  const lite = useLiteMode();
+  const lenisRef = useRef<{ lenis: Lenis; wake: () => void } | null>(null);
+  const [lite, setLite] = useLiteMode();
   const sectionRefs = useMemo(
     () => [heroRef, aboutRef, toolsRef, impactRef, footerRef],
     [],
@@ -39,9 +43,29 @@ function HomeModule() {
     const content = contentRef.current;
     if (!wrapper || !content) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const lenis = new Lenis({ wrapper, content, lerp: 0.08, autoRaf: true });
-    lenisRef.current = lenis;
+    // Driven by hand, not autoRaf: autoRaf ticks every frame forever, so the
+    // page kept the CPU and GPU busy (and the laptop hot) while nobody was
+    // scrolling. This loop runs only while a scroll is under way.
+    const lenis = new Lenis({ wrapper, content, lerp: 0.08, autoRaf: false });
+    let frame = 0;
+    let idleFrames = 0;
+    const tick = (time: number) => {
+      lenis.raf(time);
+      idleFrames = lenis.isScrolling ? 0 : idleFrames + 1;
+      frame = idleFrames > LENIS_IDLE_FRAMES ? 0 : requestAnimationFrame(tick);
+    };
+    const wake = () => {
+      idleFrames = 0;
+      if (!frame) frame = requestAnimationFrame(tick);
+    };
+    const inputs = ["wheel", "touchstart", "pointerdown", "keydown"] as const;
+    for (const type of inputs) {
+      wrapper.addEventListener(type, wake, { passive: true });
+    }
+    lenisRef.current = { lenis, wake };
     return () => {
+      cancelAnimationFrame(frame);
+      for (const type of inputs) wrapper.removeEventListener(type, wake);
       lenis.destroy();
       lenisRef.current = null;
     };
@@ -52,7 +76,8 @@ function HomeModule() {
       const target = sectionRefs[index].current;
       if (!target) return;
       if (lenisRef.current) {
-        lenisRef.current.scrollTo(target, { duration: 1.8 });
+        lenisRef.current.lenis.scrollTo(target, { duration: 1.8 });
+        lenisRef.current.wake();
       } else {
         // Lenis is off under prefers-reduced-motion; jump instead of gliding.
         target.scrollIntoView({ behavior: "auto" });
@@ -120,6 +145,7 @@ function HomeModule() {
           sections={sectionRefs}
           onNavigate={scrollToSection}
         />
+        <LiteModeToggle lite={lite} onChange={setLite} />
       </Box>
     </MotionConfig>
   );

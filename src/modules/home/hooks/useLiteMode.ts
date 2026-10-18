@@ -1,6 +1,6 @@
-"use client";
+﻿"use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 // Lite mode for machines that can't keep up with the full landing page: on a
 // weak GPU the stack of composited scene layers outran its raster budget and
@@ -9,8 +9,9 @@ import { useEffect, useState } from "react";
 // will-change, ambient motion, falling leaves, paper grain -- and keeps the
 // scenes, the copy and the crossfade between chapters.
 //
-// Decided once per tab (sessionStorage), from the device hints browsers give
-// plus a short frame-rate probe right after the page loads. `?lite=1` /
+// Decided once per browser (localStorage), from the device hints browsers
+// give plus a short frame-rate probe right after the page loads. The visitor
+// can flip it by hand (LiteModeToggle), and that choice sticks. `?lite=1` /
 // `?lite=0` forces it either way, for testing.
 
 const STORAGE_KEY = "home-lite-mode";
@@ -28,7 +29,7 @@ function forcedByUrl(): boolean | null {
 
 function remembered(): boolean | null {
   try {
-    const value = window.sessionStorage.getItem(STORAGE_KEY);
+    const value = window.localStorage.getItem(STORAGE_KEY);
     return value === null ? null : value === "1";
   } catch {
     return null;
@@ -37,7 +38,7 @@ function remembered(): boolean | null {
 
 function remember(lite: boolean) {
   try {
-    window.sessionStorage.setItem(STORAGE_KEY, lite ? "1" : "0");
+    window.localStorage.setItem(STORAGE_KEY, lite ? "1" : "0");
   } catch {
     // Private mode / blocked storage: the probe simply runs again next load.
   }
@@ -57,7 +58,7 @@ function weakByHints(): boolean {
   );
 }
 
-function useLiteMode(): boolean {
+function useLiteMode(): [boolean, (lite: boolean) => void] {
   // Full mode on the server and on the first client render, so the
   // prerendered page and hydration agree; the decision lands right after.
   const [lite, setLite] = useState(false);
@@ -112,7 +113,12 @@ function useLiteMode(): boolean {
     };
   }, []);
 
-  return lite;
+  const choose = useCallback((next: boolean) => {
+    remember(next);
+    setLite(next);
+  }, []);
+
+  return [lite, choose];
 }
 
 export { useLiteMode };
