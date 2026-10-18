@@ -12,6 +12,7 @@ import HeroNavBar from "./components/HeroNavbar";
 import HeroSection from "./components/HeroSection";
 import { ScrollRootContext } from "./components/Reveal";
 import SceneBackdrop from "./components/SceneBackdrop";
+import { useLiteMode } from "./hooks/useLiteMode";
 import AboutUsSubmodule from "./submodule/AboutUsSubmodule";
 import ImpactSubmodule from "./submodule/ImpactSubmodule";
 import PromoteSubmodule from "./submodule/PromoteSubmodule";
@@ -25,6 +26,7 @@ function HomeModule() {
   const footerRef = useRef<HTMLElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const lenisRef = useRef<Lenis | null>(null);
+  const lite = useLiteMode();
   const sectionRefs = useMemo(
     () => [heroRef, aboutRef, toolsRef, impactRef, footerRef],
     [],
@@ -63,9 +65,18 @@ function HomeModule() {
     // "user": under prefers-reduced-motion, reveals and headings fade in
     // without sliding (transforms off, opacity kept).
     <MotionConfig reducedMotion={"user"}>
-      <Box position={"relative"} height={"100dvh"} overflow={"hidden"}>
-        <SceneBackdrop container={scrollContainerRef} sections={sectionRefs} />
-        <FallingLeaves />
+      <Box
+        position={"relative"}
+        height={"100dvh"}
+        overflow={"hidden"}
+        className={lite ? "home-lite" : undefined}
+      >
+        <SceneBackdrop
+          container={scrollContainerRef}
+          sections={sectionRefs}
+          lite={lite}
+        />
+        {!lite && <FallingLeaves />}
         <Box
           ref={scrollContainerRef}
           position={"absolute"}

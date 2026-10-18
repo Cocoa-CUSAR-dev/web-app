@@ -124,7 +124,10 @@ function Layer({
         ...placement,
         x,
         y,
-        willChange: "transform",
+        // Only promoted to its own GPU layer when it actually moves: with
+        // parallax off (lite / reduced motion) every layer would otherwise
+        // still be a full-screen texture, the very thing lite mode is for.
+        willChange: motionScale ? "transform" : "auto",
       }}
     >
       {/* Ambient motion animates this whole composited box (cheap on the
@@ -279,19 +282,28 @@ const Scene = memo(function Scene({
 interface SceneBackdropProps {
   container: RefObject<HTMLDivElement | null>;
   sections: RefObject<HTMLElement | null>[];
+  // Lite mode (hooks/useLiteMode): no parallax, pan or mouse tracking, no
+  // per-layer GPU layers, no paper grain. Scenes still crossfade.
+  lite?: boolean;
 }
 
 const grain =
   "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/><feColorMatrix values='0 0 0 0 .3  0 0 0 0 .25  0 0 0 0 .15  0 0 0 .55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")";
 
-function SceneBackdrop({ container, sections }: SceneBackdropProps) {
+function SceneBackdrop({
+  container,
+  sections,
+  lite = false,
+}: SceneBackdropProps) {
   const rawX = useMotionValue(0);
   const rawY = useMotionValue(0);
   const mouseX = useSpring(rawX, { stiffness: 60, damping: 20 });
   const mouseY = useSpring(rawY, { stiffness: 60, damping: 20 });
-  const motionScale = useReducedMotion() ? 0 : 1;
+  const reducedMotion = useReducedMotion();
+  const motionScale = reducedMotion || lite ? 0 : 1;
 
   useEffect(() => {
+    if (lite) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const onMove = (e: PointerEvent) => {
       rawX.set(e.clientX / window.innerWidth - 0.5);
@@ -299,7 +311,7 @@ function SceneBackdrop({ container, sections }: SceneBackdropProps) {
     };
     window.addEventListener("pointermove", onMove);
     return () => window.removeEventListener("pointermove", onMove);
-  }, [rawX, rawY]);
+  }, [rawX, rawY, lite]);
 
   // Scenes mount just before they fade in; fetch and decode every layer
   // image while the page is idle so none is still loading when its scene
@@ -384,6 +396,7 @@ function SceneBackdrop({ container, sections }: SceneBackdropProps) {
       <Box
         position={"absolute"}
         sx={{
+          display: lite ? "none" : "block",
           inset: 0,
           backgroundImage: grain,
           opacity: 0.08,
