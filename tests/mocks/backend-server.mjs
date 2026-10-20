@@ -5,14 +5,19 @@
 import http from "node:http";
 
 import {
+  applyCorrection,
   applyFormEdit,
   authUser,
   buildSummary,
   buildTimeSeries,
+  FORBIDDEN_REVIEW_TASK,
   getFormById,
   getFormList,
+  getReview,
   getTaskById,
   getTasks,
+  resetReview,
+  reviewCorrections,
   TOKEN_NAME,
   TOKEN_VALUE,
 } from "./backend-data.mjs";
@@ -141,10 +146,35 @@ const server = http.createServer(async (req, res) => {
 
   m = pathname.match(/^\/api\/v1\/tasks\/([^/]+)\/responses$/);
   if (method === "GET" && m) {
-    return send(res, 200, {
-      value: { questionTitle: "", answers: [] },
-      error: null,
+    // One entry per question (FormViewerIdModule maps over it). Was a bare
+    // object, which left the form viewer stuck on its loading skeleton.
+    return send(res, 200, { value: [], error: null });
+  }
+
+  // ---- Review & correct (US2-8) ----
+  m = pathname.match(/^\/api\/v1\/tasks\/([^/]+)\/review$/);
+  if (method === "GET" && m) {
+    if (m[1] === FORBIDDEN_REVIEW_TASK) {
+      return send(res, 403, { error: "forbidden" });
+    }
+    const value = getReview(m[1], {
+      aiOnly: searchParams.get("aiOnly") === "true",
+      page: Number(searchParams.get("page") ?? 0),
+      size: Number(searchParams.get("size") ?? 20),
     });
+    return send(res, 200, { value, error: null });
+  }
+
+  m = pathname.match(
+    /^\/api\/v1\/tasks\/([^/]+)\/review\/([^/]+)\/fields\/([^/]+)$/,
+  );
+  if (method === "PATCH" && m) {
+    const body = await readJsonBody(req);
+    const result = applyCorrection(m[1], m[2], decodeURIComponent(m[3]), body);
+    if (result.status !== 200) {
+      return send(res, result.status, { value: null, error: result.error });
+    }
+    return send(res, 200, { value: result.field, error: null });
   }
 
   m = pathname.match(/^\/api\/v1\/tasks\/([^/]+)$/);
@@ -184,6 +214,15 @@ const server = http.createServer(async (req, res) => {
   m = pathname.match(/^\/api\/v1\/analytics\/users\/time-series\/([^/]+)$/);
   if (method === "GET" && m) {
     return send(res, 200, buildTimeSeries("user", m[1], from, to));
+  }
+
+  // ---- Test hooks (E2E only; this server never runs outside Playwright) ----
+  if (method === "POST" && pathname === "/__e2e/review/reset") {
+    resetReview();
+    return send(res, 200, { ok: true });
+  }
+  if (method === "GET" && pathname === "/__e2e/review/corrections") {
+    return send(res, 200, reviewCorrections);
   }
 
   // ---- Admin ----
