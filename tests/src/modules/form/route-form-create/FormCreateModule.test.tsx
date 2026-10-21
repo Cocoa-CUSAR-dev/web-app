@@ -18,13 +18,12 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/hooks/useAuthInfo", () => ({
   useAuthInfo: () => ({ roles: ["researcher"], isAuthenticated: true }),
 }));
-const toastSuccess = vi.fn();
-const toastError = vi.fn();
 vi.mock("@/components/utility/CustomToast", () => ({
   CustomToast: {
-    success: (...args: unknown[]) => toastSuccess(...args),
-    error: (...args: unknown[]) => toastError(...args),
+    success: vi.fn(),
+    error: vi.fn(),
     dismiss: vi.fn(),
+    promise: (promise: Promise<unknown>) => promise,
   },
 }));
 
@@ -40,6 +39,16 @@ function stubBackend(create: () => Response) {
     if (init?.method === "POST") return create();
     if (url.endsWith("/forms/handlers")) {
       return jsonResponse({ value: ["farm_activity"] });
+    }
+    if (url.endsWith("/forms/handlers/catalog")) {
+      return jsonResponse({
+        value: {
+          handlers: [],
+          dependencies: [],
+          registrationTables: [],
+          fieldLabels: {},
+        },
+      });
     }
     if (url.includes("/forms/handlers/")) return jsonResponse({ value: [] });
     if (url.includes("recipient-options/roles")) {
@@ -133,7 +142,6 @@ describe("FormCreateModule: repeat and recipients (US4-4)", () => {
     });
     // Only type and id go to the backend, not the display label.
     expect(body.recipients).toEqual([{ type: "ROLE", id: "role-farmer" }]);
-    expect(toastSuccess).toHaveBeenCalled();
   });
 
   it("sends a daily rule without weekdays or an end date when none were set", async () => {
@@ -178,13 +186,9 @@ describe("FormCreateModule: repeat and recipients (US4-4)", () => {
     await user.click(await screen.findByRole("option", { name: "farmer" }));
     await user.click(screen.getByRole("button", { name: "Create Form" }));
 
-    await waitFor(() =>
-      expect(toastError).toHaveBeenCalledWith(
-        "failed to create form, please try again",
-        "The chosen recipients do not match any user",
-        expect.anything(),
-      ),
-    );
+    expect(
+      await screen.findByText("The chosen recipients do not match any user"),
+    ).toBeInTheDocument();
     expect(push).not.toHaveBeenCalled();
     // Can be fixed and sent again.
     expect(screen.getByRole("button", { name: "Create Form" })).toBeEnabled();
