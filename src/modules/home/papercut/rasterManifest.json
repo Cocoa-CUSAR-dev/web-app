@@ -1,0 +1,128 @@
+{
+  "contact-2": {
+    "x": -360,
+    "y": 251,
+    "width": 2160,
+    "height": 537
+  },
+  "contact-3": {
+    "x": -360,
+    "y": 415,
+    "width": 2160,
+    "height": 463
+  },
+  "contact-6": {
+    "x": -360,
+    "y": 646,
+    "width": 2160,
+    "height": 254
+  },
+  "home-2": {
+    "x": 852,
+    "y": -8,
+    "width": 396,
+    "height": 396
+  },
+  "home-5": {
+    "x": -360,
+    "y": 251,
+    "width": 2160,
+    "height": 467
+  },
+  "home-6": {
+    "x": -360,
+    "y": 256,
+    "width": 2160,
+    "height": 644
+  },
+  "home-8": {
+    "x": -360,
+    "y": 681,
+    "width": 2160,
+    "height": 219
+  },
+  "impact-2": {
+    "x": 922,
+    "y": 102,
+    "width": 396,
+    "height": 396
+  },
+  "impact-5": {
+    "x": -360,
+    "y": 291,
+    "width": 2160,
+    "height": 567
+  },
+  "impact-6": {
+    "x": -360,
+    "y": 382,
+    "width": 2160,
+    "height": 518
+  },
+  "impact-7": {
+    "x": -360,
+    "y": 681,
+    "width": 2160,
+    "height": 219
+  },
+  "journey-2": {
+    "x": 862,
+    "y": -28,
+    "width": 396,
+    "height": 396
+  },
+  "journey-4": {
+    "x": -360,
+    "y": 171,
+    "width": 2160,
+    "height": 667
+  },
+  "journey-5": {
+    "x": -360,
+    "y": 591,
+    "width": 2160,
+    "height": 309
+  },
+  "journey-7": {
+    "x": 50,
+    "y": 595,
+    "width": 488,
+    "height": 282
+  },
+  "journey-8": {
+    "x": -360,
+    "y": 681,
+    "width": 2160,
+    "height": 219
+  },
+  "tools-2": {
+    "x": 522,
+    "y": -68,
+    "width": 396,
+    "height": 396
+  },
+  "tools-5": {
+    "x": -360,
+    "y": 231,
+    "width": 2160,
+    "height": 567
+  },
+  "tools-6": {
+    "x": -360,
+    "y": 328,
+    "width": 2160,
+    "height": 550
+  },
+  "tools-7": {
+    "x": -360,
+    "y": 626,
+    "width": 2160,
+    "height": 274
+  },
+  "tools-8": {
+    "x": -360,
+    "y": 681,
+    "width": 2160,
+    "height": 219
+  }
+}
