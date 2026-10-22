@@ -1,5 +1,6 @@
 import { DefaultResponseType } from "@/core/types";
 
+import { RecurrenceRequest } from "../recurrence/recurrenceTypes";
 import { ReminderRequest } from "../reminder/reminderTypes";
 import { Form, QuestionInputType } from "../route-form-edit/formEditTypes";
 
@@ -38,6 +39,10 @@ type CreateFormRequest = {
   isMultipleSubmit: boolean;
   sections: SectionInput[];
   reminder?: ReminderInput;
+  // US4-4: repeat this task every period. Left out for a one-off task.
+  recurrence?: RecurrenceRequest;
+  // US4-4: who the task is for (ROLE / USER rules). Left out = everyone.
+  recipients?: ReminderInput["recipients"];
 };
 
 type UpdateFormRequest = {

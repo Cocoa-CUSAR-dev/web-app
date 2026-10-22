@@ -29,17 +29,26 @@ import {
   saveFormDefinition,
   useHandlerCatalog,
 } from "../formDefinition/saveFormDefinition";
+import RecurrenceSettings from "../recurrence/RecurrenceSettings";
+import { RecurrenceValue } from "../recurrence/recurrenceTypes";
+import {
+  defaultRecurrenceValue,
+  recurrenceError,
+  toRecurrenceRequest,
+} from "../recurrence/recurrenceUtils";
 import ReminderSettings from "../reminder/ReminderSettings";
-import { ReminderValue } from "../reminder/reminderTypes";
+import { ReminderRecipient, ReminderValue } from "../reminder/reminderTypes";
 import {
   defaultReminderValue,
   isReminderValid,
+  toRecipientRequests,
   toReminderRequest,
 } from "../reminder/reminderUtils";
 import {
   GetFormIdResponse,
   GetFormsResponse,
 } from "../route-form-edit/formEditTypes";
+import AudienceSettings from "./components/AudienceSettings";
 import SectionQuestionEditor, {
   emptyQuestion,
   emptySection,
@@ -79,6 +88,10 @@ function FormCreateModule() {
   const [reminder, setReminder] = useState<ReminderValue>(
     defaultReminderValue(),
   );
+  const [recurrence, setRecurrence] = useState<RecurrenceValue>(
+    defaultRecurrenceValue(),
+  );
+  const [recipients, setRecipients] = useState<ReminderRecipient[]>([]);
 
   const [handlers, setHandlers] = useState<string[] | null>(null);
   const [handlerFields, setHandlerFields] = useState<HandlerField[] | null>(
@@ -262,7 +275,8 @@ function FormCreateModule() {
     Boolean(closeAt) &&
     isSectionsValid(sections) &&
     isReminderValid(reminder) &&
-    problems.length === 0;
+    problems.length === 0 &&
+    recurrenceError(recurrence, openAt, closeAt) === null;
 
   // #region submit
   const handleSubmit = useCallback(async () => {
@@ -275,6 +289,7 @@ function FormCreateModule() {
       const toastId = "form-create-toast-id";
       toastIdRef.current = toastId;
 
+      const recurrenceRequest = toRecurrenceRequest(recurrence);
       const body: CreateFormRequest = {
         title,
         description: description.trim() || null,
@@ -297,6 +312,10 @@ function FormCreateModule() {
           })),
         })),
         ...(reminder.enabled && { reminder: toReminderRequest(reminder) }),
+        ...(recurrenceRequest && { recurrence: recurrenceRequest }),
+        ...(recipients.length > 0 && {
+          recipients: toRecipientRequests(recipients),
+        }),
       };
 
       setSaveErrors([]);
@@ -328,6 +347,8 @@ function FormCreateModule() {
     isFormValid,
     isMultipleSubmit,
     openAt,
+    recipients,
+    recurrence,
     reminder,
     router,
     sections,
@@ -427,6 +448,15 @@ function FormCreateModule() {
           checked={isMultipleSubmit}
           onChange={setIsMultipleSubmit}
         />
+
+        <RecurrenceSettings
+          value={recurrence}
+          onChange={setRecurrence}
+          openAt={openAt}
+          closeAt={closeAt}
+        />
+
+        <AudienceSettings recipients={recipients} onChange={setRecipients} />
 
         <ReminderSettings value={reminder} onChange={setReminder} />
       </Stack>
