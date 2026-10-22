@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  AccountTreeRounded,
   EditNoteRounded,
   FactCheckRounded,
   PostAddRounded,
@@ -27,6 +28,12 @@ const forms = [
     link: "/form/form-viewer",
     icon: FactCheckRounded,
   },
+  {
+    label: "แผนผังข้อมูล",
+    description: "See which table each kind of form fills and how they connect",
+    link: "/form/data-map",
+    icon: AccountTreeRounded,
+  },
 ] as const;
 
 function FormModule() {
@@ -38,7 +45,7 @@ function FormModule() {
         <Typography variant={"h2"}>{"Form"}</Typography>
         <Typography color={"text.secondary"}>
           {
-            "Currently, there are three activities that can be done regarding form; creating a new form, viewing form responses, and editing form fields. For more information, please contact the development team (within working hours.)"
+            "Currently, there are four activities that can be done regarding form; creating a new form, viewing form responses, editing form fields, and seeing where form data is stored (Data Map). For more information, please contact the development team (within working hours.)"
           }
         </Typography>
       </Stack>

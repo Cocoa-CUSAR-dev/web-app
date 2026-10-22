@@ -1,7 +1,7 @@
 "use client";
 
 import { Divider, Skeleton, Stack, Typography } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { CustomToast } from "@/components/utility/CustomToast";
 import { HttpError } from "@/core/error";
@@ -21,8 +21,16 @@ import {
 // history -- a diary card for a day one was generated for, the raw
 // submitted fields otherwise (a date before this feature existed, or a day
 // nothing was generated for).
+// Matches web-backend's BE-9 default page size. The day list is "load more":
+// a full page back means there are probably more days, so offer the button;
+// a short page means we've reached the oldest day.
+const PAGE_SIZE = 50;
+
 function HistoryModule() {
   const [days, setDays] = useState<string[] | null>(null);
+  const [page, setPage] = useState<number>(0);
+  const [hasMore, setHasMore] = useState<boolean>(false);
+  const [loadingMore, setLoadingMore] = useState<boolean>(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   const [dayContentLoading, setDayContentLoading] = useState<boolean>(false);
@@ -32,11 +40,13 @@ function HistoryModule() {
   useEffect(() => {
     (async () => {
       try {
-        const response = await fetchResponse("/api/v1/history", {
-          method: "GET",
-        });
+        const response = await fetchResponse(
+          `/api/v1/history?page=0&size=${PAGE_SIZE}`,
+          { method: "GET" },
+        );
         const { value }: SubmissionDaysResponse = await response.json();
         setDays(value);
+        setHasMore(value.length === PAGE_SIZE);
         if (value.length > 0) {
           setSelectedDate(value[0]);
         }
@@ -47,6 +57,28 @@ function HistoryModule() {
       }
     })();
   }, []);
+
+  const loadMore = useCallback(async () => {
+    const next = page + 1;
+    setLoadingMore(true);
+    try {
+      const response = await fetchResponse(
+        `/api/v1/history?page=${next}&size=${PAGE_SIZE}`,
+        { method: "GET" },
+      );
+      const { value }: SubmissionDaysResponse = await response.json();
+      // A submission landing between pages can shift the offset and repeat a
+      // day; dedupe so the list keys stay unique (Set keeps newest-first order).
+      setDays((prev) => Array.from(new Set([...(prev ?? []), ...value])));
+      setHasMore(value.length === PAGE_SIZE);
+      setPage(next);
+    } catch (e) {
+      console.error(e);
+      CustomToast.error("ไม่สามารถโหลดประวัติเพิ่มได้");
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [page]);
 
   useEffect(() => {
     if (!selectedDate) return;
@@ -113,6 +145,9 @@ function HistoryModule() {
             days={days}
             selectedDate={selectedDate}
             onSelect={setSelectedDate}
+            hasMore={hasMore}
+            loadingMore={loadingMore}
+            onLoadMore={loadMore}
           />
           <Stack flex={1} spacing={2}>
             {dayContentLoading ? (

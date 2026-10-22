@@ -175,6 +175,19 @@
   animation: paper-firefly 2.8s ease-in-out infinite;
 }
 
+/* Home lite mode (hooks/useLiteMode.ts): the ambient motion stops, same as
+   under prefers-reduced-motion, so weak GPUs only composite the scenes. */
+.home-lite .paper-sway,
+.home-lite .paper-leaf,
+.home-lite .paper-drift,
+.home-lite .paper-spin,
+.home-lite .paper-fly,
+.home-lite .paper-flap,
+.home-lite .paper-steam,
+.home-lite .paper-firefly {
+  animation: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .hero-scroll-line,
   .paper-sway,

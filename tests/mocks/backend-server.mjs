@@ -10,9 +10,14 @@ import {
   authUser,
   buildSummary,
   buildTimeSeries,
+  FARMER_TOKEN_VALUE,
+  farmerUser,
   FORBIDDEN_REVIEW_TASK,
+  getDiary,
   getFormById,
   getFormList,
+  getHistoryAnswers,
+  getHistoryDays,
   getReview,
   getTaskById,
   getTasks,
@@ -53,6 +58,17 @@ function readJsonBody(req) {
     });
   });
 }
+
+function sessionCookieValue(req) {
+  const cookieHeader = req.headers.cookie || "";
+  for (const part of cookieHeader.split(";")) {
+    const [name, ...rest] = part.trim().split("=");
+    if (name === TOKEN_NAME) return rest.join("=");
+  }
+  return null;
+}
+
+const isFarmerSession = (req) => sessionCookieValue(req) === FARMER_TOKEN_VALUE;
 
 function hasSessionCookie(req) {
   const cookieHeader = req.headers.cookie || "";
@@ -95,7 +111,11 @@ const server = http.createServer(async (req, res) => {
       res,
       200,
       { value: "ok", error: null },
-      { "Set-Cookie": `${TOKEN_NAME}=${TOKEN_VALUE}; Path=/; HttpOnly` },
+      {
+        "Set-Cookie": `${TOKEN_NAME}=${
+          token.startsWith("farmer-") ? FARMER_TOKEN_VALUE : TOKEN_VALUE
+        }; Path=/; HttpOnly`,
+      },
     );
   }
 
@@ -103,7 +123,34 @@ const server = http.createServer(async (req, res) => {
     if (!hasSessionCookie(req)) {
       return send(res, 401, { value: null, error: "unauthorized" });
     }
-    return send(res, 200, { value: authUser, error: null });
+    const user = isFarmerSession(req) ? farmerUser : authUser;
+    return send(res, 200, { value: user, error: null });
+  }
+
+  // ---- A farmer's own history (docs-and-plan#231) ----
+  // Only the farmer session has any; anyone else gets an empty history,
+  // the way web-backend scopes /me/** to the caller.
+  if (method === "GET" && pathname === "/api/v1/me/history") {
+    const page = Number(searchParams.get("page") ?? 0);
+    const size = Number(searchParams.get("size") ?? 50);
+    if (!Number.isInteger(page) || page < 0 || !(size >= 1 && size <= 500)) {
+      return send(res, 400, { value: null, error: "invalid page" });
+    }
+    const value = isFarmerSession(req) ? getHistoryDays(page, size) : [];
+    return send(res, 200, { value, error: null });
+  }
+
+  m = pathname.match(/^\/api\/v1\/me\/history\/(\d{4}-\d{2}-\d{2})$/);
+  if (method === "GET" && m) {
+    const value = isFarmerSession(req) ? getHistoryAnswers(m[1]) : [];
+    return send(res, 200, { value, error: null });
+  }
+
+  m = pathname.match(/^\/api\/v1\/me\/diaries\/(\d{4}-\d{2}-\d{2})$/);
+  if (method === "GET" && m) {
+    const diary = isFarmerSession(req) ? getDiary(m[1]) : null;
+    if (!diary) return send(res, 404, { value: null, error: "no diary" });
+    return send(res, 200, { value: diary, error: null });
   }
 
   if (method === "GET" && pathname === "/api/v1/auth/logout") {

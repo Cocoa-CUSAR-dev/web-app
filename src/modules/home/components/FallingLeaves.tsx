@@ -27,6 +27,8 @@ const colors = [
 const LEAF_D =
   "M0,0 C14,-17 44,-23 72,-13 C86,-7 96,-1 108,3 C96,9 85,14 72,17 C44,24 14,16 0,0 Z";
 const MIDRIB_D = "M2,0 C36,1 72,2 106,3";
+// Just under 33.3ms so a 60Hz display reliably draws every other frame.
+const FRAME_MS = 30;
 
 function spawn(width: number, height: number, anywhere: boolean): FallingLeaf {
   return {
@@ -70,12 +72,23 @@ function FallingLeaves() {
       leaves = Array.from({ length: count }, () => spawn(width, height, true));
     };
 
+    let lastDraw = 0;
     const draw = (time: number) => {
+      // ~30fps is plenty for leaves drifting at under 1px a frame, and halves
+      // what the canvas costs the whole time the page is open.
+      if (time - lastDraw < FRAME_MS) {
+        frame = requestAnimationFrame(draw);
+        return;
+      }
+      const steps = lastDraw ? Math.min(3, (time - lastDraw) / 16.7) : 1;
+      lastDraw = time;
       ctx.clearRect(0, 0, width, height);
       for (const leaf of leaves) {
-        leaf.y += leaf.speed;
-        leaf.x += Math.sin(time / 1400 + leaf.phase) * leaf.sway;
-        leaf.angle += leaf.spin + Math.cos(time / 1600 + leaf.phase) * 0.004;
+        // Movement is per 60fps frame; `steps` keeps the speed the same at 30.
+        leaf.y += leaf.speed * steps;
+        leaf.x += Math.sin(time / 1400 + leaf.phase) * leaf.sway * steps;
+        leaf.angle +=
+          (leaf.spin + Math.cos(time / 1600 + leaf.phase) * 0.004) * steps;
         if (leaf.y > height + 40)
           Object.assign(leaf, spawn(width, height, false));
 

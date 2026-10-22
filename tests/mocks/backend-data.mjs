@@ -4,6 +4,10 @@
 
 export const TOKEN_NAME = process.env.TOKEN_NAME || "token";
 export const TOKEN_VALUE = "e2e-mock-session-token";
+// A second session, for specs that need a farmer rather than a researcher
+// (the history page is farmer-only). Handed out by the SSO exchange for any
+// token starting with "farmer-".
+export const FARMER_TOKEN_VALUE = "e2e-mock-farmer-session-token";
 
 export const authUser = {
   userId: "u-1",
@@ -401,4 +405,53 @@ export function applyCorrection(
   });
   field.value = value;
   return { status: 200, field };
+}
+
+// ---- Farmer & submission history (docs-and-plan#231) ----
+
+export const farmerUser = {
+  userId: "f-1",
+  email: "farmer@example.com",
+  firstName: "สมชาย",
+  lastName: "ใจดี",
+  organization: null,
+  isPasswordReset: true,
+  isRequiresPasswordReset: false,
+  roles: ["farmer"],
+};
+
+// 55 days with submissions, newest first, ending 2026-10-20 -- more than one
+// page of 50, so "load more" has something to load. Every third day has a
+// generated diary; the others fall back to the raw answers.
+export const HISTORY_DAYS = Array.from({ length: 55 }, (_, i) => {
+  const d = new Date(Date.UTC(2026, 9, 20 - i));
+  return d.toISOString().slice(0, 10);
+});
+
+export function getHistoryDays(page, size) {
+  return HISTORY_DAYS.slice(page * size, page * size + size);
+}
+
+export function getDiary(date) {
+  const i = HISTORY_DAYS.indexOf(date);
+  if (i < 0 || i % 3 !== 0) return null;
+  return {
+    userId: farmerUser.userId,
+    entryDate: date,
+    diaryText: `วันที่ ${date} ใส่ปุ๋ยคอก 12.5 กิโลกรัม`,
+    updatedAt: `${date}T10:00:00`,
+  };
+}
+
+export function getHistoryAnswers(date) {
+  const i = HISTORY_DAYS.indexOf(date);
+  if (i < 0) return [];
+  // Enough rows on the first raw day to page the answers table (10 a page).
+  const count = i === 1 ? 12 : 2;
+  return Array.from({ length: count }, (_, n) => ({
+    fieldName: `field_${n + 1}`,
+    label: `คำถามที่ ${n + 1}`,
+    inputType: "VARCHAR",
+    rawValue: `คำตอบ ${n + 1} ของ ${date}`,
+  }));
 }

@@ -6,6 +6,8 @@ import {
   Divider,
   Skeleton,
   Stack,
+  Tab,
+  Tabs,
   Typography,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
@@ -14,6 +16,7 @@ import { useEffect, useRef, useState } from "react";
 import { CustomToast } from "@/components/utility/CustomToast";
 import { fetchResponse } from "@/libs/fetchResponse";
 
+import FormFieldMapTab from "./components/FormFieldMapTab";
 import ResponseTableModule from "./components/ResponseTable";
 import { TaskResponseResponse } from "./formViewerIdTypes";
 
@@ -23,6 +26,7 @@ function FormViewerIdModule({ taskId }: { taskId: string }) {
     TaskResponseResponse["value"]
   > | null>(null);
   const [taskName, setTaskName] = useState<string | null>(null);
+  const [tab, setTab] = useState<"responses" | "fieldMap">("responses");
 
   const toastIdRef = useRef<string | null>(null);
 
@@ -172,21 +176,31 @@ function FormViewerIdModule({ taskId }: { taskId: string }) {
           {"Review & correct"}
         </Button>
       </Stack>
-      <Stack spacing={4} paddingBottom={"3rem"}>
-        {responses.length > 0 ? (
-          responses.map((response, idx) => (
-            <ResponseTableModule
-              key={response.questionTitle + idx}
-              response={response}
-            />
-          ))
+      <Stack spacing={2}>
+        <Tabs value={tab} onChange={(_, value) => setTab(value)}>
+          <Tab value={"responses"} label={"คำตอบ"} />
+          <Tab value={"fieldMap"} label={"ข้อมูลไปลงที่ไหน"} />
+        </Tabs>
+        {tab === "fieldMap" ? (
+          <FormFieldMapTab taskId={taskId} />
         ) : (
-          <Stack>
-            <Typography>
-              {
-                "Currently, there is no response from this form. Please try again later."
-              }
-            </Typography>
+          <Stack spacing={4} paddingBottom={"3rem"}>
+            {responses.length > 0 ? (
+              responses.map((response, idx) => (
+                <ResponseTableModule
+                  key={response.questionTitle + idx}
+                  response={response}
+                />
+              ))
+            ) : (
+              <Stack>
+                <Typography>
+                  {
+                    "Currently, there is no response from this form. Please try again later."
+                  }
+                </Typography>
+              </Stack>
+            )}
           </Stack>
         )}
       </Stack>

@@ -4,6 +4,8 @@ import { backendUrl } from "../constants";
 import { CustomRedirectError, HttpError } from "../error";
 import { AuthResponseType } from "../types";
 
+const AUTH_ME_TIMEOUT_MS = 10_000;
+
 const serverAuthApi = {
   authMe: async (cookie: string) => {
     try {
@@ -12,6 +14,11 @@ const serverAuthApi = {
         headers: {
           Cookie: cookie,
         },
+        // Every authenticated page waits on this before rendering. Without
+        // a limit, a backend that is asleep or hung leaves the page blank
+        // for as long as it takes to answer; this fails it after 10s so
+        // AuthWrapper can send the visitor on instead.
+        signal: AbortSignal.timeout(AUTH_ME_TIMEOUT_MS),
       });
       if (!response.ok) {
         const { error } = await response.json();

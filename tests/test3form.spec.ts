@@ -17,11 +17,12 @@ test.describe('Form Tests', () => {
       await page.getByRole('link', { name: 'Form' }).click();
       await expect(page.locator('div').filter({ hasText: /^Form$/ })).toBeVisible();
       await expect(page.getByRole('heading', { name: 'Form', exact: true })).toBeVisible();
-      await expect(page.getByText('Currently, there are three')).toBeVisible();
+      await expect(page.getByText('Currently, there are four')).toBeVisible();
       await expect(page.getByText('please contact the development team')).toBeVisible();
       await expect(page.getByText('Build a new form from scratch')).toBeVisible();
       await expect(page.getByText('View the active form fields and edit them as needed')).toBeVisible();
       await expect(page.getByText('View form responses from users by place')).toBeVisible();
+      await expect(page.getByText('See which table each kind of form fills and how they connect')).toBeVisible();
     });
 
     test('Form Edit Navigation', async ({ page }) => {
