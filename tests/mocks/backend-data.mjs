@@ -274,6 +274,139 @@ export function getTaskById(taskId) {
   return getTasks().find((t) => t.taskId === taskId) || null;
 }
 
+// ---- Review & correct (US2-8, docs-and-plan#174) ----
+// Field-by-field submissions for task-1, mutable so a correction persists
+// across reloads the way web-backend's PATCH .../fields/{fieldName} does.
+// resetReview() puts it back for the next spec.
+
+let reviewState = null;
+
+function initialReview() {
+  return [
+    {
+      responseId: "resp-1",
+      submitter: "สมชาย ใจดี",
+      submittedAt: "2026-10-01T03:30:00",
+      fields: [
+        // Pulled out of the farmer's free-text message by the LLM.
+        {
+          fieldName: "harvest_weight",
+          label: "น้ำหนักผลผลิต",
+          inputType: "FLOAT",
+          value: "120",
+          source: "llm_extracted",
+          editable: true,
+        },
+        {
+          fieldName: "tree_count",
+          label: "จำนวนต้น",
+          inputType: "INT",
+          value: "40",
+          source: "guided_flow",
+          editable: true,
+        },
+        {
+          fieldName: "plot_photo",
+          label: "รูปแปลง",
+          inputType: "IMAGE",
+          value: "photo-1.jpg",
+          source: null,
+          editable: false,
+        },
+      ],
+    },
+    {
+      responseId: "resp-2",
+      submitter: "สมหญิง รักสวน",
+      submittedAt: "2026-10-02T04:00:00",
+      fields: [
+        {
+          fieldName: "harvest_weight",
+          label: "น้ำหนักผลผลิต",
+          inputType: "FLOAT",
+          value: "95.5",
+          source: "guided_flow",
+          editable: true,
+        },
+        {
+          fieldName: "tree_count",
+          label: "จำนวนต้น",
+          inputType: "INT",
+          value: "32",
+          source: "guided_flow",
+          editable: true,
+        },
+      ],
+    },
+  ];
+}
+
+function review() {
+  if (!reviewState) reviewState = initialReview();
+  return reviewState;
+}
+
+export const reviewCorrections = [];
+
+export function resetReview() {
+  reviewState = initialReview();
+  reviewCorrections.length = 0;
+}
+
+// Tasks whose submissions the logged-in researcher may not review.
+export const FORBIDDEN_REVIEW_TASK = "task-forbidden";
+
+export function getReview(taskId, { aiOnly, page, size }) {
+  if (taskId !== "task-1") return [];
+  const submissions = aiOnly
+    ? review().filter((s) => s.fields.some((f) => f.source === "llm_extracted"))
+    : review();
+  return submissions.slice(page * size, page * size + size);
+}
+
+// The backend, not the screen, has the last word on a value: its type
+// (web-backend's AnswerCoercion) and the question's own rules
+// (form.field_validation_rule). harvest_weight has a minimum of 0 -- a rule
+// the review screen doesn't know about, so only the backend can refuse it.
+const MIN_VALUE = { harvest_weight: 0 };
+
+function valueError(fieldName, inputType, value) {
+  const type = inputType.toUpperCase();
+  if (type === "INT" && !/^-?\d+$/.test(value))
+    return "Value must be a whole number";
+  if (type === "FLOAT" && Number.isNaN(Number(value)))
+    return "Value must be a number";
+  const min = MIN_VALUE[fieldName];
+  if (min !== undefined && Number(value) < min)
+    return `Value must be at least ${min}`;
+  return null;
+}
+
+export function applyCorrection(
+  taskId,
+  responseId,
+  fieldName,
+  { value, reason },
+) {
+  const submission = review().find((s) => s.responseId === responseId);
+  const field = submission?.fields.find((f) => f.fieldName === fieldName);
+  if (taskId !== "task-1" || !field)
+    return { status: 404, error: "field not found" };
+  if (!field.editable)
+    return { status: 400, error: "This field type can't be corrected" };
+  const error = valueError(fieldName, field.inputType, value);
+  if (error) return { status: 400, error };
+  reviewCorrections.push({
+    responseId,
+    fieldName,
+    from: field.value,
+    to: value,
+    reason: reason ?? null,
+  });
+  field.value = value;
+  return { status: 200, field };
+}
+
 // ---- Farmer & submission history (docs-and-plan#231) ----
 
 export const farmerUser = {
