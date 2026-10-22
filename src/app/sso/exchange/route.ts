@@ -1,13 +1,14 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { backendUrl } from "@/core/constants";
+import { HttpError } from "@/core/error";
+import { requestTokenPair, setSessionCookies } from "@/libs/session";
 
-// US3-2 #125 (F2): the SSO token now arrives in the URL fragment and is read
+// US3-2 #125 (F2): the SSO token arrives in the URL fragment and is read
 // client-side (src/app/sso/page.tsx), then POSTed here -- so it never travels in
-// a URL the server or any proxy would log. This handler swaps it for the real
-// session cookie (same job the old GET /sso did) and forwards Set-Cookie back to
-// the browser; being same-origin, the cookie is stored for the web app.
+// a URL the server or any proxy would log. This handler swaps it at backend-hub
+// for a token pair and keeps that in this app's own HttpOnly cookies, the same
+// as a password login.
 async function POST(req: NextRequest) {
   let token: string | undefined;
   try {
@@ -22,26 +23,14 @@ async function POST(req: NextRequest) {
   }
 
   try {
-    const backendResponse = await fetch(
-      `${backendUrl}/api/v1/auth/sso/exchange`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token }),
-      },
+    const pair = await requestTokenPair("/api/v1/auth/sso/exchange", { token });
+    return setSessionCookies(NextResponse.json({ ok: true }), pair);
+  } catch (e) {
+    // Refused (expired, already used, forged) -> 401; hub unreachable -> 502.
+    return NextResponse.json(
+      { ok: false },
+      { status: e instanceof HttpError ? 401 : 502 },
     );
-
-    if (!backendResponse.ok) {
-      return NextResponse.json({ ok: false }, { status: 401 });
-    }
-
-    const response = NextResponse.json({ ok: true });
-    backendResponse.headers.getSetCookie().forEach((cookie) => {
-      response.headers.append("set-cookie", cookie);
-    });
-    return response;
-  } catch {
-    return NextResponse.json({ ok: false }, { status: 502 });
   }
 }
 

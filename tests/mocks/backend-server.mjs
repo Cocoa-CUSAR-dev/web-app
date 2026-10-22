@@ -1,5 +1,6 @@
-// Minimal stand-in for the Kotlin web-backend, used only during Playwright
-// E2E runs so `BACKEND_URL` resolves to something real. Started as a second
+// Minimal stand-in for the Kotlin web-backend and backend-hub, used only
+// during Playwright E2E runs so `BACKEND_URL` and `HUB_URL` resolve to
+// something real. Started as a second
 // Playwright `webServer` entry (see playwright.config.ts) — no test framework
 // dependency, plain Node http server.
 import http from "node:http";
@@ -59,7 +60,11 @@ function readJsonBody(req) {
   });
 }
 
+// The web app sends the session as `Authorization: Bearer` to both
+// backends; a bare cookie header is still accepted for older callers.
 function sessionCookieValue(req) {
+  const auth = req.headers.authorization || "";
+  if (auth.startsWith("Bearer ")) return auth.slice("Bearer ".length);
   const cookieHeader = req.headers.cookie || "";
   for (const part of cookieHeader.split(";")) {
     const [name, ...rest] = part.trim().split("=");
@@ -71,11 +76,47 @@ function sessionCookieValue(req) {
 const isFarmerSession = (req) => sessionCookieValue(req) === FARMER_TOKEN_VALUE;
 
 function hasSessionCookie(req) {
-  const cookieHeader = req.headers.cookie || "";
-  return cookieHeader.split(";").some((part) => {
-    const [name] = part.trim().split("=");
-    return name === TOKEN_NAME;
-  });
+  const value = sessionCookieValue(req);
+  return value === TOKEN_VALUE || value === FARMER_TOKEN_VALUE;
+}
+
+// backend-hub's login-like answer: the token pair in the body, no cookies.
+function tokenPair(accessToken) {
+  const user = accessToken === FARMER_TOKEN_VALUE ? farmerUser : authUser;
+  return {
+    access_token: accessToken,
+    refresh_token: `refresh-${accessToken === FARMER_TOKEN_VALUE ? "farmer" : "admin"}`,
+    token_type: "bearer",
+    expires_in: 3600,
+    user: {
+      user_id: user.userId,
+      username: user.email,
+      roles: user.roles,
+      must_reset_password: user.isRequiresPasswordReset && !user.isPasswordReset,
+    },
+  };
+}
+
+// backend-hub's GET /api/v1/me for the mock users.
+function hubMe(user) {
+  return {
+    user_id: user.userId,
+    username: user.email,
+    roles: user.roles,
+    must_reset_password: user.isRequiresPasswordReset && !user.isPasswordReset,
+    profiles: {
+      farmer: user.roles.includes("farmer") ? { first_name: user.firstName } : null,
+      hub_collector: null,
+      processor: null,
+      researcher: user.roles.includes("researcher")
+        ? {
+            first_name: user.firstName,
+            last_name: user.lastName,
+            organization: user.organization,
+          }
+        : null,
+    },
+  };
 }
 
 const server = http.createServer(async (req, res) => {
@@ -90,41 +131,43 @@ const server = http.createServer(async (req, res) => {
     return send(res, 200, { ok: true });
   }
 
-  // ---- Auth ----
+  // ---- Auth (backend-hub contract: tokens in the body, Bearer only) ----
   if (method === "POST" && pathname === "/api/v1/auth/login") {
     await readJsonBody(req);
-    return send(
-      res,
-      200,
-      { value: "login success", error: null },
-      { "Set-Cookie": `${TOKEN_NAME}=${TOKEN_VALUE}; Path=/; HttpOnly` },
-    );
+    return send(res, 200, tokenPair(TOKEN_VALUE));
+  }
+
+  if (method === "POST" && pathname === "/api/v1/auth/refresh") {
+    const { refresh_token: refresh } = await readJsonBody(req);
+    if (refresh === "refresh-admin") return send(res, 200, tokenPair(TOKEN_VALUE));
+    if (refresh === "refresh-farmer") return send(res, 200, tokenPair(FARMER_TOKEN_VALUE));
+    return send(res, 401, { detail: "Refresh token is not valid" });
+  }
+
+  if (method === "POST" && pathname === "/api/v1/auth/logout") {
+    await readJsonBody(req);
+    res.writeHead(204);
+    return res.end();
   }
 
   if (method === "POST" && pathname === "/api/v1/auth/sso/exchange") {
     const { token } = await readJsonBody(req);
     if (typeof token !== "string" || token === "" || usedSsoTokens.has(token)) {
-      return send(res, 401, { value: null, error: "invalid sso token" });
+      return send(res, 401, { detail: "This link has already been used" });
     }
     usedSsoTokens.add(token);
     return send(
       res,
       200,
-      { value: "ok", error: null },
-      {
-        "Set-Cookie": `${TOKEN_NAME}=${
-          token.startsWith("farmer-") ? FARMER_TOKEN_VALUE : TOKEN_VALUE
-        }; Path=/; HttpOnly`,
-      },
+      tokenPair(token.startsWith("farmer-") ? FARMER_TOKEN_VALUE : TOKEN_VALUE),
     );
   }
 
-  if (method === "GET" && pathname === "/api/v1/auth/me") {
+  if (method === "GET" && pathname === "/api/v1/me") {
     if (!hasSessionCookie(req)) {
-      return send(res, 401, { value: null, error: "unauthorized" });
+      return send(res, 401, { detail: "Missing bearer token" });
     }
-    const user = isFarmerSession(req) ? farmerUser : authUser;
-    return send(res, 200, { value: user, error: null });
+    return send(res, 200, hubMe(isFarmerSession(req) ? farmerUser : authUser));
   }
 
   // ---- A farmer's own history (docs-and-plan#231) ----
@@ -153,18 +196,9 @@ const server = http.createServer(async (req, res) => {
     return send(res, 200, { value: diary, error: null });
   }
 
-  if (method === "GET" && pathname === "/api/v1/auth/logout") {
-    return send(
-      res,
-      200,
-      { value: "logout successful", error: null },
-      { "Set-Cookie": `${TOKEN_NAME}=; Path=/; Max-Age=0` },
-    );
-  }
-
   if (method === "PATCH" && pathname === "/api/v1/auth/reset-password") {
     await readJsonBody(req);
-    return send(res, 200, { value: "password reset", error: null });
+    return send(res, 200, tokenPair(sessionCookieValue(req) ?? TOKEN_VALUE));
   }
 
   // ---- Forms ----

@@ -5,7 +5,7 @@ import { serverAuthApi } from "@/core/api/serverAuthApi";
 import AuthWrapper from "@/providers/wrapper/AuthWrapper";
 
 vi.mock("next/headers", () => ({
-  cookies: vi.fn(async () => ({ toString: (): string => "token=x" })),
+  cookies: vi.fn(async () => ({ get: () => ({ value: "x" }) })),
 }));
 // redirect() never returns in Next -- it throws to stop rendering.
 vi.mock("next/navigation", () => ({

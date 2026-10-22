@@ -7,11 +7,8 @@ import { NextResponse } from "next/server";
 import { tokenName } from "@/core/constants";
 import { HttpError } from "@/core/error";
 import { AdminAddUserReqType } from "@/core/types";
-import {
-  apiErrorResponse,
-  checkTokenPresence,
-  proxyToBackend,
-} from "@/libs/apiUtil";
+import { apiErrorResponse, checkTokenPresence } from "@/libs/apiUtil";
+import { hubFetch, readError } from "@/libs/session";
 
 async function GET(req: NextRequest) {
   try {
@@ -52,11 +49,20 @@ async function POST(req: NextRequest) {
         },
       );
     }
-    const data = await proxyToBackend(req, "/api/v1/admin/users", {
+    // backend-hub: a researcher account that must change this temporary
+    // password at first sign-in (same rule web-backend had).
+    const response = await hubFetch("/api/v1/admin/users", {
       method: "POST",
-      body: JSON.stringify({ username, password }),
+      body: { username, temporary_password: password, role: "researcher" },
+      accessToken: req.cookies.get(tokenName)?.value,
     });
-    return NextResponse.json(data, { status: 201 });
+    if (!response.ok) {
+      throw new HttpError(response.status, await readError(response));
+    }
+    return NextResponse.json(
+      { value: await response.json(), error: null },
+      { status: 201 },
+    );
   } catch (e) {
     return apiErrorResponse(e);
   }

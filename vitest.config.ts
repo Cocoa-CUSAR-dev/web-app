@@ -46,6 +46,7 @@ export default defineConfig({
     css: false,
     env: {
       BACKEND_URL: "http://localhost:3001",
+      HUB_URL: "http://localhost:8000",
     },
   },
 });

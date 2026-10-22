@@ -1,8 +1,17 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GET } from "@/app/api/v1/logout/route";
+import { refreshTokenName, tokenName } from "@/core/constants";
 
 import { makeApiRequest } from "../../../../testUtils/nextRequest";
+
+function signedInRequest(refresh?: string) {
+  const req = makeApiRequest("/api/v1/logout", { token: "access" });
+  if (refresh) {
+    req.cookies.set(refreshTokenName, refresh);
+  }
+  return req;
+}
 
 describe("GET /api/v1/logout", () => {
   beforeEach(() => {
@@ -19,68 +28,41 @@ describe("GET /api/v1/logout", () => {
     const res = await GET(makeApiRequest("/api/v1/logout"));
 
     expect(res.status).toBe(401);
-    expect(await res.json()).toEqual({
-      error: "missing authentication token",
-    });
     expect(fetch).not.toHaveBeenCalled();
   });
 
-  it("propagates the backend's error status and message", async () => {
-    vi.mocked(fetch).mockResolvedValue(
-      new Response(JSON.stringify({ error: "session expired" }), {
-        status: 401,
+  it("revokes the refresh token at backend-hub and clears both cookies", async () => {
+    vi.mocked(fetch).mockResolvedValue(new Response(null, { status: 204 }));
+
+    const res = await GET(signedInRequest("refresh-1"));
+
+    expect(fetch).toHaveBeenCalledWith(
+      "http://localhost:8000/api/v1/auth/logout",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ refresh_token: "refresh-1" }),
       }),
     );
-
-    const res = await GET(makeApiRequest("/api/v1/logout", { token: "t" }));
-
-    expect(res.status).toBe(401);
-    expect(await res.json()).toEqual({ error: "session expired" });
-  });
-
-  it.fails(
-    "does not report success when the backend omits Set-Cookie (currently returns 200 with an error body, see BUG note in test.md)",
-    async () => {
-      // Route quirk: a missing Set-Cookie throws
-      // `new HttpError(backendResponse.status, ...)` using the *successful*
-      // backend status (200), so the response ends up 200 with an
-      // error-shaped body instead of a real 4xx/5xx. The exact "correct"
-      // status isn't specified anywhere, so this only asserts the one thing
-      // we do know for certain: an error response shouldn't claim success.
-      vi.mocked(fetch).mockResolvedValue(new Response(null, { status: 200 }));
-
-      const res = await GET(
-        makeApiRequest("/api/v1/logout", { token: "t" }),
-      );
-
-      expect(res.status).not.toBe(200);
-    },
-  );
-
-  it("returns a success body and forwards the first Set-Cookie header", async () => {
-    vi.mocked(fetch).mockResolvedValue(
-      new Response(null, {
-        status: 200,
-        headers: { "set-cookie": "token=; Max-Age=0" },
-      }),
-    );
-
-    const res = await GET(makeApiRequest("/api/v1/logout", { token: "t" }));
-
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({
-      value: "logout successful",
-      error: null,
-    });
-    expect(res.headers.get("set-cookie")).toContain("token=");
+    expect(await res.json()).toEqual({ value: "logout successful", error: null });
+    expect(res.cookies.get(tokenName)?.value).toBe("");
+    expect(res.cookies.get(refreshTokenName)?.value).toBe("");
   });
 
-  it("returns 500 for an unexpected error", async () => {
+  it("still signs out locally when backend-hub can't be reached", async () => {
     vi.mocked(fetch).mockRejectedValue(new Error("network down"));
 
-    const res = await GET(makeApiRequest("/api/v1/logout", { token: "t" }));
+    const res = await GET(signedInRequest("refresh-1"));
 
-    expect(res.status).toBe(500);
-    expect(await res.json()).toEqual({ error: "Internal Server Error" });
+    expect(res.status).toBe(200);
+    expect(res.cookies.get(tokenName)?.value).toBe("");
+  });
+
+  it("clears the cookies without calling the hub when there is no refresh token", async () => {
+    const res = await GET(signedInRequest());
+
+    expect(fetch).not.toHaveBeenCalled();
+    expect(res.status).toBe(200);
+    expect(res.cookies.get(tokenName)?.value).toBe("");
   });
 });

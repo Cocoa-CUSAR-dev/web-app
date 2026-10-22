@@ -1,30 +1,24 @@
 import "server-only";
 
-import { backendUrl } from "../constants";
+import { fetchMe } from "@/libs/session";
+
 import { CustomRedirectError, HttpError } from "../error";
-import { AuthResponseType } from "../types";
 
 const AUTH_ME_TIMEOUT_MS = 10_000;
 
 const serverAuthApi = {
-  authMe: async (cookie: string) => {
+  /** The signed-in user from backend-hub's /me, for server components.
+   * src/proxy.ts has already refreshed an expiring access token. */
+  authMe: async (accessToken: string | undefined) => {
     try {
-      const response = await fetch(`${backendUrl}/api/v1/auth/me`, {
-        method: "GET",
-        headers: {
-          Cookie: cookie,
-        },
-        // Every authenticated page waits on this before rendering. Without
-        // a limit, a backend that is asleep or hung leaves the page blank
-        // for as long as it takes to answer; this fails it after 10s so
-        // AuthWrapper can send the visitor on instead.
-        signal: AbortSignal.timeout(AUTH_ME_TIMEOUT_MS),
-      });
-      if (!response.ok) {
-        const { error } = await response.json();
-        throw new HttpError(response.status, error ?? response.statusText);
+      if (!accessToken) {
+        throw new HttpError(401, "not signed in");
       }
-      return (await response.json())["value"] as AuthResponseType["value"];
+      // Every authenticated page waits on this before rendering. Without a
+      // limit, a backend that is asleep or hung leaves the page blank for as
+      // long as it takes to answer; this fails it after 10s so AuthWrapper
+      // can send the visitor on instead.
+      return await fetchMe(accessToken, AbortSignal.timeout(AUTH_ME_TIMEOUT_MS));
     } catch (e) {
       if (e instanceof HttpError) {
         if (e.status === 401) {

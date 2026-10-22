@@ -33,7 +33,9 @@ describe("GET /api/v1/tasks", () => {
     expect(await res.json()).toEqual({ value: [{ id: "1" }] });
     expect(fetch).toHaveBeenCalledWith(
       expect.stringContaining("/api/v1/tasks"),
-      expect.objectContaining({ headers: { "Content-Type": "application/json", Cookie: "token=t" } }),
+      expect.objectContaining({
+        headers: { "Content-Type": "application/json", Authorization: "Bearer t" },
+      }),
     );
   });
 

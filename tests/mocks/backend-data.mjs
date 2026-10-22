@@ -1,13 +1,22 @@
 // In-memory fixture data + mutation helpers for the E2E mock backend.
-// Shapes mirror the real Kotlin backend's `/api/v1/**` contract as consumed
-// by the Next.js BFF routes under `src/app/api/v1/**`.
+// Shapes mirror the real Kotlin backend's `/api/v1/**` contract (and
+// backend-hub's auth + /me) as consumed by the Next.js BFF routes under
+// `src/app/api/v1/**`.
 
 export const TOKEN_NAME = process.env.TOKEN_NAME || "token";
-export const TOKEN_VALUE = "e2e-mock-session-token";
+
+// backend-hub access tokens are JWTs; the web app reads their `exp` to decide
+// when to refresh (src/proxy.ts). These never expire (year 2100), so E2E runs
+// never refresh. The signature part is fake -- only the mock checks tokens.
+function fakeJwt(sub) {
+  const encode = (value) => Buffer.from(JSON.stringify(value)).toString("base64url");
+  return `${encode({ alg: "HS256", typ: "JWT" })}.${encode({ sub, exp: 4102444800 })}.e2e`;
+}
+export const TOKEN_VALUE = fakeJwt("u-1");
 // A second session, for specs that need a farmer rather than a researcher
 // (the history page is farmer-only). Handed out by the SSO exchange for any
 // token starting with "farmer-".
-export const FARMER_TOKEN_VALUE = "e2e-mock-farmer-session-token";
+export const FARMER_TOKEN_VALUE = fakeJwt("f-1");
 
 export const authUser = {
   userId: "u-1",

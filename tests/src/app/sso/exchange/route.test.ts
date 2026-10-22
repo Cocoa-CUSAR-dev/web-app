@@ -1,13 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { POST } from "@/app/sso/exchange/route";
+import { refreshTokenName, tokenName } from "@/core/constants";
 
+import { hubJson, tokenPair } from "../../../testUtils/hub";
 import { makeApiRequest } from "../../../testUtils/nextRequest";
 
 // US3-2 #125 (F2): the /sso page reads the token out of the URL fragment and
 // POSTs it here. This route is the only place the token touches the server,
-// so it must carry it in the body (never a URL) and hand the session cookie
-// back untouched.
+// so it must carry it in the body (never a URL) and keep the hub's token pair
+// in this app's own HttpOnly cookies.
 
 describe("POST /sso/exchange", () => {
   beforeEach(() => {
@@ -47,7 +49,7 @@ describe("POST /sso/exchange", () => {
   });
 
   it("sends the token to the backend in a POST body, never in the URL", async () => {
-    vi.mocked(fetch).mockResolvedValue(new Response(null, { status: 200 }));
+    vi.mocked(fetch).mockResolvedValue(hubJson(tokenPair()));
 
     await POST(
       makeApiRequest("/sso/exchange", {
@@ -63,13 +65,9 @@ describe("POST /sso/exchange", () => {
     expect(JSON.parse(String(init?.body))).toEqual({ token: "SECRET123" });
   });
 
-  it("forwards the backend's Set-Cookie so the browser gets a session", async () => {
-    vi.mocked(fetch).mockResolvedValue(
-      new Response(null, {
-        status: 200,
-        headers: { "set-cookie": "token=session123; Path=/; HttpOnly" },
-      }),
-    );
+  it("keeps backend-hub's token pair in HttpOnly cookies so the browser gets a session", async () => {
+    const pair = tokenPair({ refresh_token: "refresh-sso" });
+    vi.mocked(fetch).mockResolvedValue(hubJson(pair));
 
     const res = await POST(
       makeApiRequest("/sso/exchange", {
@@ -80,11 +78,13 @@ describe("POST /sso/exchange", () => {
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ ok: true });
-    expect(res.headers.get("set-cookie")).toContain("token=session123");
+    expect(res.cookies.get(tokenName)?.value).toBe(pair.access_token);
+    expect(res.cookies.get(tokenName)?.httpOnly).toBe(true);
+    expect(res.cookies.get(refreshTokenName)?.value).toBe("refresh-sso");
   });
 
   it("returns 401 and no cookie when the backend refuses the token", async () => {
-    vi.mocked(fetch).mockResolvedValue(new Response(null, { status: 401 }));
+    vi.mocked(fetch).mockResolvedValue(hubJson({ detail: "This link has already been used" }, 401));
 
     const res = await POST(
       makeApiRequest("/sso/exchange", {

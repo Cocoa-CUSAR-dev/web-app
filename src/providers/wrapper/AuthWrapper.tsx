@@ -2,12 +2,13 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { serverAuthApi } from "@/core/api/serverAuthApi";
+import { tokenName } from "@/core/constants";
 import { CustomRedirectError } from "@/core/error";
 import { UserRole } from "@/core/types";
 import { AuthInfoProvider } from "@/hooks/useAuthInfo";
 
-async function getAuthData(cookie: string) {
-  const response = await serverAuthApi.authMe(cookie);
+async function getAuthData(accessToken: string | undefined) {
+  const response = await serverAuthApi.authMe(accessToken);
   return response;
 }
 
@@ -24,11 +25,11 @@ async function AuthWrapper({
   redirectNotAllowUrl?: string;
   requireResetPasswordCheck?: boolean;
 }) {
-  const cookieString = (await cookies()).toString();
+  const accessToken = (await cookies()).get(tokenName)?.value;
   let authData = null;
 
   try {
-    authData = await getAuthData(cookieString);
+    authData = await getAuthData(accessToken);
   } catch (err) {
     console.error("AuthWrapper error:", err);
     if (err instanceof CustomRedirectError) {

@@ -24,7 +24,7 @@ async function GET(req: NextRequest) {
       {
         method: "GET",
         headers: {
-          Cookie: `${token!.name}=${token!.value}`,
+          Authorization: `Bearer ${token!.value}`,
         },
       },
     );

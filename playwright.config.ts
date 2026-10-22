@@ -99,7 +99,7 @@ export default defineConfig({
           stdout: "pipe" as const,
           stderr: "pipe" as const,
           env: useMockBackend
-            ? { BACKEND_URL: MOCK_BACKEND_URL, TOKEN_NAME: E2E_TOKEN_NAME }
+            ? { BACKEND_URL: MOCK_BACKEND_URL, HUB_URL: MOCK_BACKEND_URL, TOKEN_NAME: E2E_TOKEN_NAME }
             : {},
         },
       ],

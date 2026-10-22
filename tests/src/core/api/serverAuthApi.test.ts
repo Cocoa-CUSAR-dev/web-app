@@ -14,24 +14,41 @@ describe("serverAuthApi.authMe", () => {
     vi.restoreAllMocks();
   });
 
-  it("returns the auth value on a successful response", async () => {
+  it("asks backend-hub's /me with the Bearer token and maps it for the UI", async () => {
     vi.mocked(fetch).mockResolvedValue(
       new Response(
-        JSON.stringify({ value: { email: "a@test.com", roles: ["admin"] } }),
+        JSON.stringify({
+          user_id: "u-1",
+          username: "a@test.com",
+          roles: ["admin"],
+          must_reset_password: true,
+          profiles: { researcher: null },
+        }),
         { status: 200 },
       ),
     );
 
-    const result = await serverAuthApi.authMe("token=abc");
+    const result = await serverAuthApi.authMe("abc");
 
     expect(fetch).toHaveBeenCalledWith(
-      expect.stringContaining("/api/v1/auth/me"),
-      expect.objectContaining({
-        method: "GET",
-        headers: { Cookie: "token=abc" },
-      }),
+      "http://localhost:8000/api/v1/me",
+      expect.objectContaining({ headers: { Authorization: "Bearer abc" } }),
     );
-    expect(result).toEqual({ email: "a@test.com", roles: ["admin"] });
+    expect(result).toEqual({
+      userId: "u-1",
+      email: "a@test.com",
+      firstName: "",
+      lastName: "",
+      organization: "",
+      roles: ["admin"],
+      isRequiresPasswordReset: true,
+      isPasswordReset: false,
+    });
+  });
+
+  it("sends a visitor without an access token to login, without calling the hub", async () => {
+    await expect(serverAuthApi.authMe(undefined)).rejects.toThrow(CustomRedirectError);
+    expect(fetch).not.toHaveBeenCalled();
   });
 
   it("throws CustomRedirectError to the login page on a 401 response", async () => {
@@ -45,10 +62,10 @@ describe("serverAuthApi.authMe", () => {
         }),
     );
 
-    await expect(serverAuthApi.authMe("token=bad")).rejects.toThrow(
+    await expect(serverAuthApi.authMe("bad")).rejects.toThrow(
       CustomRedirectError,
     );
-    await expect(serverAuthApi.authMe("token=bad")).rejects.toMatchObject({
+    await expect(serverAuthApi.authMe("bad")).rejects.toMatchObject({
       message: "/auth?page=login&clear=true",
     });
   });
@@ -60,7 +77,7 @@ describe("serverAuthApi.authMe", () => {
       }),
     );
 
-    const result = await serverAuthApi.authMe("token=abc");
+    const result = await serverAuthApi.authMe("abc");
 
     expect(result).toBeNull();
   });
@@ -68,7 +85,7 @@ describe("serverAuthApi.authMe", () => {
   it("returns null when fetch itself rejects", async () => {
     vi.mocked(fetch).mockRejectedValue(new Error("network down"));
 
-    const result = await serverAuthApi.authMe("token=abc");
+    const result = await serverAuthApi.authMe("abc");
 
     expect(result).toBeNull();
   });

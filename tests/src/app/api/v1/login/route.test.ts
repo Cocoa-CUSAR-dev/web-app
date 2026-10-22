@@ -1,7 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { POST } from "@/app/api/v1/login/route";
+import { refreshTokenName, tokenName } from "@/core/constants";
 
+import { hubJson, tokenPair } from "../../../../testUtils/hub";
 import { makeApiRequest } from "../../../../testUtils/nextRequest";
 
 describe("POST /api/v1/login", () => {
@@ -42,13 +44,9 @@ describe("POST /api/v1/login", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
-  it("forwards Set-Cookie headers and returns a success message when the backend accepts login", async () => {
-    vi.mocked(fetch).mockResolvedValue(
-      new Response(null, {
-        status: 200,
-        headers: { "set-cookie": "token=abc123; Path=/; HttpOnly" },
-      }),
-    );
+  it("signs in at backend-hub and keeps both tokens in HttpOnly cookies", async () => {
+    const pair = tokenPair();
+    vi.mocked(fetch).mockResolvedValue(hubJson(pair));
 
     const res = await POST(
       makeApiRequest("/api/v1/login", {
@@ -57,16 +55,28 @@ describe("POST /api/v1/login", () => {
       }),
     );
 
+    expect(fetch).toHaveBeenCalledWith(
+      "http://localhost:8000/api/v1/auth/login",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ username: "a@test.com", password: "pw" }),
+      }),
+    );
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ message: "login success" });
-    expect(res.headers.get("set-cookie")).toContain("token=abc123");
+    // The tokens stay out of the body -- the browser only gets cookies.
+    expect(await res.json()).toEqual({
+      message: "login success",
+      mustResetPassword: false,
+    });
+    expect(res.cookies.get(tokenName)?.value).toBe(pair.access_token);
+    expect(res.cookies.get(tokenName)?.httpOnly).toBe(true);
+    expect(res.cookies.get(refreshTokenName)?.value).toBe("refresh-1");
+    expect(res.cookies.get(refreshTokenName)?.httpOnly).toBe(true);
   });
 
-  it("returns the backend's error status and message when login fails", async () => {
+  it("returns the hub's status and Thai message when login fails", async () => {
     vi.mocked(fetch).mockResolvedValue(
-      new Response(JSON.stringify({ error: "invalid credentials" }), {
-        status: 401,
-      }),
+      hubJson({ detail: "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง" }, 401),
     );
 
     const res = await POST(
@@ -77,20 +87,7 @@ describe("POST /api/v1/login", () => {
     );
 
     expect(res.status).toBe(401);
-    expect(await res.json()).toEqual({ error: "invalid credentials" });
-  });
-
-  it("returns 500 for an unexpected error", async () => {
-    vi.mocked(fetch).mockRejectedValue(new Error("network down"));
-
-    const res = await POST(
-      makeApiRequest("/api/v1/login", {
-        method: "POST",
-        body: { username: "a@test.com", password: "pw" },
-      }),
-    );
-
-    expect(res.status).toBe(500);
-    expect(await res.json()).toEqual({ error: "Internal Server Error" });
+    expect(await res.json()).toEqual({ error: "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง" });
+    expect(res.cookies.get(tokenName)).toBeUndefined();
   });
 });

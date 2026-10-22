@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GET, POST } from "@/app/api/v1/users/route";
 
+import { hubJson } from "../../../../testUtils/hub";
 import { makeApiRequest } from "../../../../testUtils/nextRequest";
 
 vi.mock("next/headers", () => ({
@@ -89,11 +90,9 @@ describe("POST /api/v1/users", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
-  it("returns the created user with 201 on success", async () => {
+  it("creates the researcher at backend-hub with a temporary password", async () => {
     vi.mocked(fetch).mockResolvedValue(
-      new Response(JSON.stringify({ value: { username: "new@test.com" } }), {
-        status: 201,
-      }),
+      hubJson({ user_id: "u-9", roles: ["researcher"] }, 201),
     );
 
     const res = await POST(
@@ -104,16 +103,27 @@ describe("POST /api/v1/users", () => {
       }),
     );
 
-    expect(res.status).toBe(201);
-    expect(await res.json()).toEqual({ value: { username: "new@test.com" } });
-  });
-
-  it("propagates the backend's error status and message", async () => {
-    vi.mocked(fetch).mockResolvedValue(
-      new Response(JSON.stringify({ error: "username taken" }), {
-        status: 409,
+    expect(fetch).toHaveBeenCalledWith(
+      "http://localhost:8000/api/v1/admin/users",
+      expect.objectContaining({
+        method: "POST",
+        headers: expect.objectContaining({ Authorization: "Bearer t" }),
+        body: JSON.stringify({
+          username: "new@test.com",
+          temporary_password: "pw",
+          role: "researcher",
+        }),
       }),
     );
+    expect(res.status).toBe(201);
+    expect(await res.json()).toEqual({
+      value: { user_id: "u-9", roles: ["researcher"] },
+      error: null,
+    });
+  });
+
+  it("propagates the hub's error status and message", async () => {
+    vi.mocked(fetch).mockResolvedValue(hubJson({ detail: "username taken" }, 409));
 
     const res = await POST(
       makeApiRequest("/api/v1/users", {
