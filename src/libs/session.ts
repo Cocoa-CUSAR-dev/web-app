@@ -63,7 +63,9 @@ async function hubFetch(
     method: init.method ?? "GET",
     headers: {
       "Content-Type": "application/json",
-      ...(init.accessToken ? { Authorization: `Bearer ${init.accessToken}` } : {}),
+      ...(init.accessToken
+        ? { Authorization: `Bearer ${init.accessToken}` }
+        : {}),
     },
     body: init.body !== undefined ? JSON.stringify(init.body) : undefined,
   });
@@ -104,9 +106,20 @@ const cookieOptions = (maxAge: number) => ({
   maxAge,
 });
 
-function setSessionCookies(response: NextResponse, pair: TokenPair): NextResponse {
-  response.cookies.set(tokenName, pair.access_token, cookieOptions(pair.expires_in));
-  response.cookies.set(refreshTokenName, pair.refresh_token, cookieOptions(REFRESH_COOKIE_MAX_AGE));
+function setSessionCookies(
+  response: NextResponse,
+  pair: TokenPair,
+): NextResponse {
+  response.cookies.set(
+    tokenName,
+    pair.access_token,
+    cookieOptions(pair.expires_in),
+  );
+  response.cookies.set(
+    refreshTokenName,
+    pair.refresh_token,
+    cookieOptions(REFRESH_COOKIE_MAX_AGE),
+  );
   return response;
 }
 
@@ -124,7 +137,9 @@ function secondsLeft(accessToken: string | undefined): number {
   }
   try {
     const payload = accessToken.split(".")[1];
-    const json = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/"))) as {
+    const json = JSON.parse(
+      atob(payload.replace(/-/g, "+").replace(/_/g, "/")),
+    ) as {
       exp?: number;
     };
     return typeof json.exp === "number" ? json.exp - Date.now() / 1000 : -1;
@@ -153,7 +168,10 @@ function toAuthUser(me: HubMe): AuthUserValue {
 }
 
 /** The signed-in user from the hub, or throws HttpError (401 = not signed in). */
-async function fetchMe(accessToken: string, signal?: AbortSignal): Promise<AuthUserValue> {
+async function fetchMe(
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<AuthUserValue> {
   const response = await fetch(`${hubUrl}/api/v1/me`, {
     headers: { Authorization: `Bearer ${accessToken}` },
     signal,

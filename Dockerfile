@@ -18,6 +18,7 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NEXT_STANDALONE=true
 ENV BACKEND_URL=http://localhost:3001
+ENV HUB_URL=http://localhost:8000
 
 RUN corepack enable pnpm && pnpm build;
 
@@ -41,6 +42,8 @@ EXPOSE 8080
 ENV PORT=8080
 ENV NODE_ENV=production
 ENV BACKEND_URL=localhost:8080
+# Real value comes from the host (backend-hub URL), like BACKEND_URL.
+ENV HUB_URL=localhost:8000
 
 ENV HOSTNAME="0.0.0.0"
 CMD ["node", "server.js"]

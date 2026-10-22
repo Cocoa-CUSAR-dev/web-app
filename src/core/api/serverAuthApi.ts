@@ -18,7 +18,10 @@ const serverAuthApi = {
       // limit, a backend that is asleep or hung leaves the page blank for as
       // long as it takes to answer; this fails it after 10s so AuthWrapper
       // can send the visitor on instead.
-      return await fetchMe(accessToken, AbortSignal.timeout(AUTH_ME_TIMEOUT_MS));
+      return await fetchMe(
+        accessToken,
+        AbortSignal.timeout(AUTH_ME_TIMEOUT_MS),
+      );
     } catch (e) {
       if (e instanceof HttpError) {
         if (e.status === 401) {

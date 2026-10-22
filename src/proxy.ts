@@ -50,7 +50,8 @@ export async function proxy(req: NextRequest) {
     return session.signedOut ? clearSessionCookies(response) : response;
   };
   // Pass the (possibly refreshed) cookies on to the page or route handler.
-  const next = () => finish(NextResponse.next({ request: { headers: req.headers } }));
+  const next = () =>
+    finish(NextResponse.next({ request: { headers: req.headers } }));
 
   const { nextUrl, cookies } = req;
   const { searchParams, pathname } = nextUrl;
@@ -80,7 +81,9 @@ export async function proxy(req: NextRequest) {
       return finish(NextResponse.redirect(new URL("/dashboard", req.url)));
     }
     if (!token && searchParams.get("page") === "reset-password") {
-      return finish(NextResponse.redirect(new URL("/auth?page=login", req.url)));
+      return finish(
+        NextResponse.redirect(new URL("/auth?page=login", req.url)),
+      );
     }
 
     const pageParam = searchParams.get("page");
@@ -88,7 +91,9 @@ export async function proxy(req: NextRequest) {
       !pageParam ||
       !["login", "register", "reset-password"].includes(pageParam)
     ) {
-      return finish(NextResponse.redirect(new URL("/auth?page=login", req.url)));
+      return finish(
+        NextResponse.redirect(new URL("/auth?page=login", req.url)),
+      );
     }
 
     return next();
