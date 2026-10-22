@@ -7,26 +7,29 @@ import { backendUrl } from "./apiConstants";
 // backend path, so moving a group of endpoints to another backend, or
 // renaming one, is a change to this file and its test.
 //
-// Each endpoint belongs to a group, the first segment after `/api/v1/` in the
-// backend's API (`/api/v1/<group>/...`). A group can be pointed at its own
-// backend with `BACKEND_URL_<GROUP>` (for example `BACKEND_URL_TASKS`); a
-// group with no such variable uses `BACKEND_URL`. That lets the groups move to
-// a new backend one at a time.
+// The paths are the After sheet of api-migration-map.xlsx: the one backend
+// that replaces web-backend (Kotlin) and mobile-backend (Go). Each endpoint
+// belongs to a group, the first segment after `/api/v1/` (`/api/v1/<group>/...`).
+// A group can be pointed at its own backend with `BACKEND_URL_<GROUP>` (for
+// example `BACKEND_URL_FORMS`); a group with no such variable uses
+// `BACKEND_URL`. That lets the groups move over one at a time.
 //
-// The paths are what the backend serves today. Two of them look odd on
-// purpose and are kept exactly: the harvest summary lives under
-// `/api/v1/harvest/...` rather than `/api/v1/analytics/...` and its spatial
-// variant is spelled `spartial`.
+// The old web-backend paths that changed, for anyone reading an old log:
+//   /auth/me                       -> /me
+//   /tasks, /tasks/{id}            -> /forms?include=stats, /forms/{id}?include=stats
+//   /tasks/{id}/responses          -> /forms/{id}/responses
+//   /tasks/{id}/review             -> /forms/{id}/responses?view=review
+//   /tasks/{id}/review/{r}/fields  -> /forms/{id}/responses/{r}/fields
+//   /reminders/recipient-options   -> /forms/reminder-recipients
+//   /harvest/(spartial/)summary    -> /analytics/harvest/(spatial/)summary
+//   /reports/raw-data/download     -> /reports/raw-data
 
 const backendGroups = [
   "auth",
   "me",
   "admin",
   "forms",
-  "tasks",
   "analytics",
-  "harvest",
-  "reminders",
   "reports",
 ] as const;
 
@@ -45,11 +48,11 @@ const backendEndpoints = {
   auth: {
     login: endpoint("auth", "/api/v1/auth/login"),
     logout: endpoint("auth", "/api/v1/auth/logout"),
-    me: endpoint("auth", "/api/v1/auth/me"),
     resetPassword: endpoint("auth", "/api/v1/auth/reset-password"),
     ssoExchange: endpoint("auth", "/api/v1/auth/sso/exchange"),
   },
   me: {
+    self: endpoint("me", "/api/v1/me"),
     // `suffix` is an already-built query string: "" or "?limit=..&offset=..".
     history: (suffix = "") => endpoint("me", `/api/v1/me/history${suffix}`),
     historyOn: (date: string) => endpoint("me", `/api/v1/me/history/${date}`),
@@ -60,28 +63,42 @@ const backendEndpoints = {
   },
   forms: {
     list: endpoint("forms", "/api/v1/forms"),
+    // The researcher's task list: every form with its answer statistics.
+    listWithStats: endpoint("forms", "/api/v1/forms?include=stats"),
     byId: (id: string) => endpoint("forms", `/api/v1/forms/${id}`),
+    byIdWithStats: (id: string) =>
+      endpoint("forms", `/api/v1/forms/${id}?include=stats`),
     edit: (id: string) => endpoint("forms", `/api/v1/forms/${id}/edit`),
     reminder: (id: string) => endpoint("forms", `/api/v1/forms/${id}/reminder`),
     handlers: endpoint("forms", "/api/v1/forms/handlers"),
+    // Not on the After sheet: web-backend serves it and the form builder
+    // needs it, so it keeps its path until the sheet has a row for it.
     handlerCatalog: endpoint("forms", "/api/v1/forms/handlers/catalog"),
     handlerFields: (handler: string) =>
       endpoint("forms", `/api/v1/forms/handlers/${handler}/fields`),
-  },
-  tasks: {
-    list: endpoint("tasks", "/api/v1/tasks"),
-    byId: (taskId: string) => endpoint("tasks", `/api/v1/tasks/${taskId}`),
-    responses: (taskId: string) =>
-      endpoint("tasks", `/api/v1/tasks/${taskId}/responses`),
-    review: (taskId: string, suffix = "") =>
+    reminderRecipientRoles: endpoint(
+      "forms",
+      "/api/v1/forms/reminder-recipients/roles",
+    ),
+    reminderRecipientUsers: (q: string) =>
       endpoint(
-        "tasks",
-        `/api/v1/tasks/${encodeURIComponent(taskId)}/review${suffix}`,
+        "forms",
+        `/api/v1/forms/reminder-recipients/users?q=${encodeURIComponent(q)}`,
       ),
-    correctField: (taskId: string, responseId: string, fieldName: string) =>
+    responses: (id: string) =>
+      endpoint("forms", `/api/v1/forms/${id}/responses`),
+    // `suffix` is an already-built query string: "" or "?page=1&size=20".
+    reviewResponses: (id: string, suffix = "") =>
       endpoint(
-        "tasks",
-        `/api/v1/tasks/${encodeURIComponent(taskId)}/review/${encodeURIComponent(
+        "forms",
+        `/api/v1/forms/${encodeURIComponent(id)}/responses?view=review${
+          suffix ? `&${suffix.replace(/^\?/, "")}` : ""
+        }`,
+      ),
+    correctField: (id: string, responseId: string, fieldName: string) =>
+      endpoint(
+        "forms",
+        `/api/v1/forms/${encodeURIComponent(id)}/responses/${encodeURIComponent(
           responseId,
         )}/fields/${encodeURIComponent(fieldName)}`,
       ),
@@ -97,6 +114,18 @@ const backendEndpoints = {
         "analytics",
         `/api/v1/analytics/users/time-series/${mode}?from=${from}&to=${to}`,
       ),
+    harvestSummary: (
+      spatial: boolean,
+      mode: string,
+      from: string,
+      to: string,
+    ) =>
+      endpoint(
+        "analytics",
+        `/api/v1/analytics/harvest/${
+          spatial ? "spatial/" : ""
+        }summary/${mode}?from=${from}&to=${to}`,
+      ),
     harvestTimeSeries: (
       spatial: boolean,
       mode: string,
@@ -110,29 +139,9 @@ const backendEndpoints = {
         }time-series/${mode}?from=${from}&to=${to}`,
       ),
   },
-  harvest: {
-    summary: (spatial: boolean, mode: string, from: string, to: string) =>
-      endpoint(
-        "harvest",
-        `/api/v1/harvest/${
-          spatial ? "spartial/" : ""
-        }summary/${mode}?from=${from}&to=${to}`,
-      ),
-  },
-  reminders: {
-    recipientRoles: endpoint(
-      "reminders",
-      "/api/v1/reminders/recipient-options/roles",
-    ),
-    recipientUsers: (q: string) =>
-      endpoint(
-        "reminders",
-        `/api/v1/reminders/recipient-options/users?q=${encodeURIComponent(q)}`,
-      ),
-  },
   reports: {
-    rawDataDownload: (suffix = "") =>
-      endpoint("reports", `/api/v1/reports/raw-data/download${suffix}`),
+    rawData: (suffix = "") =>
+      endpoint("reports", `/api/v1/reports/raw-data${suffix}`),
   },
 };
 

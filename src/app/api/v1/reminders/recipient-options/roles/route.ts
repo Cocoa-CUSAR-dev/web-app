@@ -14,7 +14,7 @@ async function GET(req: NextRequest) {
     checkTokenPresence(req);
     const data = await proxyToBackend<RoleOptionsResponse>(
       req,
-      backendEndpoints.reminders.recipientRoles,
+      backendEndpoints.forms.reminderRecipientRoles,
       { method: "GET" },
     );
     return NextResponse.json(data, { status: 200 });

@@ -36,7 +36,7 @@ describe("GET /api/v1/tasks/[taskId]", () => {
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ value: { id: "abc" } });
     expect(fetch).toHaveBeenCalledWith(
-      expect.stringContaining("/api/v1/tasks/abc"),
+      expect.stringContaining("/api/v1/forms/abc?include=stats"),
       expect.anything(),
     );
   });

@@ -14,7 +14,7 @@ async function GET(req: NextRequest) {
     checkTokenPresence(req);
     const data = await proxyToBackend<TasksResponse>(
       req,
-      backendEndpoints.tasks.list,
+      backendEndpoints.forms.listWithStats,
       {
         method: "GET",
       },

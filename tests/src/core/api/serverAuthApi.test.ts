@@ -25,7 +25,7 @@ describe("serverAuthApi.authMe", () => {
     const result = await serverAuthApi.authMe("token=abc");
 
     expect(fetch).toHaveBeenCalledWith(
-      expect.stringContaining("/api/v1/auth/me"),
+      expect.stringContaining("/api/v1/me"),
       expect.objectContaining({
         method: "GET",
         headers: { Cookie: "token=abc" },

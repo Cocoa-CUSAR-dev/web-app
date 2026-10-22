@@ -17,7 +17,7 @@ async function GET(req: NextRequest) {
   try {
     const data = await proxyToBackend<AuthResponseType>(
       req,
-      backendEndpoints.auth.me,
+      backendEndpoints.me.self,
       {
         method: "GET",
       },

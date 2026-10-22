@@ -17,13 +17,13 @@ describe("backendEndpoints paths", () => {
   it.each([
     [backendEndpoints.auth.login, "auth", "/api/v1/auth/login"],
     [backendEndpoints.auth.logout, "auth", "/api/v1/auth/logout"],
-    [backendEndpoints.auth.me, "auth", "/api/v1/auth/me"],
     [
       backendEndpoints.auth.resetPassword,
       "auth",
       "/api/v1/auth/reset-password",
     ],
     [backendEndpoints.auth.ssoExchange, "auth", "/api/v1/auth/sso/exchange"],
+    [backendEndpoints.me.self, "me", "/api/v1/me"],
     [backendEndpoints.me.history(), "me", "/api/v1/me/history"],
     [
       backendEndpoints.me.history("?limit=10&offset=20"),
@@ -42,7 +42,17 @@ describe("backendEndpoints paths", () => {
     ],
     [backendEndpoints.admin.users, "admin", "/api/v1/admin/users"],
     [backendEndpoints.forms.list, "forms", "/api/v1/forms"],
+    [
+      backendEndpoints.forms.listWithStats,
+      "forms",
+      "/api/v1/forms?include=stats",
+    ],
     [backendEndpoints.forms.byId("f1"), "forms", "/api/v1/forms/f1"],
+    [
+      backendEndpoints.forms.byIdWithStats("f1"),
+      "forms",
+      "/api/v1/forms/f1?include=stats",
+    ],
     [backendEndpoints.forms.edit("f1"), "forms", "/api/v1/forms/f1/edit"],
     [
       backendEndpoints.forms.reminder("f1"),
@@ -60,23 +70,35 @@ describe("backendEndpoints paths", () => {
       "forms",
       "/api/v1/forms/handlers/harvest/fields",
     ],
-    [backendEndpoints.tasks.list, "tasks", "/api/v1/tasks"],
-    [backendEndpoints.tasks.byId("t1"), "tasks", "/api/v1/tasks/t1"],
     [
-      backendEndpoints.tasks.responses("t1"),
-      "tasks",
-      "/api/v1/tasks/t1/responses",
-    ],
-    [backendEndpoints.tasks.review("t1"), "tasks", "/api/v1/tasks/t1/review"],
-    [
-      backendEndpoints.tasks.review("t 1", "?limit=5"),
-      "tasks",
-      "/api/v1/tasks/t%201/review?limit=5",
+      backendEndpoints.forms.reminderRecipientRoles,
+      "forms",
+      "/api/v1/forms/reminder-recipients/roles",
     ],
     [
-      backendEndpoints.tasks.correctField("t1", "r1", "plot id"),
-      "tasks",
-      "/api/v1/tasks/t1/review/r1/fields/plot%20id",
+      backendEndpoints.forms.reminderRecipientUsers("นาย ก"),
+      "forms",
+      "/api/v1/forms/reminder-recipients/users?q=%E0%B8%99%E0%B8%B2%E0%B8%A2%20%E0%B8%81",
+    ],
+    [
+      backendEndpoints.forms.responses("f1"),
+      "forms",
+      "/api/v1/forms/f1/responses",
+    ],
+    [
+      backendEndpoints.forms.reviewResponses("f1"),
+      "forms",
+      "/api/v1/forms/f1/responses?view=review",
+    ],
+    [
+      backendEndpoints.forms.reviewResponses("f 1", "?aiOnly=true&page=2"),
+      "forms",
+      "/api/v1/forms/f%201/responses?view=review&aiOnly=true&page=2",
+    ],
+    [
+      backendEndpoints.forms.correctField("f1", "r1", "plot id"),
+      "forms",
+      "/api/v1/forms/f1/responses/r1/fields/plot%20id",
     ],
     [
       backendEndpoints.analytics.userSummary("count", "2026-01", "2026-03"),
@@ -87,6 +109,26 @@ describe("backendEndpoints paths", () => {
       backendEndpoints.analytics.userTimeSeries("delta", "2026-01", "2026-03"),
       "analytics",
       "/api/v1/analytics/users/time-series/delta?from=2026-01&to=2026-03",
+    ],
+    [
+      backendEndpoints.analytics.harvestSummary(
+        false,
+        "total",
+        "2026-01",
+        "2026-03",
+      ),
+      "analytics",
+      "/api/v1/analytics/harvest/summary/total?from=2026-01&to=2026-03",
+    ],
+    [
+      backendEndpoints.analytics.harvestSummary(
+        true,
+        "count",
+        "2026-01",
+        "2026-03",
+      ),
+      "analytics",
+      "/api/v1/analytics/harvest/spatial/summary/count?from=2026-01&to=2026-03",
     ],
     [
       backendEndpoints.analytics.harvestTimeSeries(
@@ -108,37 +150,11 @@ describe("backendEndpoints paths", () => {
       "analytics",
       "/api/v1/analytics/harvest/spatial/time-series/sum?from=2026-01&to=2026-03",
     ],
-    // The harvest summary is served outside /analytics, and its spatial
-    // variant is spelled "spartial": both exactly as the backend has them.
+    [backendEndpoints.reports.rawData(), "reports", "/api/v1/reports/raw-data"],
     [
-      backendEndpoints.harvest.summary(false, "total", "2026-01", "2026-03"),
-      "harvest",
-      "/api/v1/harvest/summary/total?from=2026-01&to=2026-03",
-    ],
-    [
-      backendEndpoints.harvest.summary(true, "count", "2026-01", "2026-03"),
-      "harvest",
-      "/api/v1/harvest/spartial/summary/count?from=2026-01&to=2026-03",
-    ],
-    [
-      backendEndpoints.reminders.recipientRoles,
-      "reminders",
-      "/api/v1/reminders/recipient-options/roles",
-    ],
-    [
-      backendEndpoints.reminders.recipientUsers("นาย ก"),
-      "reminders",
-      "/api/v1/reminders/recipient-options/users?q=%E0%B8%99%E0%B8%B2%E0%B8%A2%20%E0%B8%81",
-    ],
-    [
-      backendEndpoints.reports.rawDataDownload(),
+      backendEndpoints.reports.rawData("?sheets=FARM,HARVEST"),
       "reports",
-      "/api/v1/reports/raw-data/download",
-    ],
-    [
-      backendEndpoints.reports.rawDataDownload("?sheets=FARM,HARVEST"),
-      "reports",
-      "/api/v1/reports/raw-data/download?sheets=FARM,HARVEST",
+      "/api/v1/reports/raw-data?sheets=FARM,HARVEST",
     ],
   ])("%j", (endpoint, group, expectedPath) => {
     expect(endpoint.group).toBe(group);
@@ -147,9 +163,11 @@ describe("backendEndpoints paths", () => {
 
   it("only uses groups that can be configured", () => {
     const groups = new Set<string>(backendGroups);
-    expect(groups.has(backendEndpoints.tasks.list.group)).toBe(true);
+    expect(groups.has(backendEndpoints.forms.list.group)).toBe(true);
     expect(
-      groups.has(backendEndpoints.harvest.summary(false, "a", "b", "c").group),
+      groups.has(
+        backendEndpoints.analytics.harvestSummary(false, "a", "b", "c").group,
+      ),
     ).toBe(true);
   });
 });
@@ -163,19 +181,19 @@ describe("per-group backend URL", () => {
     for (const group of backendGroups) {
       expect(backendUrlFor(group)).toBe("http://localhost:3001");
     }
-    expect(backendHref(backendEndpoints.tasks.list)).toBe(
-      "http://localhost:3001/api/v1/tasks",
+    expect(backendHref(backendEndpoints.forms.list)).toBe(
+      "http://localhost:3001/api/v1/forms",
     );
   });
 
   it("sends only the overridden group to its own backend", () => {
-    vi.stubEnv("BACKEND_URL_TASKS", "http://hub.internal:8010");
+    vi.stubEnv("BACKEND_URL_FORMS", "http://hub.internal:8010");
 
-    expect(backendHref(backendEndpoints.tasks.byId("t1"))).toBe(
-      "http://hub.internal:8010/api/v1/tasks/t1",
+    expect(backendHref(backendEndpoints.forms.byId("f1"))).toBe(
+      "http://hub.internal:8010/api/v1/forms/f1",
     );
-    expect(backendHref(backendEndpoints.forms.list)).toBe(
-      "http://localhost:3001/api/v1/forms",
+    expect(backendHref(backendEndpoints.me.self)).toBe(
+      "http://localhost:3001/api/v1/me",
     );
   });
 

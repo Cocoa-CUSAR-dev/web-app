@@ -32,7 +32,7 @@ async function GET(
 
     const data = await proxyToBackend<ReviewResponse>(
       req,
-      backendEndpoints.tasks.review(taskId, suffix),
+      backendEndpoints.forms.reviewResponses(taskId, suffix),
       { method: "GET" },
     );
     return NextResponse.json(data, { status: 200 });

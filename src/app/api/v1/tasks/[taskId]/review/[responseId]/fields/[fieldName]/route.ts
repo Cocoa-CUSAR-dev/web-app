@@ -41,7 +41,7 @@ async function PATCH(
 
     const data = await proxyToBackend<CorrectFieldResponse>(
       req,
-      backendEndpoints.tasks.correctField(taskId, responseId, fieldName),
+      backendEndpoints.forms.correctField(taskId, responseId, fieldName),
       { method: "PATCH", body: JSON.stringify(payload) },
     );
     return NextResponse.json(data, { status: 200 });

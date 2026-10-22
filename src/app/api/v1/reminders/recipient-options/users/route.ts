@@ -15,7 +15,7 @@ async function GET(req: NextRequest) {
     const q = req.nextUrl.searchParams.get("q") ?? "";
     const data = await proxyToBackend<UserOptionsResponse>(
       req,
-      backendEndpoints.reminders.recipientUsers(q),
+      backendEndpoints.forms.reminderRecipientUsers(q),
       { method: "GET" },
     );
     return NextResponse.json(data, { status: 200 });

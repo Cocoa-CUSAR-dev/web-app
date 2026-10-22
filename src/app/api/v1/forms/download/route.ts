@@ -20,7 +20,7 @@ async function GET(req: NextRequest) {
     const sheetsString = sheets ? `?sheets=${sheets.toUpperCase()}` : "";
     const token = cookies.get(tokenName);
     const response = await fetch(
-      backendHref(backendEndpoints.reports.rawDataDownload(sheetsString)),
+      backendHref(backendEndpoints.reports.rawData(sheetsString)),
       {
         method: "GET",
         headers: {

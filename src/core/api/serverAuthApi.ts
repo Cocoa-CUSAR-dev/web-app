@@ -9,7 +9,7 @@ const AUTH_ME_TIMEOUT_MS = 10_000;
 const serverAuthApi = {
   authMe: async (cookie: string) => {
     try {
-      const response = await fetch(backendHref(backendEndpoints.auth.me), {
+      const response = await fetch(backendHref(backendEndpoints.me.self), {
         method: "GET",
         headers: {
           Cookie: cookie,

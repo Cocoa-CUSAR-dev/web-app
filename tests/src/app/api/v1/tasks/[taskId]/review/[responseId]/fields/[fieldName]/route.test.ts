@@ -64,7 +64,7 @@ describe("PATCH /api/v1/tasks/[taskId]/review/[responseId]/fields/[fieldName]", 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ value: { fieldName: "fan_count" } });
     expect(fetch).toHaveBeenCalledWith(
-      "http://localhost:3001/api/v1/tasks/t1/review/r1/fields/fan_count",
+      "http://localhost:3001/api/v1/forms/t1/responses/r1/fields/fan_count",
       expect.objectContaining({
         method: "PATCH",
         body: JSON.stringify({ value: "7", reason: "typo" }),
@@ -93,7 +93,7 @@ describe("PATCH /api/v1/tasks/[taskId]/review/[responseId]/fields/[fieldName]", 
     );
 
     expect(fetch).toHaveBeenCalledWith(
-      "http://localhost:3001/api/v1/tasks/t1/review/r1/fields/..%2F..%2Fadmin",
+      "http://localhost:3001/api/v1/forms/t1/responses/r1/fields/..%2F..%2Fadmin",
       expect.anything(),
     );
   });

@@ -39,10 +39,18 @@ async function POST(req: NextRequest) {
       throw new HttpError(400, "invalid or missing request parameter");
     }
     const method = polygon ? "POST" : "GET";
+    const body = polygon
+      ? JSON.stringify({ geoJson: JSON.stringify(polygon) })
+      : undefined;
     const data = await proxyToBackend<SummaryDataResponse>(
       req,
-      backendEndpoints.harvest.summary(Boolean(polygon), mode, from, to),
-      { method },
+      backendEndpoints.analytics.harvestSummary(
+        Boolean(polygon),
+        mode,
+        from,
+        to,
+      ),
+      { method, body },
     );
     return NextResponse.json(data, { status: 200 });
   } catch (e) {
