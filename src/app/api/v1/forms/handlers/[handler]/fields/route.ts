@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { backendEndpoints } from "@/core/constants";
 import {
   apiErrorResponse,
   checkTokenPresence,
@@ -17,7 +18,7 @@ async function GET(
     const { handler } = await params;
     const data = await proxyToBackend<HandlerFieldsResponse>(
       req,
-      `/api/v1/forms/handlers/${handler}/fields`,
+      backendEndpoints.forms.handlerFields(handler),
       { method: "GET" },
     );
     return NextResponse.json(data, { status: 200 });

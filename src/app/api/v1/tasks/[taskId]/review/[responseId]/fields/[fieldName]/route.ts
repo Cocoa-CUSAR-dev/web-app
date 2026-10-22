@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { backendEndpoints } from "@/core/constants";
 import { HttpError } from "@/core/error";
 import {
   apiErrorResponse,
@@ -40,9 +41,7 @@ async function PATCH(
 
     const data = await proxyToBackend<CorrectFieldResponse>(
       req,
-      `/api/v1/tasks/${encodeURIComponent(taskId)}/review/${encodeURIComponent(
-        responseId,
-      )}/fields/${encodeURIComponent(fieldName)}`,
+      backendEndpoints.forms.correctField(taskId, responseId, fieldName),
       { method: "PATCH", body: JSON.stringify(payload) },
     );
     return NextResponse.json(data, { status: 200 });

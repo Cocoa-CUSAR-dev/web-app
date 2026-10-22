@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { backendEndpoints } from "@/core/constants";
 import { HttpError } from "@/core/error";
 import {
   apiErrorResponse,
@@ -19,7 +20,7 @@ async function PUT(
     if (!sections) {
       throw new HttpError(400, "missing form section body");
     }
-    const data = await proxyToBackend(req, `/api/v1/forms/${id}/edit`, {
+    const data = await proxyToBackend(req, backendEndpoints.forms.edit(id), {
       method: "PUT",
       body: JSON.stringify({ sections }),
     });

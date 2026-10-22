@@ -82,7 +82,7 @@ describe("POST /api/v1/analytics/harvest/summary", () => {
     );
 
     expect(fetch).toHaveBeenCalledWith(
-      expect.stringContaining("api/v1/harvest/summary/total"),
+      expect.stringContaining("api/v1/analytics/harvest/summary/total"),
       expect.objectContaining({ method: "GET" }),
     );
   });
@@ -103,8 +103,13 @@ describe("POST /api/v1/analytics/harvest/summary", () => {
     );
 
     expect(fetch).toHaveBeenCalledWith(
-      expect.stringContaining("api/v1/harvest/spartial/summary/total"),
-      expect.objectContaining({ method: "POST" }),
+      expect.stringContaining("api/v1/analytics/harvest/spatial/summary/total"),
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({
+          geoJson: JSON.stringify({ type: "Polygon", coordinates: [] }),
+        }),
+      }),
     );
   });
 

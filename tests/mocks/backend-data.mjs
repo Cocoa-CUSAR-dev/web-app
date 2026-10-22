@@ -1,13 +1,53 @@
 // In-memory fixture data + mutation helpers for the E2E mock backend.
-// Shapes mirror the real Kotlin backend's `/api/v1/**` contract as consumed
-// by the Next.js BFF routes under `src/app/api/v1/**`.
+// Shapes mirror the merged backend's `/api/v1/**` contract (the After sheet of
+// api-migration-map.xlsx) as consumed by the Next.js BFF routes under
+// `src/app/api/v1/**`.
 
 export const TOKEN_NAME = process.env.TOKEN_NAME || "token";
+// The access token the mock hands out and accepts as `Authorization: Bearer`.
 export const TOKEN_VALUE = "e2e-mock-session-token";
+export const REFRESH_TOKEN_VALUE = "e2e-mock-refresh-token";
 // A second session, for specs that need a farmer rather than a researcher
 // (the history page is farmer-only). Handed out by the SSO exchange for any
 // token starting with "farmer-".
 export const FARMER_TOKEN_VALUE = "e2e-mock-farmer-session-token";
+
+// What every login-like endpoint answers with: tokens in the body, no cookie.
+export function tokenPairFor(user, accessToken) {
+  return {
+    access_token: accessToken,
+    refresh_token: REFRESH_TOKEN_VALUE,
+    token_type: "bearer",
+    expires_in: 3600,
+    user: {
+      user_id: user.userId,
+      username: user.email,
+      roles: user.roles,
+      must_reset_password: false,
+    },
+  };
+}
+
+// What GET /api/v1/me answers: the account, its roles, one profile per role.
+export function meFor(user) {
+  const profile = {
+    first_name: user.firstName,
+    last_name: user.lastName,
+    organization: user.organization,
+  };
+  return {
+    user_id: user.userId,
+    username: user.email,
+    roles: user.roles,
+    must_reset_password: false,
+    profiles: {
+      researcher: user.roles.includes("researcher") ? profile : null,
+      farmer: user.roles.includes("farmer") ? profile : null,
+      hub_collector: null,
+      processor: null,
+    },
+  };
+}
 
 export const authUser = {
   userId: "u-1",

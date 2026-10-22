@@ -1,7 +1,11 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { harvestTimeSeriesMode, simpleDateRegex } from "@/core/constants";
+import {
+  backendEndpoints,
+  harvestTimeSeriesMode,
+  simpleDateRegex,
+} from "@/core/constants";
 import { HttpError } from "@/core/error";
 import {
   apiErrorResponse,
@@ -44,9 +48,6 @@ async function POST(req: NextRequest) {
     if (!harvestTimeSeriesMode.includes(mode)) {
       throw new HttpError(400, "invalid data mode");
     }
-    const path = polygon
-      ? "api/v1/analytics/harvest/spatial/time-series"
-      : "api/v1/analytics/harvest/time-series";
     const method = polygon ? "POST" : "GET";
     const body =
       method !== "GET"
@@ -55,7 +56,12 @@ async function POST(req: NextRequest) {
 
     const data = await proxyToBackend<TimeSeriesDataResponse>(
       req,
-      `/${path}/${mode}?from=${from}&to=${to}`,
+      backendEndpoints.analytics.harvestTimeSeries(
+        Boolean(polygon),
+        mode,
+        from,
+        to,
+      ),
       { method, body },
     );
     return NextResponse.json(data, { status: 200 });

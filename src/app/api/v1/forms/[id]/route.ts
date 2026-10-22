@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { backendEndpoints } from "@/core/constants";
 import { HttpError } from "@/core/error";
 import {
   apiErrorResponse,
@@ -22,7 +23,7 @@ async function GET(
     const { id } = await params;
     const data = await proxyToBackend<GetFormIdResponse>(
       req,
-      `/api/v1/forms/${id}`,
+      backendEndpoints.forms.byId(id),
       { method: "GET" },
     );
     return NextResponse.json(data, { status: 200 });
@@ -44,7 +45,7 @@ async function PUT(
     }
     const data = await proxyToBackend<UpdateFormResponse>(
       req,
-      `/api/v1/forms/${id}`,
+      backendEndpoints.forms.byId(id),
       { method: "PUT", body: JSON.stringify(body) },
     );
     return NextResponse.json(data, { status: 200 });

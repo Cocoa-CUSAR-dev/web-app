@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { backendEndpoints } from "@/core/constants";
 import {
   apiErrorResponse,
   checkTokenPresence,
@@ -13,7 +14,7 @@ async function GET(req: NextRequest) {
     checkTokenPresence(req);
     const data = await proxyToBackend<HandlerCatalogResponse>(
       req,
-      "/api/v1/forms/handlers/catalog",
+      backendEndpoints.forms.handlerCatalog,
       { method: "GET" },
     );
     return NextResponse.json(data, { status: 200 });
