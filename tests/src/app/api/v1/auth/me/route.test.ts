@@ -4,6 +4,19 @@ import { GET } from "@/app/api/v1/auth/me/route";
 
 import { makeApiRequest } from "../../../../../testUtils/nextRequest";
 
+// What the backend's /me answers ...
+const backendMe = {
+  user_id: "u-1",
+  username: "r@test.com",
+  roles: ["researcher"],
+  must_reset_password: false,
+  profiles: {
+    researcher: { first_name: "R", last_name: "S", organization: "Chula" },
+    farmer: null,
+  },
+};
+
+// ... and the flat user the pages read.
 const user = {
   userId: "u-1",
   email: "r@test.com",
@@ -11,6 +24,8 @@ const user = {
   lastName: "S",
   roles: ["researcher"],
   organization: "Chula",
+  isRequiresPasswordReset: false,
+  isPasswordReset: true,
 };
 
 describe("GET /api/v1/auth/me", () => {
@@ -32,11 +47,9 @@ describe("GET /api/v1/auth/me", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
-  it("passes the signed-in user through", async () => {
+  it("answers the signed-in user in the flat shape the pages read", async () => {
     vi.mocked(fetch).mockResolvedValue(
-      new Response(JSON.stringify({ value: user, error: null }), {
-        status: 200,
-      }),
+      new Response(JSON.stringify(backendMe), { status: 200 }),
     );
 
     const res = await GET(makeApiRequest("/api/v1/auth/me", { token: "jwt" }));
@@ -47,7 +60,7 @@ describe("GET /api/v1/auth/me", () => {
 
   it("treats an expired session as anonymous, not as an error", async () => {
     vi.mocked(fetch).mockResolvedValue(
-      new Response(JSON.stringify({ error: "expired" }), { status: 401 }),
+      new Response(JSON.stringify({ detail: "expired" }), { status: 401 }),
     );
 
     const res = await GET(makeApiRequest("/api/v1/auth/me", { token: "old" }));
@@ -58,7 +71,7 @@ describe("GET /api/v1/auth/me", () => {
 
   it("reports a backend failure as an error", async () => {
     vi.mocked(fetch).mockResolvedValue(
-      new Response(JSON.stringify({ error: "down" }), { status: 500 }),
+      new Response(JSON.stringify({ detail: "down" }), { status: 500 }),
     );
 
     const res = await GET(makeApiRequest("/api/v1/auth/me", { token: "jwt" }));

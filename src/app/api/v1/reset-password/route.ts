@@ -8,6 +8,7 @@ import {
   checkTokenPresence,
   proxyToBackend,
 } from "@/libs/apiUtil";
+import { setSessionCookies, type TokenPair } from "@/libs/backendSession";
 
 async function PATCH(req: NextRequest) {
   try {
@@ -23,17 +24,22 @@ async function PATCH(req: NextRequest) {
         },
       );
     }
-    const data = await proxyToBackend(
+    // Changing the password signs out every other device, so the backend
+    // answers with a new token pair for this one.
+    const pair = await proxyToBackend<TokenPair>(
       req,
       backendEndpoints.auth.resetPassword,
       {
         method: "PATCH",
-        body: JSON.stringify({ newPassword }),
+        body: JSON.stringify({ new_password: newPassword }),
       },
     );
-    return NextResponse.json(data, {
-      status: 200,
-    });
+    const response = NextResponse.json(
+      { message: "password changed" },
+      { status: 200 },
+    );
+    setSessionCookies(response, pair);
+    return response;
   } catch (e) {
     return apiErrorResponse(e);
   }

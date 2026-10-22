@@ -47,6 +47,7 @@ function endpoint(group: BackendGroup, path: string): BackendEndpoint {
 const backendEndpoints = {
   auth: {
     login: endpoint("auth", "/api/v1/auth/login"),
+    refresh: endpoint("auth", "/api/v1/auth/refresh"),
     logout: endpoint("auth", "/api/v1/auth/logout"),
     resetPassword: endpoint("auth", "/api/v1/auth/reset-password"),
     ssoExchange: endpoint("auth", "/api/v1/auth/sso/exchange"),

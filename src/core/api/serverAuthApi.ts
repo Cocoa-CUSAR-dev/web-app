@@ -1,10 +1,24 @@
 import "server-only";
 
-import { backendEndpoints, backendHref } from "../constants";
+import { type BackendMe, toAuthValue } from "@/libs/authAdapter";
+import { readBackendError } from "@/libs/backendSession";
+
+import { backendEndpoints, backendHref, tokenName } from "../constants";
 import { CustomRedirectError, HttpError } from "../error";
 import { AuthResponseType } from "../types";
 
 const AUTH_ME_TIMEOUT_MS = 10_000;
+
+// `cookie` is the request's whole Cookie header; the backend wants just the
+// access token, as a Bearer header.
+function tokenFromCookies(cookie: string): string {
+  const prefix = `${tokenName}=`;
+  const match = cookie
+    .split(";")
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(prefix));
+  return match ? match.slice(prefix.length) : "";
+}
 
 const serverAuthApi = {
   authMe: async (cookie: string) => {
@@ -12,7 +26,7 @@ const serverAuthApi = {
       const response = await fetch(backendHref(backendEndpoints.me.self), {
         method: "GET",
         headers: {
-          Cookie: cookie,
+          Authorization: `Bearer ${tokenFromCookies(cookie)}`,
         },
         // Every authenticated page waits on this before rendering. Without
         // a limit, a backend that is asleep or hung leaves the page blank
@@ -21,10 +35,14 @@ const serverAuthApi = {
         signal: AbortSignal.timeout(AUTH_ME_TIMEOUT_MS),
       });
       if (!response.ok) {
-        const { error } = await response.json();
-        throw new HttpError(response.status, error ?? response.statusText);
+        throw new HttpError(
+          response.status,
+          (await readBackendError(response)) ?? response.statusText,
+        );
       }
-      return (await response.json())["value"] as AuthResponseType["value"];
+      return toAuthValue(
+        (await response.json()) as BackendMe,
+      ) satisfies AuthResponseType["value"];
     } catch (e) {
       if (e instanceof HttpError) {
         if (e.status === 401) {

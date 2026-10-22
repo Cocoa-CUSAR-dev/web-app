@@ -3,8 +3,8 @@ import { NextResponse } from "next/server";
 
 import { backendEndpoints, tokenName } from "@/core/constants";
 import { HttpError } from "@/core/error";
-import { AuthResponseType } from "@/core/types";
 import { apiErrorResponse, proxyToBackend } from "@/libs/apiUtil";
+import { type BackendMe, toAuthValue } from "@/libs/authAdapter";
 
 // The signed-in user, or `value: null` for an anonymous visitor -- never a
 // 401, because "not logged in" is the normal answer for a public page, not
@@ -15,14 +15,10 @@ async function GET(req: NextRequest) {
     return NextResponse.json({ value: null }, { status: 200 });
   }
   try {
-    const data = await proxyToBackend<AuthResponseType>(
-      req,
-      backendEndpoints.me.self,
-      {
-        method: "GET",
-      },
-    );
-    return NextResponse.json(data, { status: 200 });
+    const me = await proxyToBackend<BackendMe>(req, backendEndpoints.me.self, {
+      method: "GET",
+    });
+    return NextResponse.json({ value: toAuthValue(me) }, { status: 200 });
   } catch (e) {
     if (e instanceof HttpError && e.status === 401) {
       return NextResponse.json({ value: null }, { status: 200 });

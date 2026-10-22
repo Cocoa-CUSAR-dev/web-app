@@ -2,6 +2,8 @@ export {
   backendUrl,
   harvestSummaryMode,
   harvestTimeSeriesMode,
+  refreshCookieMaxAgeSeconds,
+  refreshTokenName,
   simpleDateRegex,
   tokenName,
   userSummaryMode,

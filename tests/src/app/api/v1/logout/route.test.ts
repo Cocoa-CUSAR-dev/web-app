@@ -25,62 +25,59 @@ describe("GET /api/v1/logout", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
-  it("propagates the backend's error status and message", async () => {
-    vi.mocked(fetch).mockResolvedValue(
-      new Response(JSON.stringify({ error: "session expired" }), {
-        status: 401,
-      }),
+  it("revokes the refresh token on the backend and clears both cookies", async () => {
+    vi.mocked(fetch).mockResolvedValue(new Response(null, { status: 204 }));
+
+    const res = await GET(
+      makeApiRequest("/api/v1/logout", { token: "t", refreshToken: "r" }),
     );
 
-    const res = await GET(makeApiRequest("/api/v1/logout", { token: "t" }));
-
-    expect(res.status).toBe(401);
-    expect(await res.json()).toEqual({ error: "session expired" });
-  });
-
-  it.fails(
-    "does not report success when the backend omits Set-Cookie (currently returns 200 with an error body, see BUG note in test.md)",
-    async () => {
-      // Route quirk: a missing Set-Cookie throws
-      // `new HttpError(backendResponse.status, ...)` using the *successful*
-      // backend status (200), so the response ends up 200 with an
-      // error-shaped body instead of a real 4xx/5xx. The exact "correct"
-      // status isn't specified anywhere, so this only asserts the one thing
-      // we do know for certain: an error response shouldn't claim success.
-      vi.mocked(fetch).mockResolvedValue(new Response(null, { status: 200 }));
-
-      const res = await GET(
-        makeApiRequest("/api/v1/logout", { token: "t" }),
-      );
-
-      expect(res.status).not.toBe(200);
-    },
-  );
-
-  it("returns a success body and forwards the first Set-Cookie header", async () => {
-    vi.mocked(fetch).mockResolvedValue(
-      new Response(null, {
-        status: 200,
-        headers: { "set-cookie": "token=; Max-Age=0" },
-      }),
-    );
-
-    const res = await GET(makeApiRequest("/api/v1/logout", { token: "t" }));
-
+    const [url, init] = vi.mocked(fetch).mock.calls[0];
+    expect(String(url)).toMatch(/\/api\/v1\/auth\/logout$/);
+    expect(init?.method).toBe("POST");
+    expect(JSON.parse(String(init?.body))).toEqual({ refresh_token: "r" });
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({
       value: "logout successful",
       error: null,
     });
-    expect(res.headers.get("set-cookie")).toContain("token=");
+    expect(res.cookies.get("token")?.value).toBe("");
+    expect(res.cookies.get("refresh_token")?.value).toBe("");
   });
 
-  it("returns 500 for an unexpected error", async () => {
+  it("clears the cookies even when the backend refuses", async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(JSON.stringify({ detail: "session expired" }), {
+        status: 401,
+      }),
+    );
+
+    const res = await GET(
+      makeApiRequest("/api/v1/logout", { token: "t", refreshToken: "r" }),
+    );
+
+    expect(res.status).toBe(200);
+    expect(res.cookies.get("token")?.value).toBe("");
+    expect(res.cookies.get("refresh_token")?.value).toBe("");
+  });
+
+  it("clears the cookies even when the backend cannot be reached", async () => {
     vi.mocked(fetch).mockRejectedValue(new Error("network down"));
 
+    const res = await GET(
+      makeApiRequest("/api/v1/logout", { token: "t", refreshToken: "r" }),
+    );
+
+    expect(res.status).toBe(200);
+    expect(res.cookies.get("token")?.value).toBe("");
+    expect(res.cookies.get("refresh_token")?.value).toBe("");
+  });
+
+  it("does not call the backend when there is no refresh token to revoke", async () => {
     const res = await GET(makeApiRequest("/api/v1/logout", { token: "t" }));
 
-    expect(res.status).toBe(500);
-    expect(await res.json()).toEqual({ error: "Internal Server Error" });
+    expect(fetch).not.toHaveBeenCalled();
+    expect(res.status).toBe(200);
+    expect(res.cookies.get("token")?.value).toBe("");
   });
 });

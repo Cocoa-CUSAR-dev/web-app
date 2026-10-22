@@ -6,6 +6,11 @@ if (!backendUrl && typeof window === "undefined") {
   );
 }
 const tokenName = process.env.TOKEN_NAME ?? "token";
+// Cookie holding the refresh token (see src/libs/backendSession.ts).
+const refreshTokenName = process.env.REFRESH_TOKEN_NAME ?? "refresh_token";
+// How long the browser keeps the refresh cookie: the backend's
+// REFRESH_TOKEN_TTL_DAYS (90).
+const refreshCookieMaxAgeSeconds = 90 * 24 * 60 * 60;
 const simpleDateRegex = /^\d{4}-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01]))?$/;
 
 // #region monthly data
@@ -20,6 +25,8 @@ export {
   backendUrl,
   harvestSummaryMode,
   harvestTimeSeriesMode,
+  refreshCookieMaxAgeSeconds,
+  refreshTokenName,
   simpleDateRegex,
   tokenName,
   userSummaryMode,

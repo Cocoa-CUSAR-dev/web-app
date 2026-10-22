@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 
 import { type BackendEndpoint, backendHref, tokenName } from "@/core/constants";
 import { HttpError } from "@/core/error";
+import { bearer, readBackendError } from "@/libs/backendSession";
 
 function checkTokenPresence(req: NextRequest) {
   const token = req.cookies.get(tokenName);
@@ -23,7 +24,7 @@ function handleApiError(e: unknown) {
   }
 }
 
-// FE-3: the fetch-to-backend + Cookie-forwarding + error-check + JSON-parse
+// FE-3: the fetch-to-backend + token-forwarding + error-check + JSON-parse
 // sequence below was copy-pasted into ~15 route.ts files. Callers still
 // build their own path/method/body (some derive the path from query params
 // or a request body, e.g. the analytics routes), this only replaces the
@@ -42,17 +43,14 @@ async function proxyToBackend<T>(
     method: init?.method ?? "GET",
     headers: {
       "Content-Type": "application/json",
-      Cookie: `${token!.name}=${token!.value}`,
+      Authorization: bearer(token!.value),
     },
     body: init?.body,
   });
   if (!response.ok) {
-    const { error } = await response.json();
-    const setCookie = response.headers.getSetCookie();
     throw new HttpError(
       response.status,
-      error ?? response.statusText,
-      setCookie,
+      (await readBackendError(response)) ?? response.statusText,
     );
   }
   return (await response.json()) as T;

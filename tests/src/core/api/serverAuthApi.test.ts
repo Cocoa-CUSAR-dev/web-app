@@ -17,21 +17,42 @@ describe("serverAuthApi.authMe", () => {
   it("returns the auth value on a successful response", async () => {
     vi.mocked(fetch).mockResolvedValue(
       new Response(
-        JSON.stringify({ value: { email: "a@test.com", roles: ["admin"] } }),
+        JSON.stringify({
+          user_id: "u-1",
+          username: "a@test.com",
+          roles: ["admin"],
+          must_reset_password: false,
+          profiles: {
+            researcher: {
+              first_name: "A",
+              last_name: "B",
+              organization: "Chula",
+            },
+          },
+        }),
         { status: 200 },
       ),
     );
 
-    const result = await serverAuthApi.authMe("token=abc");
+    const result = await serverAuthApi.authMe("theme=dark; token=abc; other=1");
 
     expect(fetch).toHaveBeenCalledWith(
       expect.stringContaining("/api/v1/me"),
       expect.objectContaining({
         method: "GET",
-        headers: { Cookie: "token=abc" },
+        headers: { Authorization: "Bearer abc" },
       }),
     );
-    expect(result).toEqual({ email: "a@test.com", roles: ["admin"] });
+    expect(result).toEqual({
+      userId: "u-1",
+      email: "a@test.com",
+      firstName: "A",
+      lastName: "B",
+      organization: "Chula",
+      roles: ["admin"],
+      isRequiresPasswordReset: false,
+      isPasswordReset: true,
+    });
   });
 
   it("throws CustomRedirectError to the login page on a 401 response", async () => {
