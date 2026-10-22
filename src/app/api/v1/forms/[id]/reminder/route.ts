@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { backendEndpoints } from "@/core/constants";
 import { HttpError } from "@/core/error";
 import {
   apiErrorResponse,
@@ -21,7 +22,7 @@ async function GET(
     const { id } = await params;
     const data = await proxyToBackend<ReminderDetailResponse>(
       req,
-      `/api/v1/forms/${id}/reminder`,
+      backendEndpoints.forms.reminder(id),
       { method: "GET" },
     );
     return NextResponse.json(data, { status: 200 });
@@ -43,7 +44,7 @@ async function PUT(
     }
     const data = await proxyToBackend<ReminderDetailResponse>(
       req,
-      `/api/v1/forms/${id}/reminder`,
+      backendEndpoints.forms.reminder(id),
       { method: "PUT", body: JSON.stringify(body) },
     );
     return NextResponse.json(data, { status: 200 });

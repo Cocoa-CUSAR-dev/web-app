@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { backendEndpoints } from "@/core/constants";
 import { AuthResetPasswordReqType } from "@/core/types";
 import {
   apiErrorResponse,
@@ -22,10 +23,14 @@ async function PATCH(req: NextRequest) {
         },
       );
     }
-    const data = await proxyToBackend(req, "/api/v1/auth/reset-password", {
-      method: "PATCH",
-      body: JSON.stringify({ newPassword }),
-    });
+    const data = await proxyToBackend(
+      req,
+      backendEndpoints.auth.resetPassword,
+      {
+        method: "PATCH",
+        body: JSON.stringify({ newPassword }),
+      },
+    );
     return NextResponse.json(data, {
       status: 200,
     });

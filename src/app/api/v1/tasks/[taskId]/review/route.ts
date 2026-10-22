@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { backendEndpoints } from "@/core/constants";
 import {
   apiErrorResponse,
   checkTokenPresence,
@@ -31,7 +32,7 @@ async function GET(
 
     const data = await proxyToBackend<ReviewResponse>(
       req,
-      `/api/v1/tasks/${encodeURIComponent(taskId)}/review${suffix}`,
+      backendEndpoints.tasks.review(taskId, suffix),
       { method: "GET" },
     );
     return NextResponse.json(data, { status: 200 });

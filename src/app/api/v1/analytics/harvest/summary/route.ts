@@ -1,7 +1,11 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { harvestSummaryMode, simpleDateRegex } from "@/core/constants";
+import {
+  backendEndpoints,
+  harvestSummaryMode,
+  simpleDateRegex,
+} from "@/core/constants";
 import { HttpError } from "@/core/error";
 import {
   apiErrorResponse,
@@ -34,13 +38,10 @@ async function POST(req: NextRequest) {
     if (!harvestSummaryMode.includes(mode)) {
       throw new HttpError(400, "invalid or missing request parameter");
     }
-    const path = polygon
-      ? "api/v1/harvest/spartial/summary"
-      : "api/v1/harvest/summary";
     const method = polygon ? "POST" : "GET";
     const data = await proxyToBackend<SummaryDataResponse>(
       req,
-      `/${path}/${mode}?from=${from}&to=${to}`,
+      backendEndpoints.harvest.summary(Boolean(polygon), mode, from, to),
       { method },
     );
     return NextResponse.json(data, { status: 200 });

@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { backendUrl, tokenName } from "@/core/constants";
+import { backendEndpoints, backendHref, tokenName } from "@/core/constants";
 import { HttpError } from "@/core/error";
 import { apiErrorResponse, checkTokenPresence } from "@/libs/apiUtil";
 
@@ -9,13 +9,16 @@ async function GET(req: NextRequest) {
   try {
     checkTokenPresence(req);
     const token = req.cookies.get(tokenName);
-    const backendResponse = await fetch(`${backendUrl}/api/v1/auth/logout`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Cookie: `${token!.name}=${token!.value}`,
+    const backendResponse = await fetch(
+      backendHref(backendEndpoints.auth.logout),
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: `${token!.name}=${token!.value}`,
+        },
       },
-    });
+    );
     if (!backendResponse.ok) {
       const { error } = await backendResponse.json();
       throw new HttpError(

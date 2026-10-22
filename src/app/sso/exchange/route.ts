@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { backendUrl } from "@/core/constants";
+import { backendEndpoints, backendHref } from "@/core/constants";
 
 // US3-2 #125 (F2): the SSO token now arrives in the URL fragment and is read
 // client-side (src/app/sso/page.tsx), then POSTed here -- so it never travels in
@@ -23,7 +23,7 @@ async function POST(req: NextRequest) {
 
   try {
     const backendResponse = await fetch(
-      `${backendUrl}/api/v1/auth/sso/exchange`,
+      backendHref(backendEndpoints.auth.ssoExchange),
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },

@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { backendEndpoints } from "@/core/constants";
 import {
   apiErrorResponse,
   checkTokenPresence,
@@ -13,7 +14,7 @@ async function GET(req: NextRequest) {
     checkTokenPresence(req);
     const data = await proxyToBackend<RoleOptionsResponse>(
       req,
-      "/api/v1/reminders/recipient-options/roles",
+      backendEndpoints.reminders.recipientRoles,
       { method: "GET" },
     );
     return NextResponse.json(data, { status: 200 });

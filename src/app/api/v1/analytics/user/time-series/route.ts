@@ -1,7 +1,11 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { simpleDateRegex, userTimeSeriesMode } from "@/core/constants";
+import {
+  backendEndpoints,
+  simpleDateRegex,
+  userTimeSeriesMode,
+} from "@/core/constants";
 import { HttpError } from "@/core/error";
 import {
   apiErrorResponse,
@@ -34,7 +38,7 @@ async function GET(req: NextRequest) {
     }
     const data = await proxyToBackend(
       req,
-      `/api/v1/analytics/users/time-series/${mode}?from=${from}&to=${to}`,
+      backendEndpoints.analytics.userTimeSeries(mode, from, to),
       { method: "GET" },
     );
     return NextResponse.json(data, {

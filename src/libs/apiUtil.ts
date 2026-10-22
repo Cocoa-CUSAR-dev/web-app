@@ -3,7 +3,7 @@ import "server-only";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { backendUrl, tokenName } from "@/core/constants";
+import { type BackendEndpoint, backendHref, tokenName } from "@/core/constants";
 import { HttpError } from "@/core/error";
 
 function checkTokenPresence(req: NextRequest) {
@@ -27,16 +27,18 @@ function handleApiError(e: unknown) {
 // sequence below was copy-pasted into ~15 route.ts files. Callers still
 // build their own path/method/body (some derive the path from query params
 // or a request body, e.g. the analytics routes), this only replaces the
-// part that was identical everywhere. Assumes checkTokenPresence(req) has
+// part that was identical everywhere. The backend path comes from
+// backendEndpoints (src/core/constants/backendEndpoints.ts), never a literal
+// here. Assumes checkTokenPresence(req) has
 // already been called -- callers still own that check and its ordering
 // relative to their own request validation.
 async function proxyToBackend<T>(
   req: NextRequest,
-  path: string,
+  endpoint: BackendEndpoint,
   init?: { method?: string; body?: BodyInit },
 ): Promise<T> {
   const token = req.cookies.get(tokenName);
-  const response = await fetch(`${backendUrl}${path}`, {
+  const response = await fetch(backendHref(endpoint), {
     method: init?.method ?? "GET",
     headers: {
       "Content-Type": "application/json",

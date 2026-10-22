@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { backendUrl, tokenName } from "@/core/constants";
+import { backendEndpoints, backendHref, tokenName } from "@/core/constants";
 import { HttpError } from "@/core/error";
 import { apiErrorResponse, checkTokenPresence } from "@/libs/apiUtil";
 
@@ -20,7 +20,7 @@ async function GET(req: NextRequest) {
     const sheetsString = sheets ? `?sheets=${sheets.toUpperCase()}` : "";
     const token = cookies.get(tokenName);
     const response = await fetch(
-      `${backendUrl}/api/v1/reports/raw-data/download${sheetsString}`,
+      backendHref(backendEndpoints.reports.rawDataDownload(sheetsString)),
       {
         method: "GET",
         headers: {

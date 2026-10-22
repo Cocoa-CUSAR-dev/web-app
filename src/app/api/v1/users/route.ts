@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { tokenName } from "@/core/constants";
+import { backendEndpoints, tokenName } from "@/core/constants";
 import { HttpError } from "@/core/error";
 import { AdminAddUserReqType } from "@/core/types";
 import {
@@ -52,7 +52,7 @@ async function POST(req: NextRequest) {
         },
       );
     }
-    const data = await proxyToBackend(req, "/api/v1/admin/users", {
+    const data = await proxyToBackend(req, backendEndpoints.admin.users, {
       method: "POST",
       body: JSON.stringify({ username, password }),
     });

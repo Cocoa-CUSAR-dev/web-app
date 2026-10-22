@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { backendEndpoints } from "@/core/constants";
 import {
   apiErrorResponse,
   checkTokenPresence,
@@ -28,7 +29,7 @@ async function GET(req: NextRequest) {
 
     const data = await proxyToBackend<SubmissionDaysResponse>(
       req,
-      `/api/v1/me/history${suffix}`,
+      backendEndpoints.me.history(suffix),
       { method: "GET" },
     );
     return NextResponse.json(data, { status: 200 });

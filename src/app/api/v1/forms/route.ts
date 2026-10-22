@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { backendEndpoints } from "@/core/constants";
 import {
   apiErrorResponse,
   checkTokenPresence,
@@ -15,9 +16,13 @@ import { GetFormsResponse } from "@/modules/form/route-form-edit/formEditTypes";
 async function GET(req: NextRequest) {
   try {
     checkTokenPresence(req);
-    const data = await proxyToBackend<GetFormsResponse>(req, "/api/v1/forms", {
-      method: "GET",
-    });
+    const data = await proxyToBackend<GetFormsResponse>(
+      req,
+      backendEndpoints.forms.list,
+      {
+        method: "GET",
+      },
+    );
     return NextResponse.json(data, { status: 200 });
   } catch (e) {
     return apiErrorResponse(e);
@@ -40,7 +45,7 @@ async function POST(req: NextRequest) {
     }
     const data = await proxyToBackend<CreateFormResponse>(
       req,
-      "/api/v1/forms",
+      backendEndpoints.forms.list,
       {
         method: "POST",
         body: JSON.stringify(body),
