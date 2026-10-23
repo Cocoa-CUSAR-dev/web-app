@@ -52,9 +52,15 @@ async function POST(req: NextRequest) {
         },
       );
     }
+    // backend-hub creates a researcher who must change this temporary
+    // password at first sign-in (same rule web-backend had).
     const data = await proxyToBackend(req, backendEndpoints.admin.users, {
       method: "POST",
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({
+        username,
+        temporary_password: password,
+        role: "researcher",
+      }),
     });
     return NextResponse.json(data, { status: 201 });
   } catch (e) {
