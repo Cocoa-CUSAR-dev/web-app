@@ -108,6 +108,29 @@ describe("POST /api/v1/users", () => {
     expect(await res.json()).toEqual({ value: { username: "new@test.com" } });
   });
 
+  it("sends backend-hub's create-user body (temporary password, researcher role)", async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(JSON.stringify({ user_id: "u1", roles: ["researcher"] }), {
+        status: 201,
+      }),
+    );
+
+    await POST(
+      makeApiRequest("/api/v1/users", {
+        method: "POST",
+        body: { username: "new@test.com", password: "pw1234" },
+        token: "t",
+      }),
+    );
+
+    const init = vi.mocked(fetch).mock.calls[0][1];
+    expect(JSON.parse(init?.body as string)).toEqual({
+      username: "new@test.com",
+      temporary_password: "pw1234",
+      role: "researcher",
+    });
+  });
+
   it("propagates the backend's error status and message", async () => {
     vi.mocked(fetch).mockResolvedValue(
       new Response(JSON.stringify({ error: "username taken" }), {
