@@ -6,7 +6,7 @@ import { HttpError } from "@/core/error";
 import {
   apiErrorResponse,
   checkTokenPresence,
-  proxyToBackend,
+  proxyValueToBackend,
 } from "@/libs/apiUtil";
 import {
   UpdateFormRequest,
@@ -21,7 +21,7 @@ async function GET(
   try {
     checkTokenPresence(req);
     const { id } = await params;
-    const data = await proxyToBackend<GetFormIdResponse>(
+    const data = await proxyValueToBackend<GetFormIdResponse>(
       req,
       backendEndpoints.forms.byId(id),
       { method: "GET" },
@@ -43,7 +43,7 @@ async function PUT(
     if (!body.sections?.length) {
       throw new HttpError(400, "missing form section body");
     }
-    const data = await proxyToBackend<UpdateFormResponse>(
+    const data = await proxyValueToBackend<UpdateFormResponse>(
       req,
       backendEndpoints.forms.byId(id),
       { method: "PUT", body: JSON.stringify(body) },

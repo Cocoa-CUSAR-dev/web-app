@@ -5,7 +5,7 @@ import { backendEndpoints } from "@/core/constants";
 import {
   apiErrorResponse,
   checkTokenPresence,
-  proxyToBackend,
+  proxyValueToBackend,
 } from "@/libs/apiUtil";
 import { DiaryResponse } from "@/modules/history/historyTypes";
 
@@ -20,7 +20,7 @@ async function GET(
   try {
     const { date } = await params;
     checkTokenPresence(req);
-    const data = await proxyToBackend<DiaryResponse>(
+    const data = await proxyValueToBackend<DiaryResponse>(
       req,
       backendEndpoints.me.diary(date),
       { method: "GET" },

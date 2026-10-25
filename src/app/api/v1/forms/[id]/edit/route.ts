@@ -6,7 +6,7 @@ import { HttpError } from "@/core/error";
 import {
   apiErrorResponse,
   checkTokenPresence,
-  proxyToBackend,
+  proxyValueToBackend,
 } from "@/libs/apiUtil";
 
 async function PUT(
@@ -20,10 +20,14 @@ async function PUT(
     if (!sections) {
       throw new HttpError(400, "missing form section body");
     }
-    const data = await proxyToBackend(req, backendEndpoints.forms.edit(id), {
-      method: "PUT",
-      body: JSON.stringify({ sections }),
-    });
+    const data = await proxyValueToBackend(
+      req,
+      backendEndpoints.forms.edit(id),
+      {
+        method: "PUT",
+        body: JSON.stringify({ sections }),
+      },
+    );
     return NextResponse.json(data, { status: 200 });
   } catch (e) {
     return apiErrorResponse(e);

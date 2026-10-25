@@ -5,14 +5,14 @@ import { backendEndpoints } from "@/core/constants";
 import {
   apiErrorResponse,
   checkTokenPresence,
-  proxyToBackend,
+  proxyValueToBackend,
 } from "@/libs/apiUtil";
 import { HandlerCatalogResponse } from "@/modules/form/formDefinition/handlerCatalogTypes";
 
 async function GET(req: NextRequest) {
   try {
     checkTokenPresence(req);
-    const data = await proxyToBackend<HandlerCatalogResponse>(
+    const data = await proxyValueToBackend<HandlerCatalogResponse>(
       req,
       backendEndpoints.forms.handlerCatalog,
       { method: "GET" },

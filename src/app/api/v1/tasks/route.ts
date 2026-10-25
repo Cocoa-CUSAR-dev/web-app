@@ -5,14 +5,14 @@ import { backendEndpoints } from "@/core/constants";
 import {
   apiErrorResponse,
   checkTokenPresence,
-  proxyToBackend,
+  proxyValueToBackend,
 } from "@/libs/apiUtil";
 import { TasksResponse } from "@/modules/form/route-form-viewer/route-id/formViewerIdTypes";
 
 async function GET(req: NextRequest) {
   try {
     checkTokenPresence(req);
-    const data = await proxyToBackend<TasksResponse>(
+    const data = await proxyValueToBackend<TasksResponse>(
       req,
       backendEndpoints.forms.listWithStats,
       {

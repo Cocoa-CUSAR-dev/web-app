@@ -5,7 +5,7 @@ import { backendEndpoints } from "@/core/constants";
 import {
   apiErrorResponse,
   checkTokenPresence,
-  proxyToBackend,
+  proxyValueToBackend,
 } from "@/libs/apiUtil";
 import { UserOptionsResponse } from "@/modules/form/reminder/reminderTypes";
 
@@ -13,7 +13,7 @@ async function GET(req: NextRequest) {
   try {
     checkTokenPresence(req);
     const q = req.nextUrl.searchParams.get("q") ?? "";
-    const data = await proxyToBackend<UserOptionsResponse>(
+    const data = await proxyValueToBackend<UserOptionsResponse>(
       req,
       backendEndpoints.forms.reminderRecipientUsers(q),
       { method: "GET" },

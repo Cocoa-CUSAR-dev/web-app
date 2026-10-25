@@ -90,48 +90,44 @@ export function buildTimeSeries(kind, mode, from, to) {
   const title = titleMap[mode] || `${kind} ${mode}`;
   const length = monthsBetween(from, to);
   const values = Array.from({ length }, (_, i) => (i + 1) * 10);
+  // The data itself, like the merged backend (the hub) sends it. The web app's
+  // own API routes wrap it in { value, error } for the pages.
   return {
-    value: {
-      from: from || null,
-      to: to || null,
-      title,
-      metadataa: {
-        provinceId: null,
-        districtId: null,
-        subdistrictId: null,
-        farmId: null,
-      },
-      series: [
-        {
-          label: kind === "harvest" ? "Weight (kg)" : "Users",
-          values,
-          unit: kind === "harvest" ? "kg" : null,
-        },
-      ],
+    from: from || null,
+    to: to || null,
+    title,
+    metadata: {
+      provinceId: null,
+      districtId: null,
+      subdistrictId: null,
+      farmId: null,
     },
-    error: null,
+    series: [
+      {
+        label: kind === "harvest" ? "Weight (kg)" : "Users",
+        values,
+        unit: kind === "harvest" ? "kg" : null,
+      },
+    ],
   };
 }
 
 export function buildSummary(kind, mode, from, to) {
   return {
-    value: {
-      from: from || null,
-      to: to || null,
-      title: `${kind} ${mode} summary`,
-      metadata: {
-        provinceId: null,
-        districtId: null,
-        subdistrictId: null,
-        farmId: null,
-      },
-      data: {
-        label: kind,
-        value: 0,
-        unit: kind === "harvest" ? "kg" : "count",
-      },
+    from: from || null,
+    to: to || null,
+    title: `${kind} ${mode} summary`,
+    metadata: {
+      provinceId: null,
+      districtId: null,
+      subdistrictId: null,
+      farmId: null,
     },
-    error: null,
+    data: {
+      label: kind,
+      value: 0,
+      unit: kind === "harvest" ? "kg" : "count",
+    },
   };
 }
 

@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { POST } from "@/app/api/v1/analytics/harvest/summary/route";
 
+import { hubSummary } from "../../../../../../testUtils/hubShapes";
 import { makeApiRequest } from "../../../../../../testUtils/nextRequest";
 
 const validQuery = "mode=total&from=2024-01&to=2024-02";
@@ -68,7 +69,7 @@ describe("POST /api/v1/analytics/harvest/summary", () => {
 
   it("uses the plain GET summary endpoint when no polygon is given", async () => {
     vi.mocked(fetch).mockResolvedValue(
-      new Response(JSON.stringify({ value: { data: { value: 1 } } }), {
+      new Response(JSON.stringify(hubSummary), {
         status: 200,
       }),
     );
@@ -89,7 +90,7 @@ describe("POST /api/v1/analytics/harvest/summary", () => {
 
   it("switches to the spatial POST summary endpoint when a polygon is given", async () => {
     vi.mocked(fetch).mockResolvedValue(
-      new Response(JSON.stringify({ value: { data: { value: 1 } } }), {
+      new Response(JSON.stringify(hubSummary), {
         status: 200,
       }),
     );
@@ -111,6 +112,23 @@ describe("POST /api/v1/analytics/harvest/summary", () => {
         }),
       }),
     );
+  });
+
+  it("gives the page { value, error } when the hub answers with the bare data", async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(JSON.stringify(hubSummary), { status: 200 }),
+    );
+
+    const res = await POST(
+      makeApiRequest(`/api/v1/analytics/harvest/summary?${validQuery}`, {
+        method: "POST",
+        body: {},
+        token: "t",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ value: hubSummary, error: null });
   });
 
   it("propagates the backend's error status and message", async () => {

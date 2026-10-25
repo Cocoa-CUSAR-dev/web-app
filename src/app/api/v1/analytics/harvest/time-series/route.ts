@@ -10,7 +10,7 @@ import { HttpError } from "@/core/error";
 import {
   apiErrorResponse,
   checkTokenPresence,
-  proxyToBackend,
+  proxyValueToBackend,
 } from "@/libs/apiUtil";
 import { TimeSeriesDataResponse } from "@/modules/dashboard/dashboardTypes";
 
@@ -54,7 +54,7 @@ async function POST(req: NextRequest) {
         ? JSON.stringify({ geoJson: JSON.stringify(polygon) })
         : undefined;
 
-    const data = await proxyToBackend<TimeSeriesDataResponse>(
+    const data = await proxyValueToBackend<TimeSeriesDataResponse>(
       req,
       backendEndpoints.analytics.harvestTimeSeries(
         Boolean(polygon),

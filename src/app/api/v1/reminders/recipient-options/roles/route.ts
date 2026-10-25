@@ -5,14 +5,14 @@ import { backendEndpoints } from "@/core/constants";
 import {
   apiErrorResponse,
   checkTokenPresence,
-  proxyToBackend,
+  proxyValueToBackend,
 } from "@/libs/apiUtil";
 import { RoleOptionsResponse } from "@/modules/form/reminder/reminderTypes";
 
 async function GET(req: NextRequest) {
   try {
     checkTokenPresence(req);
-    const data = await proxyToBackend<RoleOptionsResponse>(
+    const data = await proxyValueToBackend<RoleOptionsResponse>(
       req,
       backendEndpoints.forms.reminderRecipientRoles,
       { method: "GET" },

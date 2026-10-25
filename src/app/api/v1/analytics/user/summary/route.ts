@@ -10,7 +10,7 @@ import { HttpError } from "@/core/error";
 import {
   apiErrorResponse,
   checkTokenPresence,
-  proxyToBackend,
+  proxyValueToBackend,
 } from "@/libs/apiUtil";
 
 async function GET(req: NextRequest) {
@@ -36,7 +36,7 @@ async function GET(req: NextRequest) {
     if (!userSummaryMode.includes(mode)) {
       throw new HttpError(400, "invalid data mode");
     }
-    const data = await proxyToBackend(
+    const data = await proxyValueToBackend(
       req,
       backendEndpoints.analytics.userSummary(mode, from, to),
       { method: "GET" },

@@ -5,7 +5,7 @@ import { backendEndpoints } from "@/core/constants";
 import {
   apiErrorResponse,
   checkTokenPresence,
-  proxyToBackend,
+  proxyValueToBackend,
 } from "@/libs/apiUtil";
 import {
   CreateFormRequest,
@@ -16,7 +16,7 @@ import { GetFormsResponse } from "@/modules/form/route-form-edit/formEditTypes";
 async function GET(req: NextRequest) {
   try {
     checkTokenPresence(req);
-    const data = await proxyToBackend<GetFormsResponse>(
+    const data = await proxyValueToBackend<GetFormsResponse>(
       req,
       backendEndpoints.forms.list,
       {
@@ -43,7 +43,7 @@ async function POST(req: NextRequest) {
         },
       );
     }
-    const data = await proxyToBackend<CreateFormResponse>(
+    const data = await proxyValueToBackend<CreateFormResponse>(
       req,
       backendEndpoints.forms.list,
       {

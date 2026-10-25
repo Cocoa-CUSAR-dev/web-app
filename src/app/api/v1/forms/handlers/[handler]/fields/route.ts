@@ -5,7 +5,7 @@ import { backendEndpoints } from "@/core/constants";
 import {
   apiErrorResponse,
   checkTokenPresence,
-  proxyToBackend,
+  proxyValueToBackend,
 } from "@/libs/apiUtil";
 import { HandlerFieldsResponse } from "@/modules/form/route-form-create/formCreateTypes";
 
@@ -16,7 +16,7 @@ async function GET(
   try {
     checkTokenPresence(req);
     const { handler } = await params;
-    const data = await proxyToBackend<HandlerFieldsResponse>(
+    const data = await proxyValueToBackend<HandlerFieldsResponse>(
       req,
       backendEndpoints.forms.handlerFields(handler),
       { method: "GET" },

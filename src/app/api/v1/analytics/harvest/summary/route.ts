@@ -10,7 +10,7 @@ import { HttpError } from "@/core/error";
 import {
   apiErrorResponse,
   checkTokenPresence,
-  proxyToBackend,
+  proxyValueToBackend,
 } from "@/libs/apiUtil";
 import { SummaryDataResponse } from "@/modules/dashboard/dashboardTypes";
 
@@ -42,7 +42,7 @@ async function POST(req: NextRequest) {
     const body = polygon
       ? JSON.stringify({ geoJson: JSON.stringify(polygon) })
       : undefined;
-    const data = await proxyToBackend<SummaryDataResponse>(
+    const data = await proxyValueToBackend<SummaryDataResponse>(
       req,
       backendEndpoints.analytics.harvestSummary(
         Boolean(polygon),

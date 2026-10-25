@@ -5,7 +5,7 @@ import { backendEndpoints } from "@/core/constants";
 import {
   apiErrorResponse,
   checkTokenPresence,
-  proxyToBackend,
+  proxyValueToBackend,
 } from "@/libs/apiUtil";
 import { ReviewResponse } from "@/modules/form/route-form-viewer/route-review/reviewTypes";
 
@@ -30,7 +30,7 @@ async function GET(
     });
     const suffix = query.size > 0 ? `?${query.toString()}` : "";
 
-    const data = await proxyToBackend<ReviewResponse>(
+    const data = await proxyValueToBackend<ReviewResponse>(
       req,
       backendEndpoints.forms.reviewResponses(taskId, suffix),
       { method: "GET" },

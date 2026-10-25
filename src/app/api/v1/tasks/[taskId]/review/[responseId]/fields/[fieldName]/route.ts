@@ -6,7 +6,7 @@ import { HttpError } from "@/core/error";
 import {
   apiErrorResponse,
   checkTokenPresence,
-  proxyToBackend,
+  proxyValueToBackend,
 } from "@/libs/apiUtil";
 import {
   CorrectFieldRequest,
@@ -39,7 +39,7 @@ async function PATCH(
       reason: typeof body.reason === "string" ? body.reason : undefined,
     };
 
-    const data = await proxyToBackend<CorrectFieldResponse>(
+    const data = await proxyValueToBackend<CorrectFieldResponse>(
       req,
       backendEndpoints.forms.correctField(taskId, responseId, fieldName),
       { method: "PATCH", body: JSON.stringify(payload) },

@@ -5,7 +5,7 @@ import { backendEndpoints } from "@/core/constants";
 import {
   apiErrorResponse,
   checkTokenPresence,
-  proxyToBackend,
+  proxyValueToBackend,
 } from "@/libs/apiUtil";
 import { SubmissionAnswersResponse } from "@/modules/history/historyTypes";
 
@@ -19,7 +19,7 @@ async function GET(
   try {
     const { date } = await params;
     checkTokenPresence(req);
-    const data = await proxyToBackend<SubmissionAnswersResponse>(
+    const data = await proxyValueToBackend<SubmissionAnswersResponse>(
       req,
       backendEndpoints.me.historyOn(date),
       { method: "GET" },

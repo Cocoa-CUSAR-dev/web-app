@@ -6,7 +6,7 @@ import { HttpError } from "@/core/error";
 import {
   apiErrorResponse,
   checkTokenPresence,
-  proxyToBackend,
+  proxyValueToBackend,
 } from "@/libs/apiUtil";
 import {
   ReminderDetailResponse,
@@ -20,7 +20,7 @@ async function GET(
   try {
     checkTokenPresence(req);
     const { id } = await params;
-    const data = await proxyToBackend<ReminderDetailResponse>(
+    const data = await proxyValueToBackend<ReminderDetailResponse>(
       req,
       backendEndpoints.forms.reminder(id),
       { method: "GET" },
@@ -42,7 +42,7 @@ async function PUT(
     if (typeof body.enabled !== "boolean" || !body.timeOfDay) {
       throw new HttpError(400, "missing enabled or timeOfDay");
     }
-    const data = await proxyToBackend<ReminderDetailResponse>(
+    const data = await proxyValueToBackend<ReminderDetailResponse>(
       req,
       backendEndpoints.forms.reminder(id),
       { method: "PUT", body: JSON.stringify(body) },

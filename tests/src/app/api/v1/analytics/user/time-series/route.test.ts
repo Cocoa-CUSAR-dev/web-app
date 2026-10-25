@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GET } from "@/app/api/v1/analytics/user/time-series/route";
 
+import { hubTimeSeries } from "../../../../../../testUtils/hubShapes";
 import { makeApiRequest } from "../../../../../../testUtils/nextRequest";
 
 const validQuery = "mode=delta&from=2024-01&to=2024-02";
@@ -63,7 +64,7 @@ describe("GET /api/v1/analytics/user/time-series", () => {
 
   it("returns the backend's time-series data with 200 on success", async () => {
     vi.mocked(fetch).mockResolvedValue(
-      new Response(JSON.stringify({ value: { series: [] } }), {
+      new Response(JSON.stringify(hubTimeSeries), {
         status: 200,
       }),
     );
@@ -79,6 +80,21 @@ describe("GET /api/v1/analytics/user/time-series", () => {
       expect.stringContaining("api/v1/analytics/users/time-series/delta"),
       expect.objectContaining({ method: "GET" }),
     );
+  });
+
+  it("gives the page { value, error } when the hub answers with the bare data", async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(JSON.stringify(hubTimeSeries), { status: 200 }),
+    );
+
+    const res = await GET(
+      makeApiRequest(`/api/v1/analytics/user/time-series?${validQuery}`, {
+        token: "t",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ value: hubTimeSeries, error: null });
   });
 
   it("propagates the backend's error status and message", async () => {

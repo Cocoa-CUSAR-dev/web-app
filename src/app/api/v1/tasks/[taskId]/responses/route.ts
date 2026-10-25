@@ -5,7 +5,7 @@ import { backendEndpoints } from "@/core/constants";
 import {
   apiErrorResponse,
   checkTokenPresence,
-  proxyToBackend,
+  proxyValueToBackend,
 } from "@/libs/apiUtil";
 
 async function GET(
@@ -15,7 +15,7 @@ async function GET(
   try {
     const { taskId } = await params;
     checkTokenPresence(req);
-    const data = await proxyToBackend(
+    const data = await proxyValueToBackend(
       req,
       backendEndpoints.forms.responses(taskId),
       { method: "GET" },

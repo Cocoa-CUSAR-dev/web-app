@@ -10,7 +10,7 @@ import { AdminAddUserReqType } from "@/core/types";
 import {
   apiErrorResponse,
   checkTokenPresence,
-  proxyToBackend,
+  proxyValueToBackend,
 } from "@/libs/apiUtil";
 
 async function GET(req: NextRequest) {
@@ -54,7 +54,7 @@ async function POST(req: NextRequest) {
     }
     // backend-hub creates a researcher who must change this temporary
     // password at first sign-in (same rule web-backend had).
-    const data = await proxyToBackend(req, backendEndpoints.admin.users, {
+    const data = await proxyValueToBackend(req, backendEndpoints.admin.users, {
       method: "POST",
       body: JSON.stringify({
         username,
