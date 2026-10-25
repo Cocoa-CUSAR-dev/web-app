@@ -39,7 +39,7 @@ describe("GET /api/v1/tasks/[taskId]/review", () => {
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ value: [{ responseId: "r1" }] });
     expect(fetch).toHaveBeenCalledWith(
-      "http://localhost:3001/api/v1/tasks/abc/review",
+      "http://localhost:3001/api/v1/forms/abc/responses?view=review",
       expect.objectContaining({ method: "GET" }),
     );
   });
@@ -57,7 +57,7 @@ describe("GET /api/v1/tasks/[taskId]/review", () => {
     );
 
     expect(fetch).toHaveBeenCalledWith(
-      "http://localhost:3001/api/v1/tasks/abc/review?aiOnly=true&page=2&size=10",
+      "http://localhost:3001/api/v1/forms/abc/responses?view=review&aiOnly=true&page=2&size=10",
       expect.anything(),
     );
   });
@@ -75,7 +75,7 @@ describe("GET /api/v1/tasks/[taskId]/review", () => {
     );
 
     expect(fetch).toHaveBeenCalledWith(
-      "http://localhost:3001/api/v1/tasks/abc/review?page=1",
+      "http://localhost:3001/api/v1/forms/abc/responses?view=review&page=1",
       expect.anything(),
     );
   });

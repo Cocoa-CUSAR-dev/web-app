@@ -1,12 +1,16 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { harvestSummaryMode, simpleDateRegex } from "@/core/constants";
+import {
+  backendEndpoints,
+  harvestSummaryMode,
+  simpleDateRegex,
+} from "@/core/constants";
 import { HttpError } from "@/core/error";
 import {
   apiErrorResponse,
   checkTokenPresence,
-  proxyToBackend,
+  proxyValueToBackend,
 } from "@/libs/apiUtil";
 import { SummaryDataResponse } from "@/modules/dashboard/dashboardTypes";
 
@@ -34,14 +38,19 @@ async function POST(req: NextRequest) {
     if (!harvestSummaryMode.includes(mode)) {
       throw new HttpError(400, "invalid or missing request parameter");
     }
-    const path = polygon
-      ? "api/v1/harvest/spartial/summary"
-      : "api/v1/harvest/summary";
     const method = polygon ? "POST" : "GET";
-    const data = await proxyToBackend<SummaryDataResponse>(
+    const body = polygon
+      ? JSON.stringify({ geoJson: JSON.stringify(polygon) })
+      : undefined;
+    const data = await proxyValueToBackend<SummaryDataResponse>(
       req,
-      `/${path}/${mode}?from=${from}&to=${to}`,
-      { method },
+      backendEndpoints.analytics.harvestSummary(
+        Boolean(polygon),
+        mode,
+        from,
+        to,
+      ),
+      { method, body },
     );
     return NextResponse.json(data, { status: 200 });
   } catch (e) {

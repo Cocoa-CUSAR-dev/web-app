@@ -1,12 +1,16 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { harvestTimeSeriesMode, simpleDateRegex } from "@/core/constants";
+import {
+  backendEndpoints,
+  harvestTimeSeriesMode,
+  simpleDateRegex,
+} from "@/core/constants";
 import { HttpError } from "@/core/error";
 import {
   apiErrorResponse,
   checkTokenPresence,
-  proxyToBackend,
+  proxyValueToBackend,
 } from "@/libs/apiUtil";
 import { TimeSeriesDataResponse } from "@/modules/dashboard/dashboardTypes";
 
@@ -44,18 +48,20 @@ async function POST(req: NextRequest) {
     if (!harvestTimeSeriesMode.includes(mode)) {
       throw new HttpError(400, "invalid data mode");
     }
-    const path = polygon
-      ? "api/v1/analytics/harvest/spatial/time-series"
-      : "api/v1/analytics/harvest/time-series";
     const method = polygon ? "POST" : "GET";
     const body =
       method !== "GET"
         ? JSON.stringify({ geoJson: JSON.stringify(polygon) })
         : undefined;
 
-    const data = await proxyToBackend<TimeSeriesDataResponse>(
+    const data = await proxyValueToBackend<TimeSeriesDataResponse>(
       req,
-      `/${path}/${mode}?from=${from}&to=${to}`,
+      backendEndpoints.analytics.harvestTimeSeries(
+        Boolean(polygon),
+        mode,
+        from,
+        to,
+      ),
       { method, body },
     );
     return NextResponse.json(data, { status: 200 });

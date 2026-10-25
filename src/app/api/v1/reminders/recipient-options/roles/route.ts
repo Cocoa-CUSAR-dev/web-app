@@ -1,19 +1,20 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { backendEndpoints } from "@/core/constants";
 import {
   apiErrorResponse,
   checkTokenPresence,
-  proxyToBackend,
+  proxyValueToBackend,
 } from "@/libs/apiUtil";
 import { RoleOptionsResponse } from "@/modules/form/reminder/reminderTypes";
 
 async function GET(req: NextRequest) {
   try {
     checkTokenPresence(req);
-    const data = await proxyToBackend<RoleOptionsResponse>(
+    const data = await proxyValueToBackend<RoleOptionsResponse>(
       req,
-      "/api/v1/reminders/recipient-options/roles",
+      backendEndpoints.forms.reminderRecipientRoles,
       { method: "GET" },
     );
     return NextResponse.json(data, { status: 200 });

@@ -1,10 +1,11 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { backendEndpoints } from "@/core/constants";
 import {
   apiErrorResponse,
   checkTokenPresence,
-  proxyToBackend,
+  proxyValueToBackend,
 } from "@/libs/apiUtil";
 import { TaskIdResponse } from "@/modules/form/route-form-viewer/route-id/formViewerIdTypes";
 
@@ -15,9 +16,9 @@ async function GET(
   try {
     const { taskId } = await params;
     checkTokenPresence(req);
-    const data = await proxyToBackend<TaskIdResponse>(
+    const data = await proxyValueToBackend<TaskIdResponse>(
       req,
-      `/api/v1/tasks/${taskId}`,
+      backendEndpoints.forms.byIdWithStats(taskId),
       { method: "GET" },
     );
     return NextResponse.json(data, { status: 200 });

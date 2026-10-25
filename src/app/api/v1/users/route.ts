@@ -4,13 +4,13 @@ import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { tokenName } from "@/core/constants";
+import { backendEndpoints, tokenName } from "@/core/constants";
 import { HttpError } from "@/core/error";
 import { AdminAddUserReqType } from "@/core/types";
 import {
   apiErrorResponse,
   checkTokenPresence,
-  proxyToBackend,
+  proxyValueToBackend,
 } from "@/libs/apiUtil";
 
 async function GET(req: NextRequest) {
@@ -52,9 +52,15 @@ async function POST(req: NextRequest) {
         },
       );
     }
-    const data = await proxyToBackend(req, "/api/v1/admin/users", {
+    // backend-hub creates a researcher who must change this temporary
+    // password at first sign-in (same rule web-backend had).
+    const data = await proxyValueToBackend(req, backendEndpoints.admin.users, {
       method: "POST",
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({
+        username,
+        temporary_password: password,
+        role: "researcher",
+      }),
     });
     return NextResponse.json(data, { status: 201 });
   } catch (e) {

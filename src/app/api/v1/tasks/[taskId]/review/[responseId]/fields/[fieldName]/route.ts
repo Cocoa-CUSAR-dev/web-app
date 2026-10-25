@@ -1,11 +1,12 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { backendEndpoints } from "@/core/constants";
 import { HttpError } from "@/core/error";
 import {
   apiErrorResponse,
   checkTokenPresence,
-  proxyToBackend,
+  proxyValueToBackend,
 } from "@/libs/apiUtil";
 import {
   CorrectFieldRequest,
@@ -38,11 +39,9 @@ async function PATCH(
       reason: typeof body.reason === "string" ? body.reason : undefined,
     };
 
-    const data = await proxyToBackend<CorrectFieldResponse>(
+    const data = await proxyValueToBackend<CorrectFieldResponse>(
       req,
-      `/api/v1/tasks/${encodeURIComponent(taskId)}/review/${encodeURIComponent(
-        responseId,
-      )}/fields/${encodeURIComponent(fieldName)}`,
+      backendEndpoints.forms.correctField(taskId, responseId, fieldName),
       { method: "PATCH", body: JSON.stringify(payload) },
     );
     return NextResponse.json(data, { status: 200 });

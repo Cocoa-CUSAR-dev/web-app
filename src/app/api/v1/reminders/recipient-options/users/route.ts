@@ -1,10 +1,11 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { backendEndpoints } from "@/core/constants";
 import {
   apiErrorResponse,
   checkTokenPresence,
-  proxyToBackend,
+  proxyValueToBackend,
 } from "@/libs/apiUtil";
 import { UserOptionsResponse } from "@/modules/form/reminder/reminderTypes";
 
@@ -12,9 +13,9 @@ async function GET(req: NextRequest) {
   try {
     checkTokenPresence(req);
     const q = req.nextUrl.searchParams.get("q") ?? "";
-    const data = await proxyToBackend<UserOptionsResponse>(
+    const data = await proxyValueToBackend<UserOptionsResponse>(
       req,
-      `/api/v1/reminders/recipient-options/users?q=${encodeURIComponent(q)}`,
+      backendEndpoints.forms.reminderRecipientUsers(q),
       { method: "GET" },
     );
     return NextResponse.json(data, { status: 200 });

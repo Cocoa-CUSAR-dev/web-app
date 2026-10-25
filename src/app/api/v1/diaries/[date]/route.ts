@@ -1,10 +1,11 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { backendEndpoints } from "@/core/constants";
 import {
   apiErrorResponse,
   checkTokenPresence,
-  proxyToBackend,
+  proxyValueToBackend,
 } from "@/libs/apiUtil";
 import { DiaryResponse } from "@/modules/history/historyTypes";
 
@@ -19,9 +20,9 @@ async function GET(
   try {
     const { date } = await params;
     checkTokenPresence(req);
-    const data = await proxyToBackend<DiaryResponse>(
+    const data = await proxyValueToBackend<DiaryResponse>(
       req,
-      `/api/v1/me/diaries/${date}`,
+      backendEndpoints.me.diary(date),
       { method: "GET" },
     );
     return NextResponse.json(data, { status: 200 });

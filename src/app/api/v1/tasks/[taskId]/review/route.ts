@@ -1,10 +1,11 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { backendEndpoints } from "@/core/constants";
 import {
   apiErrorResponse,
   checkTokenPresence,
-  proxyToBackend,
+  proxyValueToBackend,
 } from "@/libs/apiUtil";
 import { ReviewResponse } from "@/modules/form/route-form-viewer/route-review/reviewTypes";
 
@@ -29,9 +30,9 @@ async function GET(
     });
     const suffix = query.size > 0 ? `?${query.toString()}` : "";
 
-    const data = await proxyToBackend<ReviewResponse>(
+    const data = await proxyValueToBackend<ReviewResponse>(
       req,
-      `/api/v1/tasks/${encodeURIComponent(taskId)}/review${suffix}`,
+      backendEndpoints.forms.reviewResponses(taskId, suffix),
       { method: "GET" },
     );
     return NextResponse.json(data, { status: 200 });

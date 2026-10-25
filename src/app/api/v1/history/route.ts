@@ -1,10 +1,11 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { backendEndpoints } from "@/core/constants";
 import {
   apiErrorResponse,
   checkTokenPresence,
-  proxyToBackend,
+  proxyValueToBackend,
 } from "@/libs/apiUtil";
 import { SubmissionDaysResponse } from "@/modules/history/historyTypes";
 
@@ -26,9 +27,9 @@ async function GET(req: NextRequest) {
     });
     const suffix = query.size > 0 ? `?${query.toString()}` : "";
 
-    const data = await proxyToBackend<SubmissionDaysResponse>(
+    const data = await proxyValueToBackend<SubmissionDaysResponse>(
       req,
-      `/api/v1/me/history${suffix}`,
+      backendEndpoints.me.history(suffix),
       { method: "GET" },
     );
     return NextResponse.json(data, { status: 200 });

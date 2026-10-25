@@ -23,17 +23,23 @@ describe("GET /api/v1/tasks", () => {
   });
 
   it("returns the backend's task list with 200 on success", async () => {
+    // The hub answers with the bare list; the page reads { value, error }.
     vi.mocked(fetch).mockResolvedValue(
-      new Response(JSON.stringify({ value: [{ id: "1" }] }), { status: 200 }),
+      new Response(JSON.stringify([{ id: "1" }]), { status: 200 }),
     );
 
     const res = await GET(makeApiRequest("/api/v1/tasks", { token: "t" }));
 
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ value: [{ id: "1" }] });
+    expect(await res.json()).toEqual({ value: [{ id: "1" }], error: null });
     expect(fetch).toHaveBeenCalledWith(
-      expect.stringContaining("/api/v1/tasks"),
-      expect.objectContaining({ headers: { "Content-Type": "application/json", Cookie: "token=t" } }),
+      expect.stringContaining("/api/v1/forms?include=stats"),
+      expect.objectContaining({
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer t",
+        },
+      }),
     );
   });
 
