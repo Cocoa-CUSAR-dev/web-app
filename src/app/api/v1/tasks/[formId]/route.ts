@@ -11,14 +11,14 @@ import { TaskIdResponse } from "@/modules/form/route-form-viewer/route-id/formVi
 
 async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ taskId: string }> },
+  { params }: { params: Promise<{ formId: string }> },
 ) {
   try {
-    const { taskId } = await params;
+    const { formId } = await params;
     checkTokenPresence(req);
     const data = await proxyValueToBackend<TaskIdResponse>(
       req,
-      backendEndpoints.forms.byIdWithStats(taskId),
+      backendEndpoints.forms.byIdWithStats(formId),
       { method: "GET" },
     );
     return NextResponse.json(data, { status: 200 });

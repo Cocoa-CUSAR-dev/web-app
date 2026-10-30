@@ -27,7 +27,7 @@ function renderDialog(target: ReviewField | null, handlers = {}) {
   const onSaved = vi.fn();
   render(
     <CorrectFieldDialog
-      taskId="t1"
+      formId="t1"
       target={target ? { responseId: "r1", field: target } : null}
       onClose={onClose}
       onSaved={onSaved}

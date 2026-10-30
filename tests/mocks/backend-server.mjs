@@ -12,14 +12,14 @@ import {
   buildTimeSeries,
   FARMER_TOKEN_VALUE,
   farmerUser,
-  FORBIDDEN_REVIEW_TASK,
+  FORBIDDEN_REVIEW_FORM,
   getDiary,
   getFormById,
   getFormList,
   getHistoryAnswers,
   getHistoryDays,
   getReview,
-  getTaskById,
+  getTaskByFormId,
   getTasks,
   resetReview,
   reviewCorrections,
@@ -169,7 +169,7 @@ const server = http.createServer(async (req, res) => {
   // ---- Review & correct (US2-8): the answers of a form ----
   m = pathname.match(/^\/api\/v1\/forms\/([^/]+)\/responses$/);
   if (method === "GET" && m && searchParams.get("view") === "review") {
-    if (m[1] === FORBIDDEN_REVIEW_TASK) {
+    if (m[1] === FORBIDDEN_REVIEW_FORM) {
       return send(res, 403, { detail: "forbidden" });
     }
     const value = getReview(m[1], {
@@ -200,7 +200,7 @@ const server = http.createServer(async (req, res) => {
 
   m = pathname.match(/^\/api\/v1\/forms\/([^/]+)$/);
   if (method === "GET" && m && withStats) {
-    const task = getTaskById(m[1]);
+    const task = getTaskByFormId(m[1]);
     if (!task) return send(res, 404, { detail: "task not found" });
     return send(res, 200, { value: task, error: null });
   }

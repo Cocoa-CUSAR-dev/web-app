@@ -296,7 +296,10 @@ export function applyFormEdit(formId, sections) {
 }
 
 export function getTasks() {
+  // The hub's `?include=stats` rows carry both ids; the screens address a
+  // form by its form id (a form has one task).
   return getForms().map((f) => ({
+    formId: f.formId,
     taskId: f.taskId,
     title: f.title,
     description: f.description,
@@ -306,12 +309,12 @@ export function getTasks() {
   }));
 }
 
-export function getTaskById(taskId) {
-  return getTasks().find((t) => t.taskId === taskId) || null;
+export function getTaskByFormId(formId) {
+  return getTasks().find((t) => t.formId === formId) || null;
 }
 
 // ---- Review & correct (US2-8, docs-and-plan#174) ----
-// Field-by-field submissions for task-1, mutable so a correction persists
+// Field-by-field submissions for form-1, mutable so a correction persists
 // across reloads the way web-backend's PATCH .../fields/{fieldName} does.
 // resetReview() puts it back for the next spec.
 
@@ -389,11 +392,11 @@ export function resetReview() {
   reviewCorrections.length = 0;
 }
 
-// Tasks whose submissions the logged-in researcher may not review.
-export const FORBIDDEN_REVIEW_TASK = "task-forbidden";
+// Forms whose submissions the logged-in researcher may not review.
+export const FORBIDDEN_REVIEW_FORM = "form-forbidden";
 
-export function getReview(taskId, { aiOnly, page, size }) {
-  if (taskId !== "task-1") return [];
+export function getReview(formId, { aiOnly, page, size }) {
+  if (formId !== "form-1") return [];
   const submissions = aiOnly
     ? review().filter((s) => s.fields.some((f) => f.source === "llm_extracted"))
     : review();
@@ -419,14 +422,14 @@ function valueError(fieldName, inputType, value) {
 }
 
 export function applyCorrection(
-  taskId,
+  formId,
   responseId,
   fieldName,
   { value, reason },
 ) {
   const submission = review().find((s) => s.responseId === responseId);
   const field = submission?.fields.find((f) => f.fieldName === fieldName);
-  if (taskId !== "task-1" || !field)
+  if (formId !== "form-1" || !field)
     return { status: 404, error: "field not found" };
   if (!field.editable)
     return { status: 400, error: "This field type can't be corrected" };
