@@ -35,6 +35,7 @@ function AuthModule() {
   const [firstName, setFirstName] = useState<string>("");
   const [lastName, setLastName] = useState<string>("");
   const [organization, setOrganization] = useState<string>("CUSAR");
+  const [signupCode, setSignupCode] = useState<string>("");
 
   // #region functions
   const toLoginState = useCallback(() => {
@@ -45,13 +46,13 @@ function AuthModule() {
     setPageState("login");
   }, []);
 
-  // const toRegisterState = useCallback(() => {
-  //   const newParams = new URLSearchParams(window.location.search);
-  //   newParams.set("page", "register");
-  //   const newUrl = `${window.location.pathname}?${newParams.toString()}`;
-  //   window.history.replaceState(null, "", newUrl);
-  //   setPageState("register");
-  // }, []);
+  const toRegisterState = useCallback(() => {
+    const newParams = new URLSearchParams(window.location.search);
+    newParams.set("page", "register");
+    const newUrl = `${window.location.pathname}?${newParams.toString()}`;
+    window.history.replaceState(null, "", newUrl);
+    setPageState("register");
+  }, []);
 
   const handleLogin = useCallback(async () => {
     try {
@@ -73,6 +74,28 @@ function AuthModule() {
       setIsAuthLoading(false);
     }
   }, [email, password, router]);
+
+  // Sign-up creates the account, adds the researcher role with the code and
+  // signs in, all in one request; then on to the dashboard.
+  const handleRegister = useCallback(async () => {
+    try {
+      setIsAuthLoading(true);
+      await clientAuthApi.register(email, password, {
+        signupCode,
+        firstName,
+        lastName,
+        organization,
+      });
+      router.push("/dashboard");
+    } catch (e) {
+      setErrorMessage([
+        "Sign Up Error",
+        e instanceof Error ? e.message : "Please try again in a few seconds.",
+      ]);
+    } finally {
+      setIsAuthLoading(false);
+    }
+  }, [email, firstName, lastName, organization, password, router, signupCode]);
 
   // #region effect
   useEffect(() => {
@@ -121,6 +144,7 @@ function AuthModule() {
             setEmail={setEmail}
             password={password}
             setPassword={setPassword}
+            toRegisterState={toRegisterState}
           />
         );
       case "register":
@@ -138,6 +162,9 @@ function AuthModule() {
             setLastName={setLastName}
             organization={organization}
             setOrganization={setOrganization}
+            signupCode={signupCode}
+            setSignupCode={setSignupCode}
+            handleRegister={handleRegister}
           />
         );
       case "reset-password":
@@ -154,12 +181,15 @@ function AuthModule() {
     email,
     firstName,
     handleLogin,
+    handleRegister,
     isAuthLoading,
     lastName,
     organization,
     pageState,
     password,
+    signupCode,
     toLoginState,
+    toRegisterState,
   ]);
 
   // #region loading
