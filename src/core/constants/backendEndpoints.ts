@@ -54,7 +54,7 @@ const backendEndpoints = {
   },
   me: {
     self: endpoint("me", "/api/v1/me"),
-    // `suffix` is an already-built query string: "" or "?limit=..&offset=..".
+    // `suffix` is an already-built query string: "" or "?page=..&size=..".
     history: (suffix = "") => endpoint("me", `/api/v1/me/history${suffix}`),
     historyOn: (date: string) => endpoint("me", `/api/v1/me/history/${date}`),
     diary: (date: string) => endpoint("me", `/api/v1/me/diaries/${date}`),

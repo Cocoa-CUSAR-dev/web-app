@@ -3,10 +3,10 @@ import FormViewerIdModule from "@/modules/form/route-form-viewer/route-id/FormVi
 async function FormViewerId({
   params,
 }: {
-  params: Promise<{ taskId: string }>;
+  params: Promise<{ formId: string }>;
 }) {
-  const { taskId } = await params;
-  return <FormViewerIdModule taskId={taskId} />;
+  const { formId } = await params;
+  return <FormViewerIdModule formId={formId} />;
 }
 
 export default FormViewerId;

@@ -353,11 +353,11 @@ function FormViewerModule() {
             id={"task-list-container"}
           >
             {tasks.map((task, idx) => {
-              const { title, taskId } = task;
+              const { title, formId } = task;
               return (
                 <Link
                   key={title + idx}
-                  href={`/form/form-viewer/${taskId}`}
+                  href={`/form/form-viewer/${formId}`}
                   underline={"none"}
                   sx={{
                     padding: "0.75rem 1rem",

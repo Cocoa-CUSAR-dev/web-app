@@ -1,17 +1,17 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { PATCH } from "@/app/api/v1/tasks/[taskId]/review/[responseId]/fields/[fieldName]/route";
+import { PATCH } from "@/app/api/v1/tasks/[formId]/review/[responseId]/fields/[fieldName]/route";
 
 import { makeApiRequest } from "../../../../../../../../../testUtils/nextRequest";
 
 const params = Promise.resolve({
-  taskId: "t1",
+  formId: "t1",
   responseId: "r1",
   fieldName: "fan_count",
 });
 const url = "/api/v1/tasks/t1/review/r1/fields/fan_count";
 
-describe("PATCH /api/v1/tasks/[taskId]/review/[responseId]/fields/[fieldName]", () => {
+describe("PATCH /api/v1/tasks/[formId]/review/[responseId]/fields/[fieldName]", () => {
   beforeEach(() => {
     vi.stubGlobal("fetch", vi.fn());
     vi.spyOn(console, "error").mockImplementation(() => {});
@@ -85,7 +85,7 @@ describe("PATCH /api/v1/tasks/[taskId]/review/[responseId]/fields/[fieldName]", 
       }),
       {
         params: Promise.resolve({
-          taskId: "t1",
+          formId: "t1",
           responseId: "r1",
           fieldName: "../../admin",
         }),

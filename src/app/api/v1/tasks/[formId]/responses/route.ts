@@ -10,14 +10,14 @@ import {
 
 async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ taskId: string }> },
+  { params }: { params: Promise<{ formId: string }> },
 ) {
   try {
-    const { taskId } = await params;
+    const { formId } = await params;
     checkTokenPresence(req);
     const data = await proxyValueToBackend(
       req,
-      backendEndpoints.forms.responses(taskId),
+      backendEndpoints.forms.responses(formId),
       { method: "GET" },
     );
     return NextResponse.json(data, { status: 200 });

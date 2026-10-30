@@ -36,3 +36,4 @@ export const ArrowDownwardRounded = makeIconStub("ArrowDownwardRounded");
 export const ArrowUpwardRounded = makeIconStub("ArrowUpwardRounded");
 export const DeleteRounded = makeIconStub("DeleteRounded");
 export const ExpandMore = makeIconStub("ExpandMore");
+export const FileDownloadRounded = makeIconStub("FileDownloadRounded");

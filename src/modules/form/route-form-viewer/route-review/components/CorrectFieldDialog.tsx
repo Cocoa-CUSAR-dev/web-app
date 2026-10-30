@@ -25,14 +25,14 @@ type CorrectionTarget = {
 };
 
 type CorrectFieldDialogProps = {
-  taskId: string;
+  formId: string;
   target: CorrectionTarget | null;
   onClose: () => void;
   onSaved: (responseId: string, updated: ReviewField) => void;
 };
 
 type CorrectFieldFormProps = {
-  taskId: string;
+  formId: string;
   target: CorrectionTarget;
   onClose: () => void;
   onSaved: (responseId: string, updated: ReviewField) => void;
@@ -41,7 +41,7 @@ type CorrectFieldFormProps = {
 // Mounted only while the dialog is open, so every open starts from the
 // field's current value without any reset logic.
 function CorrectFieldForm({
-  taskId,
+  formId,
   target,
   onClose,
   onSaved,
@@ -71,7 +71,7 @@ function CorrectFieldForm({
       // an error, and the backend's 400 message ("Value must be a whole
       // number") is exactly what the reviewer needs to see.
       const response = await fetch(
-        `/api/v1/tasks/${encodeURIComponent(taskId)}/review/${encodeURIComponent(
+        `/api/v1/tasks/${encodeURIComponent(formId)}/review/${encodeURIComponent(
           responseId,
         )}/fields/${encodeURIComponent(field.fieldName)}`,
         {
@@ -186,7 +186,7 @@ function CorrectFieldForm({
 }
 
 function CorrectFieldDialog({
-  taskId,
+  formId,
   target,
   onClose,
   onSaved,
@@ -196,7 +196,7 @@ function CorrectFieldDialog({
       {target && (
         <CorrectFieldForm
           key={target.responseId + target.field.fieldName}
-          taskId={taskId}
+          formId={formId}
           target={target}
           onClose={onClose}
           onSaved={onSaved}

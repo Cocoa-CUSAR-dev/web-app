@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { GET } from "@/app/api/v1/tasks/[taskId]/route";
+import { GET } from "@/app/api/v1/tasks/[formId]/route";
 
 import { makeApiRequest } from "../../../../../testUtils/nextRequest";
 
-describe("GET /api/v1/tasks/[taskId]", () => {
+describe("GET /api/v1/tasks/[formId]", () => {
   beforeEach(() => {
     vi.stubGlobal("fetch", vi.fn());
     vi.spyOn(console, "error").mockImplementation(() => {});
@@ -17,20 +17,20 @@ describe("GET /api/v1/tasks/[taskId]", () => {
 
   it("returns 401 without calling the backend when there is no token cookie", async () => {
     const res = await GET(makeApiRequest("/api/v1/tasks/abc"), {
-      params: Promise.resolve({ taskId: "abc" }),
+      params: Promise.resolve({ formId: "abc" }),
     });
 
     expect(res.status).toBe(401);
     expect(fetch).not.toHaveBeenCalled();
   });
 
-  it("fetches the given taskId from the backend and returns 200 on success", async () => {
+  it("fetches the given formId from the backend and returns 200 on success", async () => {
     vi.mocked(fetch).mockResolvedValue(
       new Response(JSON.stringify({ value: { id: "abc" } }), { status: 200 }),
     );
 
     const res = await GET(makeApiRequest("/api/v1/tasks/abc", { token: "t" }), {
-      params: Promise.resolve({ taskId: "abc" }),
+      params: Promise.resolve({ formId: "abc" }),
     });
 
     expect(res.status).toBe(200);
@@ -48,9 +48,12 @@ describe("GET /api/v1/tasks/[taskId]", () => {
       }),
     );
 
-    const res = await GET(makeApiRequest("/api/v1/tasks/missing", { token: "t" }), {
-      params: Promise.resolve({ taskId: "missing" }),
-    });
+    const res = await GET(
+      makeApiRequest("/api/v1/tasks/missing", { token: "t" }),
+      {
+        params: Promise.resolve({ formId: "missing" }),
+      },
+    );
 
     expect(res.status).toBe(404);
     expect(await res.json()).toEqual({ error: "task not found" });
@@ -60,7 +63,7 @@ describe("GET /api/v1/tasks/[taskId]", () => {
     vi.mocked(fetch).mockRejectedValue(new Error("network down"));
 
     const res = await GET(makeApiRequest("/api/v1/tasks/abc", { token: "t" }), {
-      params: Promise.resolve({ taskId: "abc" }),
+      params: Promise.resolve({ formId: "abc" }),
     });
 
     expect(res.status).toBe(500);

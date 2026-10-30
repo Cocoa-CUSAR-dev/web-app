@@ -22,11 +22,11 @@ async function PATCH(
   {
     params,
   }: {
-    params: Promise<{ taskId: string; responseId: string; fieldName: string }>;
+    params: Promise<{ formId: string; responseId: string; fieldName: string }>;
   },
 ) {
   try {
-    const { taskId, responseId, fieldName } = await params;
+    const { formId, responseId, fieldName } = await params;
     checkTokenPresence(req);
 
     const body = (await req.json()) as Partial<CorrectFieldRequest>;
@@ -41,7 +41,7 @@ async function PATCH(
 
     const data = await proxyValueToBackend<CorrectFieldResponse>(
       req,
-      backendEndpoints.forms.correctField(taskId, responseId, fieldName),
+      backendEndpoints.forms.correctField(formId, responseId, fieldName),
       { method: "PATCH", body: JSON.stringify(payload) },
     );
     return NextResponse.json(data, { status: 200 });
