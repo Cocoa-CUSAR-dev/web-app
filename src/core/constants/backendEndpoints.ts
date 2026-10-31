@@ -47,6 +47,7 @@ function endpoint(group: BackendGroup, path: string): BackendEndpoint {
 const backendEndpoints = {
   auth: {
     login: endpoint("auth", "/api/v1/auth/login"),
+    register: endpoint("auth", "/api/v1/auth/register"),
     refresh: endpoint("auth", "/api/v1/auth/refresh"),
     logout: endpoint("auth", "/api/v1/auth/logout"),
     resetPassword: endpoint("auth", "/api/v1/auth/reset-password"),
@@ -54,6 +55,8 @@ const backendEndpoints = {
   },
   me: {
     self: endpoint("me", "/api/v1/me"),
+    // Add a role to myself (researcher needs the sign-up code).
+    role: (role: string) => endpoint("me", `/api/v1/me/roles/${role}`),
     // `suffix` is an already-built query string: "" or "?limit=..&offset=..".
     history: (suffix = "") => endpoint("me", `/api/v1/me/history${suffix}`),
     historyOn: (date: string) => endpoint("me", `/api/v1/me/history/${date}`),

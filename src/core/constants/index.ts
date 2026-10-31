@@ -19,4 +19,5 @@ export {
 export { httpValidStatuses } from "./httpValidStatuses";
 export { organizations } from "./organizations";
 export { publicPaths } from "./publicPaths";
+export { roleLabels } from "./roles";
 export { farmColumns, globalRowsPerPage } from "./tables";

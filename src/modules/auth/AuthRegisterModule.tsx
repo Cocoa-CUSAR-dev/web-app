@@ -29,6 +29,9 @@ function AuthRegisterModule({
   setLastName,
   organization,
   setOrganization,
+  signupCode,
+  setSignupCode,
+  handleRegister,
 }: {
   toLoginState: () => void;
   isAuthLoading: boolean;
@@ -42,6 +45,9 @@ function AuthRegisterModule({
   setLastName: (lastName: string) => void;
   organization: string;
   setOrganization: (organization: string) => void;
+  signupCode: string;
+  setSignupCode: (signupCode: string) => void;
+  handleRegister: () => void;
 }) {
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
@@ -51,6 +57,7 @@ function AuthRegisterModule({
       onCornderButtonClick={toLoginState}
       cornerButtonLabel={"Already have an account? Log in now"}
       isLoading={isAuthLoading}
+      onSubmit={handleRegister}
     >
       <FormControl fullWidth>
         <Stack spacing={2}>
@@ -100,6 +107,17 @@ function AuthRegisterModule({
               },
             }}
           />
+          <TextField
+            type={"text"}
+            size={"small"}
+            label={"Sign-up code"}
+            helperText={"Given to researchers by the project team"}
+            fullWidth
+            value={signupCode}
+            onChange={(e) => {
+              setSignupCode(e.target.value);
+            }}
+          />
           <Divider
             sx={{
               fontSize: "0.875rem",
@@ -144,7 +162,7 @@ function AuthRegisterModule({
               }
             }}
           />
-          <Button type={"submit"} variant={"contained"} onClick={() => {}}>
+          <Button type={"submit"} variant={"contained"}>
             {"Register"}
           </Button>
         </Stack>
