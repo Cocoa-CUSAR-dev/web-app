@@ -25,9 +25,11 @@ function AuthLoginModule({
   setEmail,
   password,
   setPassword,
+  toRegisterState,
 }: {
   isAuthLoading: boolean;
   handleLogin: () => void;
+  toRegisterState: () => void;
   email: string;
   setEmail: (email: string) => void;
   password: string;
@@ -89,6 +91,8 @@ function AuthLoginModule({
         title={"Researcher Login"}
         isLoading={isAuthLoading}
         onSubmit={handleLogin}
+        onCornderButtonClick={toRegisterState}
+        cornerButtonLabel={"New researcher? Sign up with a code"}
       >
         <FormControl fullWidth>
           <Stack spacing={2}>

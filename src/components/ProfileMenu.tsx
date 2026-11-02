@@ -5,6 +5,7 @@ import {
   alpha,
   Avatar,
   Button,
+  Chip,
   Divider,
   IconButton,
   Menu,
@@ -13,8 +14,11 @@ import {
 } from "@mui/material";
 import React, { useMemo, useState } from "react";
 
+import { roleLabels } from "@/core/constants";
+import type { UserRole } from "@/core/types";
 import { useAuthInfo } from "@/hooks/useAuthInfo";
 
+import BecomeResearcherDialog from "./BecomeResearcherDialog";
 import LogoutConfirmDialog from "./LogoutConfirmDialog";
 import AnimatedLink from "./utility/AnimatedLink";
 
@@ -27,8 +31,41 @@ function ProfileMenu({
   loginTextColor?: string;
   setMenuOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-  const { firstName, lastName, email, organization, isAuthenticated } =
+  const { firstName, lastName, email, organization, isAuthenticated, roles } =
     useAuthInfo();
+
+  // Every role the account holds, in a fixed order.
+  const heldRoles = useMemo(
+    () =>
+      (Object.keys(roleLabels) as UserRole[]).filter((role) =>
+        roles?.includes(role),
+      ),
+    [roles],
+  );
+  // Someone signed in without researcher (e.g. a farmer) can add it with
+  // the team's sign-up code. An admin doesn't need it.
+  const canBecomeResearcher =
+    !roles?.includes("researcher") && !roles?.includes("admin");
+  const [becomeResearcherOpen, setBecomeResearcherOpen] =
+    useState<boolean>(false);
+
+  const roleChips = useMemo(
+    () =>
+      heldRoles.length > 0 && (
+        <Stack direction={"row"} flexWrap={"wrap"} gap={0.5}>
+          {heldRoles.map((role) => (
+            <Chip
+              key={role}
+              label={roleLabels[role]}
+              size={"small"}
+              color={"primary"}
+              variant={"outlined"}
+            />
+          ))}
+        </Stack>
+      ),
+    [heldRoles],
+  );
 
   const initials =
     [firstName?.[0], lastName?.[0]].filter(Boolean).join("").toUpperCase() ||
@@ -124,7 +161,21 @@ function ProfileMenu({
                 {organization}
               </Typography>
             )}
+            {roleChips}
             <Divider />
+            {canBecomeResearcher && (
+              <Button
+                onClick={() => {
+                  handleClose();
+                  setBecomeResearcherOpen(true);
+                }}
+                variant={"outlined"}
+                fullWidth
+              >
+                {"Become a researcher"}
+              </Button>
+            )}
+
             <Button
               onClick={() => {
                 handleClose();
@@ -142,6 +193,7 @@ function ProfileMenu({
     );
   }, [
     anchorEl,
+    canBecomeResearcher,
     email,
     firstName,
     iconColor,
@@ -150,6 +202,7 @@ function ProfileMenu({
     lastName,
     open,
     organization,
+    roleChips,
   ]);
 
   const mobileMenu = useMemo(() => {
@@ -195,6 +248,18 @@ function ProfileMenu({
             {organization}
           </Typography>
         )}
+        {roleChips}
+        {canBecomeResearcher && (
+          <Button
+            variant={"outlined"}
+            onClick={() => {
+              setMenuOpen(false);
+              setBecomeResearcherOpen(true);
+            }}
+          >
+            {"Become a researcher"}
+          </Button>
+        )}
         <Button
           variant={"outlined"}
           color={"error"}
@@ -208,12 +273,14 @@ function ProfileMenu({
       </Stack>
     );
   }, [
+    canBecomeResearcher,
     email,
     firstName,
     initials,
     isAuthenticated,
     lastName,
     organization,
+    roleChips,
     setMenuOpen,
   ]);
 
@@ -246,6 +313,12 @@ function ProfileMenu({
         open={logoutConfirmOpen}
         onClose={() => setLogoutConfirmOpen(false)}
       />
+      {canBecomeResearcher && (
+        <BecomeResearcherDialog
+          open={becomeResearcherOpen}
+          onClose={() => setBecomeResearcherOpen(false)}
+        />
+      )}
     </>
   );
 }
