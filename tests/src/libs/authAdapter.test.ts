@@ -61,4 +61,16 @@ describe("toAuthValue", () => {
     expect(value.lastName).toBe("");
     expect(value.email).toBe("r@test.com");
   });
+
+  it("shows the email when the account has one, not the username", () => {
+    const value = toAuthValue(me({ username: "ann", email: "ann@test.com" }));
+
+    expect(value.email).toBe("ann@test.com");
+  });
+
+  it("falls back to the username for an account with no email", () => {
+    const value = toAuthValue(me({ username: "0812345678", email: null }));
+
+    expect(value.email).toBe("0812345678");
+  });
 });

@@ -13,6 +13,8 @@ import {
 } from "@/libs/researcherSignup";
 
 type RegisterBody = Partial<ResearcherSignup> & {
+  username?: string;
+  // Optional, and separate from the username.
   email?: string;
   password?: string;
 };
@@ -23,10 +25,10 @@ type RegisterBody = Partial<ResearcherSignup> & {
 async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as RegisterBody;
-    const { email, password } = body;
-    if (!email || !password) {
+    const { username, email, password } = body;
+    if (!username?.trim() || !password) {
       return NextResponse.json(
-        { error: "missing email or password" },
+        { error: "missing username or password" },
         { status: 400 },
       );
     }
@@ -39,7 +41,7 @@ async function POST(req: NextRequest) {
     }
     const signup = body as ResearcherSignup;
 
-    const account = await createOrSignIn(email.trim(), password);
+    const account = await createOrSignIn(username.trim(), password, email);
     const withRole = await addResearcherRole(account.access_token, signup);
 
     const response = NextResponse.json(

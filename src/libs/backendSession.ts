@@ -17,6 +17,7 @@ import {
 type BackendSessionUser = {
   user_id: string;
   username: string;
+  email?: string | null;
   roles: string[];
   must_reset_password: boolean;
 };

@@ -18,6 +18,7 @@ function AuthModule() {
   const [pageState, setPageState] = useState<PageState | "loading">("loading");
   const params = useSearchParams();
 
+  const [username, setUsername] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
 
@@ -57,7 +58,7 @@ function AuthModule() {
   const handleLogin = useCallback(async () => {
     try {
       setIsAuthLoading(true);
-      const isLoggedIn = await clientAuthApi.login(email, password);
+      const isLoggedIn = await clientAuthApi.login(username, password);
       if (isLoggedIn) {
         router.push("/dashboard");
       } else {
@@ -73,14 +74,14 @@ function AuthModule() {
     } finally {
       setIsAuthLoading(false);
     }
-  }, [email, password, router]);
+  }, [username, password, router]);
 
   // Sign-up creates the account, adds the researcher role with the code and
   // signs in, all in one request; then on to the dashboard.
   const handleRegister = useCallback(async () => {
     try {
       setIsAuthLoading(true);
-      await clientAuthApi.register(email, password, {
+      await clientAuthApi.register(username, email, password, {
         signupCode,
         firstName,
         lastName,
@@ -95,7 +96,16 @@ function AuthModule() {
     } finally {
       setIsAuthLoading(false);
     }
-  }, [email, firstName, lastName, organization, password, router, signupCode]);
+  }, [
+    email,
+    firstName,
+    lastName,
+    organization,
+    password,
+    router,
+    signupCode,
+    username,
+  ]);
 
   // #region effect
   useEffect(() => {
@@ -140,8 +150,8 @@ function AuthModule() {
           <AuthLoginModule
             isAuthLoading={isAuthLoading}
             handleLogin={handleLogin}
-            email={email}
-            setEmail={setEmail}
+            username={username}
+            setUsername={setUsername}
             password={password}
             setPassword={setPassword}
             toRegisterState={toRegisterState}
@@ -152,6 +162,8 @@ function AuthModule() {
           <AuthRegisterModule
             toLoginState={toLoginState}
             isAuthLoading={isAuthLoading}
+            username={username}
+            setUsername={setUsername}
             email={email}
             setEmail={setEmail}
             password={password}
@@ -179,6 +191,7 @@ function AuthModule() {
     }
   }, [
     email,
+    username,
     firstName,
     handleLogin,
     handleRegister,

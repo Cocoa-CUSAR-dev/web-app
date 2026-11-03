@@ -19,6 +19,8 @@ import AuthForm from "./components/AuthForm";
 function AuthRegisterModule({
   toLoginState,
   isAuthLoading,
+  username,
+  setUsername,
   email,
   setEmail,
   password,
@@ -35,6 +37,8 @@ function AuthRegisterModule({
 }: {
   toLoginState: () => void;
   isAuthLoading: boolean;
+  username: string;
+  setUsername: (username: string) => void;
   email: string;
   setEmail: (email: string) => void;
   password: string;
@@ -64,7 +68,18 @@ function AuthRegisterModule({
           <TextField
             type={"text"}
             size={"small"}
-            label={"email"}
+            label={"username"}
+            fullWidth
+            value={username}
+            onChange={(e) => {
+              setUsername(e.target.value);
+            }}
+          />
+          <TextField
+            type={"email"}
+            size={"small"}
+            label={"email (optional)"}
+            helperText={"You can log in with this too"}
             fullWidth
             value={email}
             onChange={(e) => {

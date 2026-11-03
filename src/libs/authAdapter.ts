@@ -11,6 +11,7 @@ type RoleProfile = {
 type BackendMe = {
   user_id: string;
   username: string;
+  email?: string | null;
   roles: string[];
   must_reset_password: boolean;
   profiles: {
@@ -33,7 +34,9 @@ function toAuthValue(me: BackendMe): AuthValue {
   );
   return {
     userId: me.user_id,
-    email: me.username,
+    // Shown under the name in the account menu. An account with no email
+    // still shows who it is.
+    email: me.email ?? me.username,
     firstName: named?.first_name ?? "",
     lastName: named?.last_name ?? "",
     organization: researcher?.organization ?? "",
