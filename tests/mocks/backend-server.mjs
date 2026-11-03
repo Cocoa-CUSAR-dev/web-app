@@ -12,14 +12,14 @@ import {
   buildTimeSeries,
   FARMER_TOKEN_VALUE,
   farmerUser,
-  FORBIDDEN_REVIEW_TASK,
+  FORBIDDEN_REVIEW_FORM,
   getDiary,
   getFormById,
   getFormList,
   getHistoryAnswers,
   getHistoryDays,
   getReview,
-  getTaskById,
+  getTaskByFormId,
   getTasks,
   resetReview,
   reviewCorrections,
@@ -119,6 +119,11 @@ const server = http.createServer(async (req, res) => {
     return send(res, 200, meFor(isFarmerSession(req) ? farmerUser : authUser));
   }
 
+  // The routes below answer the way backend-hub does: the data itself, with no
+  // { value, error } around it (the web app's own API routes add that for the
+  // pages). Routes the hub does not serve yet (the review table and the admin
+  // list, hub PRs #22 and #24) still answer in web-backend's wrapped shape.
+
   // ---- A farmer's own history (docs-and-plan#231) ----
   // Only the farmer session has any; anyone else gets an empty history,
   // the way web-backend scopes /me/** to the caller.
@@ -129,20 +134,20 @@ const server = http.createServer(async (req, res) => {
       return send(res, 400, { detail: "invalid page" });
     }
     const value = isFarmerSession(req) ? getHistoryDays(page, size) : [];
-    return send(res, 200, { value, error: null });
+    return send(res, 200, value);
   }
 
   m = pathname.match(/^\/api\/v1\/me\/history\/(\d{4}-\d{2}-\d{2})$/);
   if (method === "GET" && m) {
     const value = isFarmerSession(req) ? getHistoryAnswers(m[1]) : [];
-    return send(res, 200, { value, error: null });
+    return send(res, 200, value);
   }
 
   m = pathname.match(/^\/api\/v1\/me\/diaries\/(\d{4}-\d{2}-\d{2})$/);
   if (method === "GET" && m) {
     const diary = isFarmerSession(req) ? getDiary(m[1]) : null;
     if (!diary) return send(res, 404, { detail: "no diary" });
-    return send(res, 200, { value: diary, error: null });
+    return send(res, 200, diary);
   }
 
   if (method === "POST" && pathname === "/api/v1/auth/logout") {
@@ -162,14 +167,14 @@ const server = http.createServer(async (req, res) => {
 
   if (method === "GET" && pathname === "/api/v1/forms") {
     return withStats
-      ? send(res, 200, { value: getTasks(), error: null })
-      : send(res, 200, { value: getFormList(), error: null });
+      ? send(res, 200, getTasks())
+      : send(res, 200, getFormList());
   }
 
   // ---- Review & correct (US2-8): the answers of a form ----
   m = pathname.match(/^\/api\/v1\/forms\/([^/]+)\/responses$/);
   if (method === "GET" && m && searchParams.get("view") === "review") {
-    if (m[1] === FORBIDDEN_REVIEW_TASK) {
+    if (m[1] === FORBIDDEN_REVIEW_FORM) {
       return send(res, 403, { detail: "forbidden" });
     }
     const value = getReview(m[1], {
@@ -200,21 +205,21 @@ const server = http.createServer(async (req, res) => {
 
   m = pathname.match(/^\/api\/v1\/forms\/([^/]+)$/);
   if (method === "GET" && m && withStats) {
-    const task = getTaskById(m[1]);
+    const task = getTaskByFormId(m[1]);
     if (!task) return send(res, 404, { detail: "task not found" });
-    return send(res, 200, { value: task, error: null });
+    return send(res, 200, task);
   }
   if (method === "GET" && m) {
     const form = getFormById(m[1]);
     if (!form) return send(res, 404, { detail: "form not found" });
-    return send(res, 200, { value: form, error: null });
+    return send(res, 200, form);
   }
 
   m = pathname.match(/^\/api\/v1\/forms\/([^/]+)\/edit$/);
   if (method === "PUT" && m) {
     const body = await readJsonBody(req);
     applyFormEdit(m[1], body.sections);
-    return send(res, 200, { value: "form updated", error: null });
+    return send(res, 200, "form updated");
   }
 
   // ---- Analytics: harvest ----

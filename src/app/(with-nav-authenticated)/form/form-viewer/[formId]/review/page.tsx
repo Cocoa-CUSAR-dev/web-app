@@ -3,10 +3,10 @@ import ResponseReviewModule from "@/modules/form/route-form-viewer/route-review/
 async function ResponseReview({
   params,
 }: {
-  params: Promise<{ taskId: string }>;
+  params: Promise<{ formId: string }>;
 }) {
-  const { taskId } = await params;
-  return <ResponseReviewModule taskId={taskId} />;
+  const { formId } = await params;
+  return <ResponseReviewModule formId={formId} />;
 }
 
 export default ResponseReview;

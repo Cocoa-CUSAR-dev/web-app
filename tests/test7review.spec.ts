@@ -56,9 +56,9 @@ test.describe("Review & correct", () => {
   test("opens from the form viewer and lists every submission field by field", async ({
     page,
   }) => {
-    await page.goto("/form/form-viewer/task-1");
+    await page.goto("/form/form-viewer/form-1");
     await page.getByRole("button", { name: "Review & correct" }).click();
-    await page.waitForURL("**/form/form-viewer/task-1/review");
+    await page.waitForURL("**/form/form-viewer/form-1/review");
 
     await expect(
       page.getByRole("heading", { name: "จดกิจกรรมในสวน" }),
@@ -90,7 +90,7 @@ test.describe("Review & correct", () => {
   test('"AI-extracted only" narrows the list to submissions worth checking', async ({
     page,
   }) => {
-    await page.goto("/form/form-viewer/task-1/review");
+    await page.goto("/form/form-viewer/form-1/review");
     await expect(submission(page, "สมหญิง รักสวน")).toBeVisible();
 
     await page.getByLabel("AI-extracted only").check();
@@ -103,7 +103,7 @@ test.describe("Review & correct", () => {
     page,
     request,
   }) => {
-    await page.goto("/form/form-viewer/task-1/review");
+    await page.goto("/form/form-viewer/form-1/review");
     const card = submission(page, "สมชาย ใจดี");
     await card.getByRole("button", { name: "Edit น้ำหนักผลผลิต" }).click();
 
@@ -158,7 +158,7 @@ test.describe("Review & correct", () => {
     page,
     request,
   }) => {
-    await page.goto("/form/form-viewer/task-1/review");
+    await page.goto("/form/form-viewer/form-1/review");
     const card = submission(page, "สมชาย ใจดี");
     await card.getByRole("button", { name: "Edit จำนวนต้น" }).click();
 
@@ -181,7 +181,7 @@ test.describe("Review & correct", () => {
     page,
     request,
   }) => {
-    await page.goto("/form/form-viewer/task-1/review");
+    await page.goto("/form/form-viewer/form-1/review");
     const card = submission(page, "สมชาย ใจดี");
     await card.getByRole("button", { name: "Edit น้ำหนักผลผลิต" }).click();
 
@@ -208,7 +208,7 @@ test.describe("Review & correct", () => {
     page,
     request,
   }) => {
-    await page.goto("/form/form-viewer/task-1/review");
+    await page.goto("/form/form-viewer/form-1/review");
     const card = submission(page, "สมหญิง รักสวน");
     await card.getByRole("button", { name: "Edit น้ำหนักผลผลิต" }).click();
 
@@ -229,7 +229,7 @@ test.describe("Review & correct", () => {
   test("a researcher without access to the form is told so, not shown an empty list", async ({
     page,
   }) => {
-    await page.goto("/form/form-viewer/task-forbidden/review");
+    await page.goto("/form/form-viewer/form-forbidden/review");
 
     await expect(
       page.getByText(

@@ -6,6 +6,8 @@ interface AnswerRow {
 }
 
 type TaskObject = {
+  // The hub's `/forms/{id}` takes the form id; a form has one task.
+  formId: string;
   taskId: string;
   title: string;
   description: string;

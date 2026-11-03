@@ -17,10 +17,10 @@ const FORWARDED_PARAMS = ["aiOnly", "page", "size"] as const;
 // researcher's review-and-correct screen.
 async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ taskId: string }> },
+  { params }: { params: Promise<{ formId: string }> },
 ) {
   try {
-    const { taskId } = await params;
+    const { formId } = await params;
     checkTokenPresence(req);
 
     const query = new URLSearchParams();
@@ -32,7 +32,7 @@ async function GET(
 
     const data = await proxyValueToBackend<ReviewResponse>(
       req,
-      backendEndpoints.forms.reviewResponses(taskId, suffix),
+      backendEndpoints.forms.reviewResponses(formId, suffix),
       { method: "GET" },
     );
     return NextResponse.json(data, { status: 200 });

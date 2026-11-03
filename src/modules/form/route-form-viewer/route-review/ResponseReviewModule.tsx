@@ -35,7 +35,7 @@ function loadErrorMessage(e: unknown): string {
 
 // US2-8 (docs-and-plan#172): lets a researcher see what each farmer
 // submitted (and which values the AI extracted) and fix anything wrong.
-function ResponseReviewModule({ taskId }: { taskId: string }) {
+function ResponseReviewModule({ formId }: { formId: string }) {
   const router = useRouter();
 
   const [taskName, setTaskName] = useState<string | null>(null);
@@ -51,7 +51,7 @@ function ResponseReviewModule({ taskId }: { taskId: string }) {
     const controller = new AbortController();
     (async () => {
       try {
-        const response = await fetch(`/api/v1/tasks/${taskId}`, {
+        const response = await fetch(`/api/v1/tasks/${formId}`, {
           method: "GET",
           signal: controller.signal,
         });
@@ -65,7 +65,7 @@ function ResponseReviewModule({ taskId }: { taskId: string }) {
       }
     })();
     return () => controller.abort();
-  }, [taskId]);
+  }, [formId]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -73,7 +73,7 @@ function ResponseReviewModule({ taskId }: { taskId: string }) {
       setSubmissions(null);
       setLoadError(null);
       try {
-        const response = await fetchResponse(`/api/v1/tasks/${taskId}/review`, {
+        const response = await fetchResponse(`/api/v1/tasks/${formId}/review`, {
           method: "GET",
           queryParams: { aiOnly, page, size: PAGE_SIZE },
           signal: controller.signal,
@@ -85,7 +85,7 @@ function ResponseReviewModule({ taskId }: { taskId: string }) {
       }
     })();
     return () => controller.abort();
-  }, [taskId, aiOnly, page]);
+  }, [formId, aiOnly, page]);
 
   const handleSaved = (responseId: string, updated: ReviewField) => {
     setSubmissions(
@@ -135,7 +135,7 @@ function ResponseReviewModule({ taskId }: { taskId: string }) {
           />
           <Button
             variant={"outlined"}
-            onClick={() => router.push(`/form/form-viewer/${taskId}`)}
+            onClick={() => router.push(`/form/form-viewer/${formId}`)}
           >
             {"Back to responses"}
           </Button>
@@ -190,7 +190,7 @@ function ResponseReviewModule({ taskId }: { taskId: string }) {
       </Stack>
 
       <CorrectFieldDialog
-        taskId={taskId}
+        formId={formId}
         target={target}
         onClose={() => setTarget(null)}
         onSaved={handleSaved}

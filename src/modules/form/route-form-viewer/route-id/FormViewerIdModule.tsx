@@ -20,7 +20,7 @@ import FormFieldMapTab from "./components/FormFieldMapTab";
 import ResponseTableModule from "./components/ResponseTable";
 import { TaskResponseResponse } from "./formViewerIdTypes";
 
-function FormViewerIdModule({ taskId }: { taskId: string }) {
+function FormViewerIdModule({ formId }: { formId: string }) {
   const router = useRouter();
   const [responses, setResponses] = useState<Array<
     TaskResponseResponse["value"]
@@ -36,9 +36,9 @@ function FormViewerIdModule({ taskId }: { taskId: string }) {
         CustomToast.dismiss(toastIdRef.current);
       }
       try {
-        const toastId = "form-view-" + taskId;
+        const toastId = "form-view-" + formId;
         const response = await CustomToast.promise(
-          fetchResponse(`/api/v1/tasks/${taskId}/responses`, {
+          fetchResponse(`/api/v1/tasks/${formId}/responses`, {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
@@ -78,12 +78,12 @@ function FormViewerIdModule({ taskId }: { taskId: string }) {
         console.error(e);
       }
     })();
-  }, [taskId]);
+  }, [formId]);
 
   useEffect(() => {
     (async () => {
       try {
-        const response = await fetch(`/api/v1/tasks/${taskId}`, {
+        const response = await fetch(`/api/v1/tasks/${formId}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -99,7 +99,7 @@ function FormViewerIdModule({ taskId }: { taskId: string }) {
         console.error(e);
       }
     })();
-  }, [taskId]);
+  }, [formId]);
 
   if (!responses) {
     return (
@@ -171,7 +171,7 @@ function FormViewerIdModule({ taskId }: { taskId: string }) {
         <Button
           variant={"contained"}
           sx={{ flexShrink: 0 }}
-          onClick={() => router.push(`/form/form-viewer/${taskId}/review`)}
+          onClick={() => router.push(`/form/form-viewer/${formId}/review`)}
         >
           {"Review & correct"}
         </Button>
@@ -182,7 +182,7 @@ function FormViewerIdModule({ taskId }: { taskId: string }) {
           <Tab value={"fieldMap"} label={"ข้อมูลไปลงที่ไหน"} />
         </Tabs>
         {tab === "fieldMap" ? (
-          <FormFieldMapTab taskId={taskId} />
+          <FormFieldMapTab formId={formId} />
         ) : (
           <Stack spacing={4} paddingBottom={"3rem"}>
             {responses.length > 0 ? (

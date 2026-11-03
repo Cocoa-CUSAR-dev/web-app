@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { GET } from "@/app/api/v1/tasks/[taskId]/review/route";
+import { GET } from "@/app/api/v1/tasks/[formId]/review/route";
 
 import { makeApiRequest } from "../../../../../../testUtils/nextRequest";
 
-describe("GET /api/v1/tasks/[taskId]/review", () => {
+describe("GET /api/v1/tasks/[formId]/review", () => {
   beforeEach(() => {
     vi.stubGlobal("fetch", vi.fn());
     vi.spyOn(console, "error").mockImplementation(() => {});
@@ -17,7 +17,7 @@ describe("GET /api/v1/tasks/[taskId]/review", () => {
 
   it("returns 401 without calling the backend when there is no token cookie", async () => {
     const res = await GET(makeApiRequest("/api/v1/tasks/abc/review"), {
-      params: Promise.resolve({ taskId: "abc" }),
+      params: Promise.resolve({ formId: "abc" }),
     });
 
     expect(res.status).toBe(401);
@@ -33,7 +33,7 @@ describe("GET /api/v1/tasks/[taskId]/review", () => {
 
     const res = await GET(
       makeApiRequest("/api/v1/tasks/abc/review", { token: "t" }),
-      { params: Promise.resolve({ taskId: "abc" }) },
+      { params: Promise.resolve({ formId: "abc" }) },
     );
 
     expect(res.status).toBe(200);
@@ -53,7 +53,7 @@ describe("GET /api/v1/tasks/[taskId]/review", () => {
       makeApiRequest("/api/v1/tasks/abc/review?aiOnly=true&page=2&size=10", {
         token: "t",
       }),
-      { params: Promise.resolve({ taskId: "abc" }) },
+      { params: Promise.resolve({ formId: "abc" }) },
     );
 
     expect(fetch).toHaveBeenCalledWith(
@@ -71,7 +71,7 @@ describe("GET /api/v1/tasks/[taskId]/review", () => {
       makeApiRequest("/api/v1/tasks/abc/review?page=1&evil=../../x", {
         token: "t",
       }),
-      { params: Promise.resolve({ taskId: "abc" }) },
+      { params: Promise.resolve({ formId: "abc" }) },
     );
 
     expect(fetch).toHaveBeenCalledWith(
@@ -87,7 +87,7 @@ describe("GET /api/v1/tasks/[taskId]/review", () => {
 
     const res = await GET(
       makeApiRequest("/api/v1/tasks/abc/review", { token: "t" }),
-      { params: Promise.resolve({ taskId: "abc" }) },
+      { params: Promise.resolve({ formId: "abc" }) },
     );
 
     expect(res.status).toBe(403);

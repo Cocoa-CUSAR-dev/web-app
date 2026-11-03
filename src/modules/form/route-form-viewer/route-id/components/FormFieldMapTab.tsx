@@ -28,7 +28,7 @@ const noteIcons = { error: "⛔", warning: "⚠️", info: "🔗" } as const;
 
 // "ข้อมูลไปลงที่ไหน": where each question's answer is inserted, and the
 // questions whose answers never reach a table.
-function FormFieldMapTab({ taskId }: { taskId: string }) {
+function FormFieldMapTab({ formId }: { formId: string }) {
   const [state, setState] = useState<
     | { status: "loading" }
     | { status: "failed" }
@@ -45,12 +45,11 @@ function FormFieldMapTab({ taskId }: { taskId: string }) {
         const { value: forms }: GetFormsResponse = await listResponse.json();
         const { value: catalog }: HandlerCatalogResponse =
           await catalogResponse.json();
-        const listEntry = forms.find((form) => form.taskId === taskId);
-        if (!listEntry) throw new Error(`no form for task ${taskId}`);
-        const formResponse = await fetchResponse(
-          `/api/v1/forms/${listEntry.formId}`,
-          { method: "GET" },
-        );
+        const listEntry = forms.find((form) => form.formId === formId);
+        if (!listEntry) throw new Error(`no form ${formId}`);
+        const formResponse = await fetchResponse(`/api/v1/forms/${formId}`, {
+          method: "GET",
+        });
         const { value: form }: GetFormIdResponse = await formResponse.json();
         const entry = catalog.handlers.find(
           (h) => h.handler === listEntry.handler,
@@ -70,7 +69,7 @@ function FormFieldMapTab({ taskId }: { taskId: string }) {
         setState({ status: "failed" });
       }
     })();
-  }, [taskId]);
+  }, [formId]);
 
   if (state.status === "loading") {
     return (

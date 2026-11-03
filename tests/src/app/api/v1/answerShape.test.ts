@@ -91,22 +91,22 @@ const routes: RouteCase[] = [
     url: "/api/v1/tasks",
   },
   {
-    name: "tasks/[taskId]",
-    load: () => import("@/app/api/v1/tasks/[taskId]/route"),
+    name: "tasks/[formId]",
+    load: () => import("@/app/api/v1/tasks/[formId]/route"),
     url: "/api/v1/tasks/t1",
-    params: { taskId: "t1" },
+    params: { formId: "t1" },
   },
   {
-    name: "tasks/[taskId]/responses",
-    load: () => import("@/app/api/v1/tasks/[taskId]/responses/route"),
+    name: "tasks/[formId]/responses",
+    load: () => import("@/app/api/v1/tasks/[formId]/responses/route"),
     url: "/api/v1/tasks/t1/responses",
-    params: { taskId: "t1" },
+    params: { formId: "t1" },
   },
   {
-    name: "tasks/[taskId]/review",
-    load: () => import("@/app/api/v1/tasks/[taskId]/review/route"),
+    name: "tasks/[formId]/review",
+    load: () => import("@/app/api/v1/tasks/[formId]/review/route"),
     url: "/api/v1/tasks/t1/review",
-    params: { taskId: "t1" },
+    params: { formId: "t1" },
   },
 ];
 

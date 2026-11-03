@@ -155,7 +155,7 @@ function HandlerDetailDrawer({
                   <li key={form.formId}>
                     <Link
                       component={NextLink}
-                      href={`/form/form-viewer/${form.taskId}`}
+                      href={`/form/form-viewer/${form.formId}`}
                     >
                       {form.title}
                     </Link>

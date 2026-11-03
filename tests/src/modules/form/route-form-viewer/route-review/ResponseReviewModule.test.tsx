@@ -96,7 +96,7 @@ describe("ResponseReviewModule", () => {
       ],
     });
 
-    render(<ResponseReviewModule taskId="t1" />);
+    render(<ResponseReviewModule formId="t1" />);
 
     expect(await screen.findByText("Somchai")).toBeInTheDocument();
     expect(screen.getByText("Malee")).toBeInTheDocument();
@@ -109,7 +109,7 @@ describe("ResponseReviewModule", () => {
   it("says so when there is nothing to review", async () => {
     stubBackend({ reviewBodies: [{ value: [] }] });
 
-    render(<ResponseReviewModule taskId="t1" />);
+    render(<ResponseReviewModule formId="t1" />);
 
     expect(
       await screen.findByText("There are no submissions to review yet."),
@@ -124,7 +124,7 @@ describe("ResponseReviewModule", () => {
       ],
     });
 
-    render(<ResponseReviewModule taskId="t1" />);
+    render(<ResponseReviewModule formId="t1" />);
     await screen.findByText("Somchai");
     await userEvent.click(screen.getByLabelText("AI-extracted only"));
 
@@ -137,7 +137,7 @@ describe("ResponseReviewModule", () => {
   it("explains a permission error instead of showing an empty list", async () => {
     stubBackend({ reviewStatus: 403 });
 
-    render(<ResponseReviewModule taskId="t1" />);
+    render(<ResponseReviewModule formId="t1" />);
 
     expect(
       await screen.findByText(/don't have permission to review/),
@@ -152,7 +152,7 @@ describe("ResponseReviewModule", () => {
       reviewBodies: [{ value: fullPage }, { value: [submission("x", "Last")] }],
     });
 
-    render(<ResponseReviewModule taskId="t1" />);
+    render(<ResponseReviewModule formId="t1" />);
     await screen.findByText("Farmer 0");
     expect(screen.getByRole("button", { name: "Previous" })).toBeDisabled();
 
@@ -169,7 +169,7 @@ describe("ResponseReviewModule", () => {
       patch: () => jsonResponse({ value: field({ value: "7" }) }),
     });
 
-    render(<ResponseReviewModule taskId="t1" />);
+    render(<ResponseReviewModule formId="t1" />);
     await screen.findByText("Somchai");
     await userEvent.click(
       screen.getByRole("button", { name: "Edit Fan count" }),
@@ -192,7 +192,7 @@ describe("ResponseReviewModule", () => {
   it("goes back to the plain responses page", async () => {
     stubBackend({});
 
-    render(<ResponseReviewModule taskId="t1" />);
+    render(<ResponseReviewModule formId="t1" />);
     await userEvent.click(
       screen.getByRole("button", { name: "Back to responses" }),
     );

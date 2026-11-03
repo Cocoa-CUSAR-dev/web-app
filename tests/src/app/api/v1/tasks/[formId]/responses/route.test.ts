@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { GET } from "@/app/api/v1/tasks/[taskId]/responses/route";
+import { GET } from "@/app/api/v1/tasks/[formId]/responses/route";
 
 import { makeApiRequest } from "../../../../../../testUtils/nextRequest";
 
-describe("GET /api/v1/tasks/[taskId]/responses", () => {
+describe("GET /api/v1/tasks/[formId]/responses", () => {
   beforeEach(() => {
     vi.stubGlobal("fetch", vi.fn());
     vi.spyOn(console, "error").mockImplementation(() => {});
@@ -17,14 +17,14 @@ describe("GET /api/v1/tasks/[taskId]/responses", () => {
 
   it("returns 401 without calling the backend when there is no token cookie", async () => {
     const res = await GET(makeApiRequest("/api/v1/tasks/abc/responses"), {
-      params: Promise.resolve({ taskId: "abc" }),
+      params: Promise.resolve({ formId: "abc" }),
     });
 
     expect(res.status).toBe(401);
     expect(fetch).not.toHaveBeenCalled();
   });
 
-  it("fetches responses for the given taskId and returns 200 on success", async () => {
+  it("fetches responses for the given formId and returns 200 on success", async () => {
     vi.mocked(fetch).mockResolvedValue(
       new Response(JSON.stringify({ value: [{ answer: "yes" }] }), {
         status: 200,
@@ -33,7 +33,7 @@ describe("GET /api/v1/tasks/[taskId]/responses", () => {
 
     const res = await GET(
       makeApiRequest("/api/v1/tasks/abc/responses", { token: "t" }),
-      { params: Promise.resolve({ taskId: "abc" }) },
+      { params: Promise.resolve({ formId: "abc" }) },
     );
 
     expect(res.status).toBe(200);
@@ -53,7 +53,7 @@ describe("GET /api/v1/tasks/[taskId]/responses", () => {
 
     const res = await GET(
       makeApiRequest("/api/v1/tasks/missing/responses", { token: "t" }),
-      { params: Promise.resolve({ taskId: "missing" }) },
+      { params: Promise.resolve({ formId: "missing" }) },
     );
 
     expect(res.status).toBe(404);
@@ -64,7 +64,7 @@ describe("GET /api/v1/tasks/[taskId]/responses", () => {
 
     const res = await GET(
       makeApiRequest("/api/v1/tasks/abc/responses", { token: "t" }),
-      { params: Promise.resolve({ taskId: "abc" }) },
+      { params: Promise.resolve({ formId: "abc" }) },
     );
 
     expect(res.status).toBe(500);
