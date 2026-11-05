@@ -5,6 +5,7 @@ import { POST } from "@/app/api/v1/register/route";
 import { makeApiRequest, tokenPair } from "../../../../testUtils/nextRequest";
 
 const signup = {
+  username: "ann",
   email: "new@test.com",
   password: "secret1",
   signupCode: "CODE",
@@ -42,12 +43,26 @@ describe("POST /api/v1/register", () => {
     vi.restoreAllMocks();
   });
 
-  it("returns 400 when email is missing", async () => {
-    const res = await register({ ...signup, email: undefined });
+  it("returns 400 when username is missing", async () => {
+    const res = await register({ ...signup, username: " " });
 
     expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({ error: "missing email or password" });
+    expect(await res.json()).toEqual({ error: "missing username or password" });
     expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["sends the email next to the username", "new@test.com", "new@test.com"],
+    ["leaves a blank email out", " ", undefined],
+  ])("%s", async (_, email, sent) => {
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(json(tokenPair(), 201))
+      .mockResolvedValueOnce(json(tokenPair(), 201));
+
+    await register({ ...signup, email });
+
+    expect(call(0).body.username).toBe("ann");
+    expect(call(0).body.email).toBe(sent);
   });
 
   it("returns 400 when password is missing", async () => {
@@ -81,7 +96,7 @@ describe("POST /api/v1/register", () => {
     expect(res.status).toBe(201);
     expect(call(0)).toMatchObject({
       path: "/api/v1/auth/register",
-      body: { username: "new@test.com", password: "secret1" },
+      body: { username: "ann", password: "secret1", email: "new@test.com" },
     });
     expect(call(1)).toMatchObject({
       path: "/api/v1/me/roles/researcher",

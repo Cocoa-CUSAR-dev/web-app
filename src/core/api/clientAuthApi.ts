@@ -29,12 +29,13 @@ async function postOrThrow(path: string, body: unknown): Promise<void> {
 }
 
 const clientAuthApi = {
-  login: async (email: string, password: string) => {
+  /** `username` is the username or the email. */
+  login: async (username: string, password: string) => {
     try {
       const response = await fetchResponse("/api/v1/login", {
         method: "POST",
         body: JSON.stringify({
-          username: email,
+          username,
           password,
         }),
       });
@@ -50,8 +51,13 @@ const clientAuthApi = {
     }
   },
   /** Create a researcher account with the team's sign-up code; signed in after. */
-  register: (email: string, password: string, signup: ResearcherSignupForm) =>
-    postOrThrow("/api/v1/register", { email, password, ...signup }),
+  register: (
+    username: string,
+    email: string,
+    password: string,
+    signup: ResearcherSignupForm,
+  ) =>
+    postOrThrow("/api/v1/register", { username, email, password, ...signup }),
   /** Add the researcher role to the signed-in account. */
   becomeResearcher: (signup: ResearcherSignupForm) =>
     postOrThrow("/api/v1/me/roles/researcher", signup),

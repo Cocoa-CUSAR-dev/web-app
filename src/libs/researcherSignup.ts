@@ -73,17 +73,19 @@ async function addResearcherRole(
   return (await response.json()) as TokenPair;
 }
 
-/** Create the account and sign it in. If the email is already registered
+/** Create the account and sign it in. If the username is already registered
  * and the password matches, sign that account in instead: a sign-up whose
  * code was wrong left an account without a role, and trying again with the
- * right code must still work. */
+ * right code must still work. A blank email is left out. */
 async function createOrSignIn(
   username: string,
   password: string,
+  email?: string,
 ): Promise<TokenPair> {
   const created = await backendPost(backendEndpoints.auth.register, {
     username,
     password,
+    ...(email?.trim() ? { email: email.trim() } : {}),
   });
   if (created.ok) return (await created.json()) as TokenPair;
   if (created.status !== 409) throw await failure(created);
@@ -92,7 +94,7 @@ async function createOrSignIn(
     username,
     password,
   });
-  // A wrong password for a taken email: report "already registered", not
+  // A wrong password for a taken username: report "already registered", not
   // "wrong password", since this is the sign-up form.
   if (!signedIn.ok)
     throw await failure(signedIn.status === 401 ? created : signedIn);
