@@ -13,7 +13,7 @@ function DiaryCard({ diaryText }: { diaryText: string }) {
           borderRadius: "0.5rem",
           borderWidth: "1px",
           borderStyle: "solid",
-          borderColor: "#606060",
+          borderColor: "divider",
         }}
       >
         <Typography whiteSpace={"pre-line"}>{diaryText}</Typography>

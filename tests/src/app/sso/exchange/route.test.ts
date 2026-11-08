@@ -2,12 +2,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { POST } from "@/app/sso/exchange/route";
 
-import { makeApiRequest } from "../../../testUtils/nextRequest";
+import { makeApiRequest, tokenPair } from "../../../testUtils/nextRequest";
 
 // US3-2 #125 (F2): the /sso page reads the token out of the URL fragment and
 // POSTs it here. This route is the only place the token touches the server,
-// so it must carry it in the body (never a URL) and hand the session cookie
-// back untouched.
+// so it must carry it in the body (never a URL) and turn the token pair the
+// backend answers with into this app's session cookies.
 
 describe("POST /sso/exchange", () => {
   beforeEach(() => {
@@ -47,7 +47,9 @@ describe("POST /sso/exchange", () => {
   });
 
   it("sends the token to the backend in a POST body, never in the URL", async () => {
-    vi.mocked(fetch).mockResolvedValue(new Response(null, { status: 200 }));
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(JSON.stringify(tokenPair()), { status: 200 }),
+    );
 
     await POST(
       makeApiRequest("/sso/exchange", {
@@ -63,11 +65,10 @@ describe("POST /sso/exchange", () => {
     expect(JSON.parse(String(init?.body))).toEqual({ token: "SECRET123" });
   });
 
-  it("forwards the backend's Set-Cookie so the browser gets a session", async () => {
+  it("stores the backend's token pair so the browser gets a session", async () => {
     vi.mocked(fetch).mockResolvedValue(
-      new Response(null, {
+      new Response(JSON.stringify(tokenPair({ access_token: "session123" })), {
         status: 200,
-        headers: { "set-cookie": "token=session123; Path=/; HttpOnly" },
       }),
     );
 
@@ -80,7 +81,8 @@ describe("POST /sso/exchange", () => {
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ ok: true });
-    expect(res.headers.get("set-cookie")).toContain("token=session123");
+    expect(res.cookies.get("token")?.value).toBe("session123");
+    expect(res.cookies.get("refresh_token")?.value).toBe("refresh-1");
   });
 
   it("returns 401 and no cookie when the backend refuses the token", async () => {

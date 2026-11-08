@@ -28,11 +28,18 @@ function fromReminderDetail(detail: ReminderDetail): ReminderValue {
   };
 }
 
+// Labels are display-only; the backend only wants type and id.
+function toRecipientRequests(
+  recipients: ReminderRecipient[],
+): ReminderRequest["recipients"] {
+  return recipients.map(({ type, id }) => ({ type, id }));
+}
+
 function toReminderRequest(value: ReminderValue): ReminderRequest {
   return {
     enabled: value.enabled,
     timeOfDay: value.timeOfDay,
-    recipients: value.recipients.map(({ type, id }) => ({ type, id })),
+    recipients: toRecipientRequests(value.recipients),
   };
 }
 
@@ -55,6 +62,7 @@ export {
   fromReminderDetail,
   isReminderValid,
   replaceRecipientsOfType,
+  toRecipientRequests,
   toReminderRequest,
   toTimeInput,
 };

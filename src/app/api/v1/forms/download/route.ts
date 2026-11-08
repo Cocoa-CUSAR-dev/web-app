@@ -1,9 +1,10 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { backendUrl, tokenName } from "@/core/constants";
+import { backendEndpoints, backendHref, tokenName } from "@/core/constants";
 import { HttpError } from "@/core/error";
 import { apiErrorResponse, checkTokenPresence } from "@/libs/apiUtil";
+import { bearer, readBackendError } from "@/libs/backendSession";
 
 // Not migrated to proxyToBackend: this streams the raw response body
 // (an .xlsx file) straight through rather than parsing it as JSON, so it
@@ -20,21 +21,18 @@ async function GET(req: NextRequest) {
     const sheetsString = sheets ? `?sheets=${sheets.toUpperCase()}` : "";
     const token = cookies.get(tokenName);
     const response = await fetch(
-      `${backendUrl}/api/v1/reports/raw-data/download${sheetsString}`,
+      backendHref(backendEndpoints.reports.rawData(sheetsString)),
       {
         method: "GET",
         headers: {
-          Cookie: `${token!.name}=${token!.value}`,
+          Authorization: bearer(token!.value),
         },
       },
     );
     if (!response.ok) {
-      const { error } = await response.json();
-      const setCookie = response.headers.getSetCookie();
       throw new HttpError(
         response.status,
-        error ?? response.statusText,
-        setCookie,
+        (await readBackendError(response)) ?? response.statusText,
       );
     }
     const contentType =

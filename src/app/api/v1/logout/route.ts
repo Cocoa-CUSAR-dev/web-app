@@ -1,34 +1,44 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { backendUrl, tokenName } from "@/core/constants";
-import { HttpError } from "@/core/error";
+import {
+  backendEndpoints,
+  backendHref,
+  refreshTokenName,
+} from "@/core/constants";
 import { apiErrorResponse, checkTokenPresence } from "@/libs/apiUtil";
+import { clearSessionCookies } from "@/libs/backendSession";
 
+// Signing out revokes this browser's refresh token on the backend, then
+// forgets both cookies. The cookies go even when the backend call fails
+// (it is down, or the refresh token had already expired): the person asked
+// to be signed out of this browser, and that part is ours to do.
 async function GET(req: NextRequest) {
   try {
     checkTokenPresence(req);
-    const token = req.cookies.get(tokenName);
-    const backendResponse = await fetch(`${backendUrl}/api/v1/auth/logout`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Cookie: `${token!.name}=${token!.value}`,
-      },
-    });
-    if (!backendResponse.ok) {
-      const { error } = await backendResponse.json();
-      throw new HttpError(
-        backendResponse.status,
-        error ?? backendResponse.statusText,
-      );
-    }
-    const setCookie = backendResponse.headers.getSetCookie();
-    if (setCookie.length < 1) {
-      throw new HttpError(
-        backendResponse.status,
-        "backend did not send set cookie",
-      );
+    const refreshToken = req.cookies.get(refreshTokenName)?.value;
+    if (refreshToken) {
+      try {
+        const backendResponse = await fetch(
+          backendHref(backendEndpoints.auth.logout),
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ refresh_token: refreshToken }),
+          },
+        );
+        if (!backendResponse.ok) {
+          console.error(
+            `logout: backend answered ${backendResponse.status}, cookies cleared anyway`,
+          );
+        }
+      } catch (e) {
+        console.error(
+          e instanceof Error
+            ? `logout: ${e.name}: ${e.message}, cookies cleared anyway`
+            : "logout: unknown error, cookies cleared anyway",
+        );
+      }
     }
     const response = NextResponse.json(
       {
@@ -39,7 +49,7 @@ async function GET(req: NextRequest) {
         status: 200,
       },
     );
-    response.headers.append("Set-Cookie", setCookie[0]);
+    clearSessionCookies(response);
     return response;
   } catch (e) {
     return apiErrorResponse(e);

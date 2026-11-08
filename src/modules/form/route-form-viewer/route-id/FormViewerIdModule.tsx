@@ -1,19 +1,32 @@
 "use client";
 
-import { Box, Divider, Skeleton, Stack, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Divider,
+  Skeleton,
+  Stack,
+  Tab,
+  Tabs,
+  Typography,
+} from "@mui/material";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { CustomToast } from "@/components/utility/CustomToast";
 import { fetchResponse } from "@/libs/fetchResponse";
 
+import FormFieldMapTab from "./components/FormFieldMapTab";
 import ResponseTableModule from "./components/ResponseTable";
 import { TaskResponseResponse } from "./formViewerIdTypes";
 
-function FormViewerIdModule({ taskId }: { taskId: string }) {
+function FormViewerIdModule({ formId }: { formId: string }) {
+  const router = useRouter();
   const [responses, setResponses] = useState<Array<
     TaskResponseResponse["value"]
   > | null>(null);
   const [taskName, setTaskName] = useState<string | null>(null);
+  const [tab, setTab] = useState<"responses" | "fieldMap">("responses");
 
   const toastIdRef = useRef<string | null>(null);
 
@@ -23,9 +36,9 @@ function FormViewerIdModule({ taskId }: { taskId: string }) {
         CustomToast.dismiss(toastIdRef.current);
       }
       try {
-        const toastId = "form-view-" + taskId;
+        const toastId = "form-view-" + formId;
         const response = await CustomToast.promise(
-          fetchResponse(`/api/v1/tasks/${taskId}/responses`, {
+          fetchResponse(`/api/v1/tasks/${formId}/responses`, {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
@@ -65,12 +78,12 @@ function FormViewerIdModule({ taskId }: { taskId: string }) {
         console.error(e);
       }
     })();
-  }, [taskId]);
+  }, [formId]);
 
   useEffect(() => {
     (async () => {
       try {
-        const response = await fetch(`/api/v1/tasks/${taskId}`, {
+        const response = await fetch(`/api/v1/tasks/${formId}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -86,11 +99,16 @@ function FormViewerIdModule({ taskId }: { taskId: string }) {
         console.error(e);
       }
     })();
-  }, [taskId]);
+  }, [formId]);
 
   if (!responses) {
     return (
-      <Stack spacing={3} height={"100%"} divider={<Divider flexItem />}>
+      <Stack
+        spacing={3}
+        height={"100%"}
+        divider={<Divider flexItem />}
+        padding={{ xs: "1rem", sm: "1rem 2rem" }}
+      >
         <Stack direction={"row"} spacing={2} alignItems={"center"}>
           <Typography variant={"h2"}>{"Response:"}</Typography>
           {taskName ? (
@@ -121,39 +139,68 @@ function FormViewerIdModule({ taskId }: { taskId: string }) {
   }
 
   return (
-    <Stack spacing={3} height={"100%"} divider={<Divider flexItem />}>
-      <Stack direction={"row"} spacing={2} alignItems={"center"}>
-        <Typography variant={"h2"}>{"Response:"}</Typography>
-        {taskName ? (
-          <Typography variant={"h2"} noWrap>
-            {taskName}
-          </Typography>
-        ) : (
-          <Box height={"2.5rem"} width={"100%"}>
-            <Skeleton
-              variant={"rounded"}
-              width={"100%"}
-              height={"100%"}
-              animation={"wave"}
-            />
-          </Box>
-        )}
-      </Stack>
-      <Stack spacing={4} paddingBottom={"3rem"}>
-        {responses.length > 0 ? (
-          responses.map((response, idx) => (
-            <ResponseTableModule
-              key={response.questionTitle + idx}
-              response={response}
-            />
-          ))
-        ) : (
-          <Stack>
-            <Typography>
-              {
-                "Currently, there is no response from this form. Please try again later."
-              }
+    <Stack
+      spacing={3}
+      height={"100%"}
+      divider={<Divider flexItem />}
+      padding={{ xs: "1rem", sm: "1rem 2rem" }}
+    >
+      <Stack
+        direction={"row"}
+        spacing={2}
+        alignItems={"center"}
+        justifyContent={"space-between"}
+      >
+        <Stack direction={"row"} spacing={2} alignItems={"center"} minWidth={0}>
+          <Typography variant={"h2"}>{"Response:"}</Typography>
+          {taskName ? (
+            <Typography variant={"h2"} noWrap>
+              {taskName}
             </Typography>
+          ) : (
+            <Box height={"2.5rem"} width={"100%"}>
+              <Skeleton
+                variant={"rounded"}
+                width={"100%"}
+                height={"100%"}
+                animation={"wave"}
+              />
+            </Box>
+          )}
+        </Stack>
+        <Button
+          variant={"contained"}
+          sx={{ flexShrink: 0 }}
+          onClick={() => router.push(`/form/form-viewer/${formId}/review`)}
+        >
+          {"Review & correct"}
+        </Button>
+      </Stack>
+      <Stack spacing={2}>
+        <Tabs value={tab} onChange={(_, value) => setTab(value)}>
+          <Tab value={"responses"} label={"คำตอบ"} />
+          <Tab value={"fieldMap"} label={"ข้อมูลไปลงที่ไหน"} />
+        </Tabs>
+        {tab === "fieldMap" ? (
+          <FormFieldMapTab formId={formId} />
+        ) : (
+          <Stack spacing={4} paddingBottom={"3rem"}>
+            {responses.length > 0 ? (
+              responses.map((response, idx) => (
+                <ResponseTableModule
+                  key={response.questionTitle + idx}
+                  response={response}
+                />
+              ))
+            ) : (
+              <Stack>
+                <Typography>
+                  {
+                    "Currently, there is no response from this form. Please try again later."
+                  }
+                </Typography>
+              </Stack>
+            )}
           </Stack>
         )}
       </Stack>

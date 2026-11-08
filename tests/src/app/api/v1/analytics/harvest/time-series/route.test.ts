@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { POST } from "@/app/api/v1/analytics/harvest/time-series/route";
 
+import { hubTimeSeries } from "../../../../../../testUtils/hubShapes";
 import { makeApiRequest } from "../../../../../../testUtils/nextRequest";
 
 const validQuery = "mode=sum&from=2024-01&to=2024-02";
@@ -66,7 +67,7 @@ describe("POST /api/v1/analytics/harvest/time-series", () => {
 
   it("uses the plain GET endpoint when the request body has no polygon", async () => {
     vi.mocked(fetch).mockResolvedValue(
-      new Response(JSON.stringify({ value: { series: [] } }), {
+      new Response(JSON.stringify(hubTimeSeries), {
         status: 200,
       }),
     );
@@ -87,7 +88,7 @@ describe("POST /api/v1/analytics/harvest/time-series", () => {
 
   it("tolerates a request with no body at all (req.json() failure is swallowed)", async () => {
     vi.mocked(fetch).mockResolvedValue(
-      new Response(JSON.stringify({ value: { series: [] } }), {
+      new Response(JSON.stringify(hubTimeSeries), {
         status: 200,
       }),
     );
@@ -104,7 +105,7 @@ describe("POST /api/v1/analytics/harvest/time-series", () => {
 
   it("switches to the spatial POST endpoint when a polygon is given", async () => {
     vi.mocked(fetch).mockResolvedValue(
-      new Response(JSON.stringify({ value: { series: [] } }), {
+      new Response(JSON.stringify(hubTimeSeries), {
         status: 200,
       }),
     );
@@ -123,6 +124,23 @@ describe("POST /api/v1/analytics/harvest/time-series", () => {
       ),
       expect.objectContaining({ method: "POST" }),
     );
+  });
+
+  it("gives the page { value, error } when the hub answers with the bare data", async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(JSON.stringify(hubTimeSeries), { status: 200 }),
+    );
+
+    const res = await POST(
+      makeApiRequest(`/api/v1/analytics/harvest/time-series?${validQuery}`, {
+        method: "POST",
+        body: {},
+        token: "t",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ value: hubTimeSeries, error: null });
   });
 
   it("propagates the backend's error status and message", async () => {

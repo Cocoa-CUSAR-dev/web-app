@@ -10,10 +10,11 @@ import {
   Menu,
   MenuItem,
 } from "@mui/material";
-import { useCallback, useMemo, useState } from "react";
+import { forwardRef, useCallback, useMemo, useState } from "react";
 import Map, {
   Layer,
   MapLayerMouseEvent,
+  MapRef,
   Marker,
   Source,
 } from "react-map-gl/maplibre";
@@ -21,41 +22,44 @@ import Map, {
 import { defaultMap, mapStyles } from "@/core/constants/mapConstants";
 import { Color, MapType } from "@/core/types";
 
-function UtilityMap({
-  onFeatureHover,
-  onFeatureClick,
-  disabledFeatureHoveredColor = false,
-  featureHoveredColor = "rgba(60, 200, 40, 0.5)",
-  sourceId = "clickable-source",
-  layerId = "clickable-layer",
-  geoJson,
-  geoJsonPath,
-  disabledSelectMapStyle = false,
-  customMapStyles = mapStyles,
-  initialMapStyle = defaultMap,
-  utilButton,
-  utilButtonFunction,
-  marker,
-  markerLat,
-  markerLong,
-}: {
-  onFeatureHover?: (event: MapLayerMouseEvent) => void;
-  onFeatureClick?: (event: MapLayerMouseEvent) => void;
-  disabledFeatureHoveredColor?: boolean;
-  featureHoveredColor?: Color;
-  sourceId?: string;
-  layerId?: string;
-  geoJson?: GeoJSON.GeoJSON;
-  geoJsonPath?: string;
-  disabledSelectMapStyle?: boolean;
-  customMapStyles?: MapType[];
-  initialMapStyle?: MapType;
-  utilButton?: React.ReactNode;
-  utilButtonFunction?: () => void;
-  marker?: React.ReactNode;
-  markerLat?: number;
-  markerLong?: number;
-}) {
+function UtilityMap(
+  {
+    onFeatureHover,
+    onFeatureClick,
+    disabledFeatureHoveredColor = false,
+    featureHoveredColor = "rgba(60, 200, 40, 0.5)",
+    sourceId = "clickable-source",
+    layerId = "clickable-layer",
+    geoJson,
+    geoJsonPath,
+    disabledSelectMapStyle = false,
+    customMapStyles = mapStyles,
+    initialMapStyle = defaultMap,
+    utilButton,
+    utilButtonFunction,
+    marker,
+    markerLat,
+    markerLong,
+  }: {
+    onFeatureHover?: (event: MapLayerMouseEvent) => void;
+    onFeatureClick?: (event: MapLayerMouseEvent) => void;
+    disabledFeatureHoveredColor?: boolean;
+    featureHoveredColor?: Color;
+    sourceId?: string;
+    layerId?: string;
+    geoJson?: GeoJSON.GeoJSON;
+    geoJsonPath?: string;
+    disabledSelectMapStyle?: boolean;
+    customMapStyles?: MapType[];
+    initialMapStyle?: MapType;
+    utilButton?: React.ReactNode;
+    utilButtonFunction?: () => void;
+    marker?: React.ReactNode;
+    markerLat?: number;
+    markerLong?: number;
+  },
+  ref: React.Ref<MapRef>,
+) {
   const [hoveredId, setHoveredId] = useState<number | null>(null);
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -219,6 +223,7 @@ function UtilityMap({
     if (geoJsonObj) {
       return (
         <Map
+          ref={ref}
           initialViewState={{
             longitude: 100.50194,
             latitude: 13.75692,
@@ -269,6 +274,7 @@ function UtilityMap({
     }
     return (
       <Map
+        ref={ref}
         initialViewState={{
           longitude: 100.50194,
           latitude: 13.75692,
@@ -297,6 +303,7 @@ function UtilityMap({
     markerLong,
     onMapClick,
     onMouseMove,
+    ref,
     selectedIndex,
     sourceId,
   ]);
@@ -328,4 +335,4 @@ function UtilityMap({
   );
 }
 
-export default UtilityMap;
+export default forwardRef(UtilityMap);

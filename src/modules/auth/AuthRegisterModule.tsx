@@ -19,6 +19,8 @@ import AuthForm from "./components/AuthForm";
 function AuthRegisterModule({
   toLoginState,
   isAuthLoading,
+  username,
+  setUsername,
   email,
   setEmail,
   password,
@@ -29,9 +31,14 @@ function AuthRegisterModule({
   setLastName,
   organization,
   setOrganization,
+  signupCode,
+  setSignupCode,
+  handleRegister,
 }: {
   toLoginState: () => void;
   isAuthLoading: boolean;
+  username: string;
+  setUsername: (username: string) => void;
   email: string;
   setEmail: (email: string) => void;
   password: string;
@@ -42,6 +49,9 @@ function AuthRegisterModule({
   setLastName: (lastName: string) => void;
   organization: string;
   setOrganization: (organization: string) => void;
+  signupCode: string;
+  setSignupCode: (signupCode: string) => void;
+  handleRegister: () => void;
 }) {
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
@@ -51,13 +61,25 @@ function AuthRegisterModule({
       onCornderButtonClick={toLoginState}
       cornerButtonLabel={"Already have an account? Log in now"}
       isLoading={isAuthLoading}
+      onSubmit={handleRegister}
     >
       <FormControl fullWidth>
         <Stack spacing={2}>
           <TextField
             type={"text"}
             size={"small"}
-            label={"email"}
+            label={"username"}
+            fullWidth
+            value={username}
+            onChange={(e) => {
+              setUsername(e.target.value);
+            }}
+          />
+          <TextField
+            type={"email"}
+            size={"small"}
+            label={"email (optional)"}
+            helperText={"You can log in with this too"}
             fullWidth
             value={email}
             onChange={(e) => {
@@ -98,6 +120,17 @@ function AuthRegisterModule({
                   </IconButton>
                 ),
               },
+            }}
+          />
+          <TextField
+            type={"text"}
+            size={"small"}
+            label={"Sign-up code"}
+            helperText={"Given to researchers by the project team"}
+            fullWidth
+            value={signupCode}
+            onChange={(e) => {
+              setSignupCode(e.target.value);
             }}
           />
           <Divider
@@ -144,7 +177,7 @@ function AuthRegisterModule({
               }
             }}
           />
-          <Button type={"submit"} variant={"contained"} onClick={() => {}}>
+          <Button type={"submit"} variant={"contained"}>
             {"Register"}
           </Button>
         </Stack>

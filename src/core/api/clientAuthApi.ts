@@ -2,13 +2,40 @@ import "client-only";
 
 import { fetchResponse } from "@/libs/fetchResponse";
 
+type ResearcherSignupForm = {
+  signupCode: string;
+  firstName: string;
+  lastName: string;
+  organization: string;
+};
+
+// POST to one of this app's routes; throws an Error carrying the route's
+// own message ({"error": "..."}), e.g. a wrong sign-up code.
+async function postOrThrow(path: string, body: unknown): Promise<void> {
+  const response = await fetch(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (response.ok) return;
+  let message = response.statusText;
+  try {
+    const data = (await response.json()) as { error?: string };
+    if (data.error) message = data.error;
+  } catch {
+    // not JSON: keep the status text
+  }
+  throw new Error(message);
+}
+
 const clientAuthApi = {
-  login: async (email: string, password: string) => {
+  /** `username` is the username or the email. */
+  login: async (username: string, password: string) => {
     try {
       const response = await fetchResponse("/api/v1/login", {
         method: "POST",
         body: JSON.stringify({
-          username: email,
+          username,
           password,
         }),
       });
@@ -23,6 +50,18 @@ const clientAuthApi = {
       return false;
     }
   },
+  /** Create a researcher account with the team's sign-up code; signed in after. */
+  register: (
+    username: string,
+    email: string,
+    password: string,
+    signup: ResearcherSignupForm,
+  ) =>
+    postOrThrow("/api/v1/register", { username, email, password, ...signup }),
+  /** Add the researcher role to the signed-in account. */
+  becomeResearcher: (signup: ResearcherSignupForm) =>
+    postOrThrow("/api/v1/me/roles/researcher", signup),
 } as const;
 
 export { clientAuthApi };
+export type { ResearcherSignupForm };

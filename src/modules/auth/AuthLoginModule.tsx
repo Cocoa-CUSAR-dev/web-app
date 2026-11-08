@@ -21,15 +21,17 @@ import TermsOfUseContent from "@/modules/legal/TermsOfUseContent";
 function AuthLoginModule({
   isAuthLoading,
   handleLogin,
-  email,
-  setEmail,
+  username,
+  setUsername,
   password,
   setPassword,
+  toRegisterState,
 }: {
   isAuthLoading: boolean;
   handleLogin: () => void;
-  email: string;
-  setEmail: (email: string) => void;
+  toRegisterState: () => void;
+  username: string;
+  setUsername: (username: string) => void;
   password: string;
   setPassword: (password: string) => void;
 }) {
@@ -76,6 +78,7 @@ function AuthLoginModule({
               fullWidth
               variant={"outlined"}
               onClick={() => {
+                setIsCheckedTermsOfService(true);
                 setModalOpen(false);
               }}
             >
@@ -88,17 +91,19 @@ function AuthLoginModule({
         title={"Researcher Login"}
         isLoading={isAuthLoading}
         onSubmit={handleLogin}
+        onCornderButtonClick={toRegisterState}
+        cornerButtonLabel={"New researcher? Sign up with a code"}
       >
         <FormControl fullWidth>
           <Stack spacing={2}>
             <TextField
               type={"text"}
               size={"small"}
-              label={"email"}
+              label={"username or email"}
               fullWidth
-              value={email}
+              value={username}
               onChange={(e) => {
-                setEmail(e.target.value);
+                setUsername(e.target.value);
               }}
             />
             <TextField
@@ -180,7 +185,7 @@ function AuthLoginModule({
             <Button
               type={"submit"}
               variant={"contained"}
-              disabled={!email || !password || !isCheckedTermsOfService}
+              disabled={!username || !password || !isCheckedTermsOfService}
               onClick={() => {}}
             >
               {"Log In"}

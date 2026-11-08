@@ -1,11 +1,12 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { backendEndpoints } from "@/core/constants";
 import { HttpError } from "@/core/error";
 import {
   apiErrorResponse,
   checkTokenPresence,
-  proxyToBackend,
+  proxyValueToBackend,
 } from "@/libs/apiUtil";
 import {
   UpdateFormRequest,
@@ -20,9 +21,9 @@ async function GET(
   try {
     checkTokenPresence(req);
     const { id } = await params;
-    const data = await proxyToBackend<GetFormIdResponse>(
+    const data = await proxyValueToBackend<GetFormIdResponse>(
       req,
-      `/api/v1/forms/${id}`,
+      backendEndpoints.forms.byId(id),
       { method: "GET" },
     );
     return NextResponse.json(data, { status: 200 });
@@ -42,9 +43,9 @@ async function PUT(
     if (!body.sections?.length) {
       throw new HttpError(400, "missing form section body");
     }
-    const data = await proxyToBackend<UpdateFormResponse>(
+    const data = await proxyValueToBackend<UpdateFormResponse>(
       req,
-      `/api/v1/forms/${id}`,
+      backendEndpoints.forms.byId(id),
       { method: "PUT", body: JSON.stringify(body) },
     );
     return NextResponse.json(data, { status: 200 });

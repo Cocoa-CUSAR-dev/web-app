@@ -105,7 +105,7 @@ function FormEditTable({
             borderRadius: "0.5rem",
             borderWidth: "1px",
             borderStyle: "solid",
-            borderColor: "#606060",
+            borderColor: "divider",
             scrollbarWidth: "thin",
           }}
         >
@@ -117,7 +117,7 @@ function FormEditTable({
             }}
           >
             <TableHead>
-              <TableRow>
+              <TableRow sx={{ bgcolor: "action.hover" }}>
                 {formEditColumns.map((column, idx) => {
                   if (excludedColumns.includes(column)) return null;
                   const cellSize =

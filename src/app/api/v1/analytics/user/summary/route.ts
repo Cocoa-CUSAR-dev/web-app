@@ -1,12 +1,16 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { simpleDateRegex, userSummaryMode } from "@/core/constants";
+import {
+  backendEndpoints,
+  simpleDateRegex,
+  userSummaryMode,
+} from "@/core/constants";
 import { HttpError } from "@/core/error";
 import {
   apiErrorResponse,
   checkTokenPresence,
-  proxyToBackend,
+  proxyValueToBackend,
 } from "@/libs/apiUtil";
 
 async function GET(req: NextRequest) {
@@ -32,9 +36,9 @@ async function GET(req: NextRequest) {
     if (!userSummaryMode.includes(mode)) {
       throw new HttpError(400, "invalid data mode");
     }
-    const data = await proxyToBackend(
+    const data = await proxyValueToBackend(
       req,
-      `/api/v1/analytics/users/summary/${mode}?from=${from}&to=${to}`,
+      backendEndpoints.analytics.userSummary(mode, from, to),
       { method: "GET" },
     );
     return NextResponse.json(data, {

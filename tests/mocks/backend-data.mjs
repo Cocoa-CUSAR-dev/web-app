@@ -1,9 +1,53 @@
 // In-memory fixture data + mutation helpers for the E2E mock backend.
-// Shapes mirror the real Kotlin backend's `/api/v1/**` contract as consumed
-// by the Next.js BFF routes under `src/app/api/v1/**`.
+// Shapes mirror the merged backend's `/api/v1/**` contract (the After sheet of
+// api-migration-map.xlsx) as consumed by the Next.js BFF routes under
+// `src/app/api/v1/**`.
 
 export const TOKEN_NAME = process.env.TOKEN_NAME || "token";
+// The access token the mock hands out and accepts as `Authorization: Bearer`.
 export const TOKEN_VALUE = "e2e-mock-session-token";
+export const REFRESH_TOKEN_VALUE = "e2e-mock-refresh-token";
+// A second session, for specs that need a farmer rather than a researcher
+// (the history page is farmer-only). Handed out by the SSO exchange for any
+// token starting with "farmer-".
+export const FARMER_TOKEN_VALUE = "e2e-mock-farmer-session-token";
+
+// What every login-like endpoint answers with: tokens in the body, no cookie.
+export function tokenPairFor(user, accessToken) {
+  return {
+    access_token: accessToken,
+    refresh_token: REFRESH_TOKEN_VALUE,
+    token_type: "bearer",
+    expires_in: 3600,
+    user: {
+      user_id: user.userId,
+      username: user.email,
+      roles: user.roles,
+      must_reset_password: false,
+    },
+  };
+}
+
+// What GET /api/v1/me answers: the account, its roles, one profile per role.
+export function meFor(user) {
+  const profile = {
+    first_name: user.firstName,
+    last_name: user.lastName,
+    organization: user.organization,
+  };
+  return {
+    user_id: user.userId,
+    username: user.email,
+    roles: user.roles,
+    must_reset_password: false,
+    profiles: {
+      researcher: user.roles.includes("researcher") ? profile : null,
+      farmer: user.roles.includes("farmer") ? profile : null,
+      hub_collector: null,
+      processor: null,
+    },
+  };
+}
 
 export const authUser = {
   userId: "u-1",
@@ -46,48 +90,44 @@ export function buildTimeSeries(kind, mode, from, to) {
   const title = titleMap[mode] || `${kind} ${mode}`;
   const length = monthsBetween(from, to);
   const values = Array.from({ length }, (_, i) => (i + 1) * 10);
+  // The data itself, like the merged backend (the hub) sends it. The web app's
+  // own API routes wrap it in { value, error } for the pages.
   return {
-    value: {
-      from: from || null,
-      to: to || null,
-      title,
-      metadataa: {
-        provinceId: null,
-        districtId: null,
-        subdistrictId: null,
-        farmId: null,
-      },
-      series: [
-        {
-          label: kind === "harvest" ? "Weight (kg)" : "Users",
-          values,
-          unit: kind === "harvest" ? "kg" : null,
-        },
-      ],
+    from: from || null,
+    to: to || null,
+    title,
+    metadata: {
+      provinceId: null,
+      districtId: null,
+      subdistrictId: null,
+      farmId: null,
     },
-    error: null,
+    series: [
+      {
+        label: kind === "harvest" ? "Weight (kg)" : "Users",
+        values,
+        unit: kind === "harvest" ? "kg" : null,
+      },
+    ],
   };
 }
 
 export function buildSummary(kind, mode, from, to) {
   return {
-    value: {
-      from: from || null,
-      to: to || null,
-      title: `${kind} ${mode} summary`,
-      metadata: {
-        provinceId: null,
-        districtId: null,
-        subdistrictId: null,
-        farmId: null,
-      },
-      data: {
-        label: kind,
-        value: 0,
-        unit: kind === "harvest" ? "kg" : "count",
-      },
+    from: from || null,
+    to: to || null,
+    title: `${kind} ${mode} summary`,
+    metadata: {
+      provinceId: null,
+      districtId: null,
+      subdistrictId: null,
+      farmId: null,
     },
-    error: null,
+    data: {
+      label: kind,
+      value: 0,
+      unit: kind === "harvest" ? "kg" : "count",
+    },
   };
 }
 
@@ -256,7 +296,10 @@ export function applyFormEdit(formId, sections) {
 }
 
 export function getTasks() {
+  // The hub's `?include=stats` rows carry both ids; the screens address a
+  // form by its form id (a form has one task).
   return getForms().map((f) => ({
+    formId: f.formId,
     taskId: f.taskId,
     title: f.title,
     description: f.description,
@@ -266,6 +309,188 @@ export function getTasks() {
   }));
 }
 
-export function getTaskById(taskId) {
-  return getTasks().find((t) => t.taskId === taskId) || null;
+export function getTaskByFormId(formId) {
+  return getTasks().find((t) => t.formId === formId) || null;
+}
+
+// ---- Review & correct (US2-8, docs-and-plan#174) ----
+// Field-by-field submissions for form-1, mutable so a correction persists
+// across reloads the way web-backend's PATCH .../fields/{fieldName} does.
+// resetReview() puts it back for the next spec.
+
+let reviewState = null;
+
+function initialReview() {
+  return [
+    {
+      responseId: "resp-1",
+      submitter: "สมชาย ใจดี",
+      submittedAt: "2026-10-01T03:30:00",
+      fields: [
+        // Pulled out of the farmer's free-text message by the LLM.
+        {
+          fieldName: "harvest_weight",
+          label: "น้ำหนักผลผลิต",
+          inputType: "FLOAT",
+          value: "120",
+          source: "llm_extracted",
+          editable: true,
+        },
+        {
+          fieldName: "tree_count",
+          label: "จำนวนต้น",
+          inputType: "INT",
+          value: "40",
+          source: "guided_flow",
+          editable: true,
+        },
+        {
+          fieldName: "plot_photo",
+          label: "รูปแปลง",
+          inputType: "IMAGE",
+          value: "photo-1.jpg",
+          source: null,
+          editable: false,
+        },
+      ],
+    },
+    {
+      responseId: "resp-2",
+      submitter: "สมหญิง รักสวน",
+      submittedAt: "2026-10-02T04:00:00",
+      fields: [
+        {
+          fieldName: "harvest_weight",
+          label: "น้ำหนักผลผลิต",
+          inputType: "FLOAT",
+          value: "95.5",
+          source: "guided_flow",
+          editable: true,
+        },
+        {
+          fieldName: "tree_count",
+          label: "จำนวนต้น",
+          inputType: "INT",
+          value: "32",
+          source: "guided_flow",
+          editable: true,
+        },
+      ],
+    },
+  ];
+}
+
+function review() {
+  if (!reviewState) reviewState = initialReview();
+  return reviewState;
+}
+
+export const reviewCorrections = [];
+
+export function resetReview() {
+  reviewState = initialReview();
+  reviewCorrections.length = 0;
+}
+
+// Forms whose submissions the logged-in researcher may not review.
+export const FORBIDDEN_REVIEW_FORM = "form-forbidden";
+
+export function getReview(formId, { aiOnly, page, size }) {
+  if (formId !== "form-1") return [];
+  const submissions = aiOnly
+    ? review().filter((s) => s.fields.some((f) => f.source === "llm_extracted"))
+    : review();
+  return submissions.slice(page * size, page * size + size);
+}
+
+// The backend, not the screen, has the last word on a value: its type
+// (web-backend's AnswerCoercion) and the question's own rules
+// (form.field_validation_rule). harvest_weight has a minimum of 0 -- a rule
+// the review screen doesn't know about, so only the backend can refuse it.
+const MIN_VALUE = { harvest_weight: 0 };
+
+function valueError(fieldName, inputType, value) {
+  const type = inputType.toUpperCase();
+  if (type === "INT" && !/^-?\d+$/.test(value))
+    return "Value must be a whole number";
+  if (type === "FLOAT" && Number.isNaN(Number(value)))
+    return "Value must be a number";
+  const min = MIN_VALUE[fieldName];
+  if (min !== undefined && Number(value) < min)
+    return `Value must be at least ${min}`;
+  return null;
+}
+
+export function applyCorrection(
+  formId,
+  responseId,
+  fieldName,
+  { value, reason },
+) {
+  const submission = review().find((s) => s.responseId === responseId);
+  const field = submission?.fields.find((f) => f.fieldName === fieldName);
+  if (formId !== "form-1" || !field)
+    return { status: 404, error: "field not found" };
+  if (!field.editable)
+    return { status: 400, error: "This field type can't be corrected" };
+  const error = valueError(fieldName, field.inputType, value);
+  if (error) return { status: 400, error };
+  reviewCorrections.push({
+    responseId,
+    fieldName,
+    from: field.value,
+    to: value,
+    reason: reason ?? null,
+  });
+  field.value = value;
+  return { status: 200, field };
+}
+
+// ---- Farmer & submission history (docs-and-plan#231) ----
+
+export const farmerUser = {
+  userId: "f-1",
+  email: "farmer@example.com",
+  firstName: "สมชาย",
+  lastName: "ใจดี",
+  organization: null,
+  isPasswordReset: true,
+  isRequiresPasswordReset: false,
+  roles: ["farmer"],
+};
+
+// 55 days with submissions, newest first, ending 2026-10-20 -- more than one
+// page of 50, so "load more" has something to load. Every third day has a
+// generated diary; the others fall back to the raw answers.
+export const HISTORY_DAYS = Array.from({ length: 55 }, (_, i) => {
+  const d = new Date(Date.UTC(2026, 9, 20 - i));
+  return d.toISOString().slice(0, 10);
+});
+
+export function getHistoryDays(page, size) {
+  return HISTORY_DAYS.slice(page * size, page * size + size);
+}
+
+export function getDiary(date) {
+  const i = HISTORY_DAYS.indexOf(date);
+  if (i < 0 || i % 3 !== 0) return null;
+  return {
+    userId: farmerUser.userId,
+    entryDate: date,
+    diaryText: `วันที่ ${date} ใส่ปุ๋ยคอก 12.5 กิโลกรัม`,
+    updatedAt: `${date}T10:00:00`,
+  };
+}
+
+export function getHistoryAnswers(date) {
+  const i = HISTORY_DAYS.indexOf(date);
+  if (i < 0) return [];
+  // Enough rows on the first raw day to page the answers table (10 a page).
+  const count = i === 1 ? 12 : 2;
+  return Array.from({ length: count }, (_, n) => ({
+    fieldName: `field_${n + 1}`,
+    label: `คำถามที่ ${n + 1}`,
+    inputType: "VARCHAR",
+    rawValue: `คำตอบ ${n + 1} ของ ${date}`,
+  }));
 }

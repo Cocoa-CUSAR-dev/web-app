@@ -1,19 +1,20 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { backendEndpoints } from "@/core/constants";
 import {
   apiErrorResponse,
   checkTokenPresence,
-  proxyToBackend,
+  proxyValueToBackend,
 } from "@/libs/apiUtil";
 import { HandlersResponse } from "@/modules/form/route-form-create/formCreateTypes";
 
 async function GET(req: NextRequest) {
   try {
     checkTokenPresence(req);
-    const data = await proxyToBackend<HandlersResponse>(
+    const data = await proxyValueToBackend<HandlersResponse>(
       req,
-      "/api/v1/forms/handlers",
+      backendEndpoints.forms.handlers,
       { method: "GET" },
     );
     return NextResponse.json(data, { status: 200 });
