@@ -43,3 +43,47 @@ describe("clientAuthApi.login", () => {
     expect(result).toBe(false);
   });
 });
+
+describe("clientAuthApi forgot password", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("asks for a code and sends the code with the new password", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(null));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await clientAuthApi.forgotPassword("ann@test.com");
+    await clientAuthApi.confirmForgotPassword(
+      "ann@test.com",
+      "123456",
+      "pw-12345",
+    );
+
+    expect(fetchMock.mock.calls[0][0]).toBe("/api/v1/forgot-password");
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({
+      login: "ann@test.com",
+    });
+    expect(fetchMock.mock.calls[1][0]).toBe("/api/v1/forgot-password/confirm");
+    expect(JSON.parse(fetchMock.mock.calls[1][1].body)).toEqual({
+      login: "ann@test.com",
+      code: "123456",
+      newPassword: "pw-12345",
+    });
+  });
+
+  it("throws the own message of the route when the code is refused", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ error: "The code is wrong" }), {
+          status: 400,
+        }),
+      ),
+    );
+
+    await expect(
+      clientAuthApi.confirmForgotPassword("ann", "000000", "pw-12345"),
+    ).rejects.toThrow("The code is wrong");
+  });
+});

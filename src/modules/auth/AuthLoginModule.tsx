@@ -26,10 +26,12 @@ function AuthLoginModule({
   password,
   setPassword,
   toRegisterState,
+  toForgotPasswordState,
 }: {
   isAuthLoading: boolean;
   handleLogin: () => void;
   toRegisterState: () => void;
+  toForgotPasswordState: () => void;
   username: string;
   setUsername: (username: string) => void;
   password: string;
@@ -189,6 +191,13 @@ function AuthLoginModule({
               onClick={() => {}}
             >
               {"Log In"}
+            </Button>
+            <Button
+              variant={"text"}
+              size={"small"}
+              onClick={toForgotPasswordState}
+            >
+              {"Forgot password?"}
             </Button>
           </Stack>
         </FormControl>

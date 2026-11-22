@@ -22,6 +22,16 @@ describe("backendEndpoints paths", () => {
       "auth",
       "/api/v1/auth/reset-password",
     ],
+    [
+      backendEndpoints.auth.forgotPassword,
+      "auth",
+      "/api/v1/auth/forgot-password",
+    ],
+    [
+      backendEndpoints.auth.forgotPasswordConfirm,
+      "auth",
+      "/api/v1/auth/forgot-password/confirm",
+    ],
     [backendEndpoints.auth.ssoExchange, "auth", "/api/v1/auth/sso/exchange"],
     [backendEndpoints.me.self, "me", "/api/v1/me"],
     [backendEndpoints.me.history(), "me", "/api/v1/me/history"],
@@ -41,6 +51,11 @@ describe("backendEndpoints paths", () => {
       "/api/v1/me/diaries/2026-09-01",
     ],
     [backendEndpoints.admin.users, "admin", "/api/v1/admin/users"],
+    [
+      backendEndpoints.admin.passwordResets,
+      "admin",
+      "/api/v1/admin/password-resets",
+    ],
     [backendEndpoints.forms.list, "forms", "/api/v1/forms"],
     [
       backendEndpoints.forms.listWithStats,

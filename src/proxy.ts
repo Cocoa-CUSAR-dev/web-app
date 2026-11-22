@@ -110,7 +110,9 @@ function route(req: NextRequest, token: boolean) {
     const pageParam = searchParams.get("page");
     if (
       !pageParam ||
-      !["login", "register", "reset-password"].includes(pageParam)
+      !["login", "register", "reset-password", "forgot-password"].includes(
+        pageParam,
+      )
     ) {
       return NextResponse.redirect(new URL("/auth?page=login", req.url));
     }

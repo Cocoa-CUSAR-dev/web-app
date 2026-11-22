@@ -7,11 +7,17 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CustomToast } from "@/components/utility/CustomToast";
 import { clientAuthApi } from "@/core/api/clientAuthApi";
 
+import AuthForgotPasswordModule from "./AuthForgotPasswordModule";
 import AuthLoginModule from "./AuthLoginModule";
 import AuthRegisterModule from "./AuthRegisterModule";
 import AuthResetPasswordModule from "./AuthResetPasswordModule";
 
-const possiblePageStates = ["login", "register", "reset-password"] as const;
+const possiblePageStates = [
+  "login",
+  "register",
+  "reset-password",
+  "forgot-password",
+] as const;
 type PageState = (typeof possiblePageStates)[number];
 
 function AuthModule() {
@@ -53,6 +59,14 @@ function AuthModule() {
     const newUrl = `${window.location.pathname}?${newParams.toString()}`;
     window.history.replaceState(null, "", newUrl);
     setPageState("register");
+  }, []);
+
+  const toForgotPasswordState = useCallback(() => {
+    const newParams = new URLSearchParams(window.location.search);
+    newParams.set("page", "forgot-password");
+    const newUrl = `${window.location.pathname}?${newParams.toString()}`;
+    window.history.replaceState(null, "", newUrl);
+    setPageState("forgot-password");
   }, []);
 
   const handleLogin = useCallback(async () => {
@@ -126,6 +140,10 @@ function AuthModule() {
       setPageState("reset-password");
       return;
     }
+    if (pageParam === "forgot-password") {
+      setPageState("forgot-password");
+      return;
+    }
   }, [params, toLoginState]);
 
   useEffect(() => {
@@ -155,6 +173,16 @@ function AuthModule() {
             password={password}
             setPassword={setPassword}
             toRegisterState={toRegisterState}
+            toForgotPasswordState={toForgotPasswordState}
+          />
+        );
+      case "forgot-password":
+        return (
+          <AuthForgotPasswordModule
+            isAuthLoading={isAuthLoading}
+            setIsAuthLoading={setIsAuthLoading}
+            toLoginState={toLoginState}
+            initialLogin={username}
           />
         );
       case "register":
@@ -201,6 +229,7 @@ function AuthModule() {
     pageState,
     password,
     signupCode,
+    toForgotPasswordState,
     toLoginState,
     toRegisterState,
   ]);
