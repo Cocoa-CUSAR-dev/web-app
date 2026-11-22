@@ -107,6 +107,15 @@ function NavigationBar({ children }: { children: React.ReactNode }) {
               {"Register Researcher"}
             </AnimatedLink>
           )}
+          {isAdmin && (
+            <AnimatedLink
+              href={"/admin/reset-password"}
+              underline={"none"}
+              color={"white"}
+            >
+              {"Reset Password"}
+            </AnimatedLink>
+          )}
           <AnimatedLink href={"/dashboard"} underline={"none"} color={"white"}>
             {"Dashboard"}
           </AnimatedLink>

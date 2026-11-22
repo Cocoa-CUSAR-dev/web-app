@@ -58,6 +58,16 @@ const clientAuthApi = {
     signup: ResearcherSignupForm,
   ) =>
     postOrThrow("/api/v1/register", { username, email, password, ...signup }),
+  /** Ask for a reset code. The answer is the same whether or not the account exists. */
+  forgotPassword: (login: string) =>
+    postOrThrow("/api/v1/forgot-password", { login }),
+  /** Set a new password with the code that was sent. */
+  confirmForgotPassword: (login: string, code: string, newPassword: string) =>
+    postOrThrow("/api/v1/forgot-password/confirm", {
+      login,
+      code,
+      newPassword,
+    }),
   /** Add the researcher role to the signed-in account. */
   becomeResearcher: (signup: ResearcherSignupForm) =>
     postOrThrow("/api/v1/me/roles/researcher", signup),

@@ -56,6 +56,19 @@ describe("proxy middleware", () => {
     expect(res.cookies.get(refreshTokenName)?.value).toBe("");
   });
 
+  it("lets a signed-out visitor open the forgot-password page", async () => {
+    const res = await proxy(makeRequest("/auth?page=forgot-password"));
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get("x-middleware-next")).toBe("1");
+  });
+
+  it("sends a signed-in user away from the forgot-password page", async () => {
+    const res = await proxy(makeRequest("/auth?page=forgot-password", "t"));
+
+    expect(res.headers.get("location")).toBe("http://localhost/dashboard");
+  });
+
   it("redirects an authenticated user away from /auth?page=login to the dashboard", async () => {
     const res = await proxy(makeRequest("/auth?page=login", "sometoken"));
 

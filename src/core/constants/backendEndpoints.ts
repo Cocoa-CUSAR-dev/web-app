@@ -51,6 +51,12 @@ const backendEndpoints = {
     refresh: endpoint("auth", "/api/v1/auth/refresh"),
     logout: endpoint("auth", "/api/v1/auth/logout"),
     resetPassword: endpoint("auth", "/api/v1/auth/reset-password"),
+    // Forgot password: ask for a code, then send the code with a new password.
+    forgotPassword: endpoint("auth", "/api/v1/auth/forgot-password"),
+    forgotPasswordConfirm: endpoint(
+      "auth",
+      "/api/v1/auth/forgot-password/confirm",
+    ),
     ssoExchange: endpoint("auth", "/api/v1/auth/sso/exchange"),
   },
   me: {
@@ -64,6 +70,8 @@ const backendEndpoints = {
   },
   admin: {
     users: endpoint("admin", "/api/v1/admin/users"),
+    // An admin hands someone a temporary password.
+    passwordResets: endpoint("admin", "/api/v1/admin/password-resets"),
   },
   forms: {
     list: endpoint("forms", "/api/v1/forms"),
